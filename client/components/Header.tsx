@@ -17,6 +17,7 @@ export default function Header() {
     { label: "Cursos", path: "/cursos" },
     { label: "Geomapa", path: "/geomapa" },
     { label: "Asistente", path: "/asistente" },
+    { label: "Auditoría", path: "/auditoria" },
   ];
 
   return (
