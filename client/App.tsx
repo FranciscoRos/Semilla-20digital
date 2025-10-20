@@ -12,6 +12,7 @@ import Apoyos from "./pages/Apoyos";
 import Cursos from "./pages/Cursos";
 import Geomapa from "./pages/Geomapa";
 import Asistente from "./pages/Asistente";
+import Auditoria from "./pages/Auditoria";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/cursos" element={<Cursos />} />
           <Route path="/geomapa" element={<Geomapa />} />
           <Route path="/asistente" element={<Asistente />} />
+          <Route path="/auditoria" element={<Auditoria />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
