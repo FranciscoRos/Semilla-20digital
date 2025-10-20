@@ -18,6 +18,7 @@ export default function Header() {
     { label: "Geomapa", path: "/geomapa" },
     { label: "Asistente", path: "/asistente" },
     { label: "Auditoría", path: "/auditoria" },
+    { label: "Roles", path: "/login" },
   ];
 
   return (
