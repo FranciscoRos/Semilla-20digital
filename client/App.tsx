@@ -15,6 +15,11 @@ import Asistente from "./pages/Asistente";
 import Auditoria from "./pages/Auditoria";
 import Registro from "./pages/Registro";
 import ApoyoDetalle from "./pages/ApoyoDetalle";
+import LoginDashboard from "./pages/LoginDashboard";
+import ProducerDashboard from "./pages/ProducerDashboard";
+import ValidatorDashboard from "./pages/ValidatorDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import ChatBot from "./components/ChatBot";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +30,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Role Selection */}
+          <Route path="/login" element={<LoginDashboard />} />
+
+          {/* Role-Specific Dashboards */}
+          <Route path="/producer-dashboard" element={<ProducerDashboard />} />
+          <Route path="/validator-dashboard" element={<ValidatorDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
+
+          {/* Producer Features */}
           <Route path="/" element={<Index />} />
           <Route path="/apoyos" element={<Apoyos />} />
           <Route path="/apoyo/:id" element={<ApoyoDetalle />} />
@@ -36,6 +50,9 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+
+        {/* Global ChatBot on all pages */}
+        <ChatBot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
