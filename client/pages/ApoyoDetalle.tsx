@@ -121,7 +121,11 @@ export default function ApoyoDetalle() {
                   title: "Validación",
                   desc: "Revisión de documentos (5-10 días)",
                 },
-                { step: 4, title: "Aprobación", desc: "Notificación del resultado" },
+                {
+                  step: 4,
+                  title: "Aprobación",
+                  desc: "Notificación del resultado",
+                },
                 {
                   step: 5,
                   title: "Disposición",

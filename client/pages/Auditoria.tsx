@@ -65,7 +65,9 @@ export default function Auditoria() {
 
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Panel de Auditoría</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Panel de Auditoría
+          </h1>
           <p className="text-gray-600 mt-1">
             <span className="inline-block w-2 h-2 bg-green-600 rounded-full align-middle mr-2"></span>
             Sistema SEDARPE · Auditor Autorizado

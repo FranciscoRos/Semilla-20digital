@@ -76,7 +76,7 @@ export default function ChatBot() {
               },
             ],
           }),
-        }
+        },
       );
 
       if (!response.ok) {

@@ -114,7 +114,9 @@ export default function Index() {
                 onClick={() => navigate(service.path)}
                 className={`${service.color} rounded-lg p-6 text-left transition-all duration-200 cursor-pointer border border-gray-200 shadow-sm hover:shadow-md`}
               >
-                <div className={`${service.iconBg} w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4`}>
+                <div
+                  className={`${service.iconBg} w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4`}
+                >
                   <span className="text-xl">{service.icon}</span>
                 </div>
                 <h3 className="font-semibold text-gray-900">{service.title}</h3>

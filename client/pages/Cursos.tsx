@@ -176,7 +176,9 @@ export default function Cursos() {
         {/* All Courses */}
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {selectedCategory === "Todos" ? "Todos los Cursos" : `Cursos de ${selectedCategory}`}
+            {selectedCategory === "Todos"
+              ? "Todos los Cursos"
+              : `Cursos de ${selectedCategory}`}
           </h2>
           <div className="space-y-4">
             {filteredCourses

@@ -89,9 +89,7 @@ export default function Asistente() {
         <h1 className="text-2xl font-bold text-gray-900 mb-1">
           Asistente Semilla Digital
         </h1>
-        <p className="text-gray-600 mb-6">
-          Chatbot de soporte disponible 24/7
-        </p>
+        <p className="text-gray-600 mb-6">Chatbot de soporte disponible 24/7</p>
 
         {/* Chat Container */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col flex-1 max-h-96">

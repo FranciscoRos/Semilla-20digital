@@ -83,7 +83,7 @@ export default function Header() {
                 }`}
               >
                 {item.label}
-            </button>
+              </button>
             ))}
           </nav>
         )}

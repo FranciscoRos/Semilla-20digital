@@ -30,10 +30,7 @@ const supportPrograms: SupportProgram[] = [
     amount: "$8,500 MXN",
     description:
       "Subsidio para la adquisición de fertilizantes orgánicos certificados que mejoren la productividad del suelo.",
-    requirements: [
-      "Certificación orgánica vigente",
-      "Máximo 10 hectáreas",
-    ],
+    requirements: ["Certificación orgánica vigente", "Máximo 10 hectáreas"],
     deadline: "Vigente hasta dic 2024",
   },
   {
