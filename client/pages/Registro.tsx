@@ -1,4 +1,4 @@
-import { ChevronLeft, MapPin, Crop2 } from "lucide-react";
+import { ChevronLeft, MapPin, Layers } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Header from "@/components/Header";
@@ -153,7 +153,7 @@ export default function Registro() {
               </label>
               <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-lg h-40 flex items-center justify-center border-2 border-dashed border-green-300">
                 <div className="text-center">
-                  <Crop2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                  <Layers className="w-8 h-8 text-green-600 mx-auto mb-2" />
                   <p className="text-sm text-gray-600">
                     Mapa interactivo de tu parcela
                   </p>
