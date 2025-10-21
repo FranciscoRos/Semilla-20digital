@@ -25,7 +25,13 @@ export default function GestionCursos() {
     e.preventDefault();
     // TODO: POST/PUT /api/admin/cursos
     setShowForm(false);
-    setFormData({ titulo: "", descripcion: "", categoria: "", modalidad: "online", enlace_plataforma: "" });
+    setFormData({
+      titulo: "",
+      descripcion: "",
+      categoria: "",
+      modalidad: "online",
+      enlace_plataforma: "",
+    });
   };
 
   return (
@@ -43,7 +49,9 @@ export default function GestionCursos() {
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gestión de Cursos</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Gestión de Cursos
+            </h1>
             <p className="text-gray-600 mt-1">
               Crea, edita y elimina cursos de capacitación
             </p>
@@ -191,7 +199,8 @@ export default function GestionCursos() {
 
               <div className="space-y-2 mb-4">
                 <p className="text-xs text-gray-500">
-                  Categoría: <span className="font-medium">{curso.categoria}</span>
+                  Categoría:{" "}
+                  <span className="font-medium">{curso.categoria}</span>
                 </p>
                 <p className="text-xs text-gray-500">
                   Modalidad:{" "}

@@ -76,8 +76,14 @@ const App = () => (
           <Route path="/admin-panel" element={<AdminDashboard />} />
 
           {/* ============ ADMINISTRADOR - MÓDULOS ============ */}
-          <Route path="/admin/validacion-productores" element={<ValidacionProductores />} />
-          <Route path="/admin/validacion-solicitudes" element={<ValidacionSolicitudes />} />
+          <Route
+            path="/admin/validacion-productores"
+            element={<ValidacionProductores />}
+          />
+          <Route
+            path="/admin/validacion-solicitudes"
+            element={<ValidacionSolicitudes />}
+          />
           <Route path="/admin/gestion-cursos" element={<GestionCursos />} />
           <Route path="/admin/gestion-apoyos" element={<GestionApoyos />} />
           <Route path="/admin/moderacion-foros" element={<ModeracionForos />} />

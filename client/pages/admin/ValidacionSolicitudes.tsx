@@ -26,7 +26,9 @@ const solicitudesPendientes = [
 
 export default function ValidacionSolicitudes() {
   const [solicitudes, setSolicitudes] = useState(solicitudesPendientes);
-  const [selectedSolicitud, setSelectedSolicitud] = useState<number | null>(null);
+  const [selectedSolicitud, setSelectedSolicitud] = useState<number | null>(
+    null,
+  );
 
   const handleApprove = (id: number) => {
     // TODO: POST /api/admin/solicitudes/{id}/procesar
@@ -143,7 +145,7 @@ export default function ValidacionSolicitudes() {
                             Documento_{i + 1}.pdf
                           </span>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

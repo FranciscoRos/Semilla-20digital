@@ -15,7 +15,7 @@ export default function ForosDiscusion() {
   const [showNewPost, setShowNewPost] = useState(false);
 
   const filteredPublicaciones = demoForoPublicaciones.filter(
-    (p) => p.tema_id === selectedTheme
+    (p) => p.tema_id === selectedTheme,
   );
 
   return (

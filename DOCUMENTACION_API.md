@@ -1,6 +1,7 @@
 # Documentación: Integración APIs Semilla Digital
 
 ## 📋 Índice
+
 1. [Estructura del Cliente API](#estructura)
 2. [Guía de Integración](#integración)
 3. [Endpoints por Módulo](#endpoints)
@@ -36,6 +37,7 @@ const [cursos] = useState(demoCursos)
 ### Paso 1: Configurar la URL base
 
 En `.env.local`:
+
 ```env
 VITE_API_URL=https://api.tudominio.com/api
 ```
@@ -45,18 +47,20 @@ VITE_API_URL=https://api.tudominio.com/api
 En `client/services/api.ts`:
 
 **ANTES (usando demo):**
+
 ```typescript
 export const demoCursos: Curso[] = [...]
 // const [cursos] = useState(demoCursos)
 ```
 
 **DESPUÉS (usando API):**
+
 ```typescript
 export const getCursos = async () => {
-  const response = await fetch(`${API_BASE_URL}/cursos`)
-  if (!response.ok) throw new Error('Error en API')
-  return response.json()
-}
+  const response = await fetch(`${API_BASE_URL}/cursos`);
+  if (!response.ok) throw new Error("Error en API");
+  return response.json();
+};
 
 // En componente:
 // const [cursos, setCursos] = useState<Curso[]>([])
@@ -68,16 +72,16 @@ export const getCursos = async () => {
 ### Paso 3: Manejar errores y loading
 
 ```typescript
-const [loading, setLoading] = useState(false)
-const [error, setError] = useState<string | null>(null)
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
 
 useEffect(() => {
-  setLoading(true)
+  setLoading(true);
   getCursos()
     .then(setCursos)
-    .catch(err => setError(err.message))
-    .finally(() => setLoading(false))
-}, [])
+    .catch((err) => setError(err.message))
+    .finally(() => setLoading(false));
+}, []);
 ```
 
 ---
@@ -276,7 +280,7 @@ import { demoCursos } from "@/services/api"
 
 export default function Cursos() {
   const [cursos] = useState(demoCursos)
-  
+
   return (
     <div>
       {cursos.map(curso => (
@@ -317,7 +321,7 @@ export default function Cursos() {
   }, [])
 
   if (loading) return <div>Cargando...</div>
-  
+
   return (
     <div>
       {cursos.map(curso => (
@@ -337,30 +341,30 @@ export default function Cursos() {
 ```typescript
 export const loginProducer = async (credentials: AuthCredentials) => {
   const response = await fetch(`${API_BASE_URL}/auth/productor/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials)
-  })
-  const data = await response.json()
-  localStorage.setItem('authToken', data.token)
-  localStorage.setItem('userId', data.usuario.id)
-  return data
-}
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(credentials),
+  });
+  const data = await response.json();
+  localStorage.setItem("authToken", data.token);
+  localStorage.setItem("userId", data.usuario.id);
+  return data;
+};
 ```
 
 ### Usar token en peticiones autenticadas:
 
 ```typescript
 export const getMisSolicitudes = async () => {
-  const token = localStorage.getItem('authToken')
+  const token = localStorage.getItem("authToken");
   const response = await fetch(`${API_BASE_URL}/mis-solicitudes`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  })
-  return response.json()
-}
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  return response.json();
+};
 ```
 
 ---
@@ -381,4 +385,3 @@ VITE_GEMINI_API_KEY=AIzaSyDk_oOKIcgeoodDFyvvb8u1h-JSN0bENOA
 - ✅ Los headers de autenticación están incluidos
 - ✅ El manejo de errores está en lugar
 - ⚠️ Actualiza la URL base de API en `.env.local` cuando sea necesario
-

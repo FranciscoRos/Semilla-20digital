@@ -18,7 +18,7 @@ export default function RegisterProducer() {
   const [mapDrawn, setMapDrawn] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -203,7 +203,9 @@ export default function RegisterProducer() {
                     : "bg-green-600 hover:bg-green-700 text-white"
                 } font-semibold py-3 rounded-lg transition`}
               >
-                {mapDrawn ? "✓ Parcela dibujada" : "Dibujar polígono de parcela"}
+                {mapDrawn
+                  ? "✓ Parcela dibujada"
+                  : "Dibujar polígono de parcela"}
               </button>
             </div>
 

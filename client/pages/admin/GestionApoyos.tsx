@@ -117,7 +117,10 @@ export default function GestionApoyos() {
                     type="number"
                     value={formData.monto}
                     onChange={(e) =>
-                      setFormData({ ...formData, monto: parseInt(e.target.value) })
+                      setFormData({
+                        ...formData,
+                        monto: parseInt(e.target.value),
+                      })
                     }
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -149,7 +152,10 @@ export default function GestionApoyos() {
                     type="date"
                     value={formData.vigencia_inicio}
                     onChange={(e) =>
-                      setFormData({ ...formData, vigencia_inicio: e.target.value })
+                      setFormData({
+                        ...formData,
+                        vigencia_inicio: e.target.value,
+                      })
                     }
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -217,7 +223,9 @@ export default function GestionApoyos() {
               </p>
 
               <div className="space-y-2 mb-4 text-sm text-gray-500">
-                <p>Vigencia: {apoyo.vigencia_inicio} a {apoyo.vigencia_fin}</p>
+                <p>
+                  Vigencia: {apoyo.vigencia_inicio} a {apoyo.vigencia_fin}
+                </p>
                 <p>Beneficiarios: {apoyo.beneficiarios}</p>
               </div>
 

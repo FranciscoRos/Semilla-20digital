@@ -63,7 +63,9 @@ export default function ValidacionProductores() {
                   <p className="font-medium text-gray-900 text-sm">
                     {productor.nombre}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">{productor.email}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {productor.email}
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">
                     {productor.fecha_registro}
                   </p>

@@ -35,7 +35,9 @@ export default function PanelTransparencia() {
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Monto Total Distribuido</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Monto Total Distribuido
+                </p>
                 <p className="text-3xl font-bold text-gray-900">
                   ${demoTransparencia.monto_total_distribuido.toLocaleString()}
                 </p>
@@ -47,7 +49,9 @@ export default function PanelTransparencia() {
           <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600 mb-1">Beneficiarios Totales</p>
+                <p className="text-sm text-gray-600 mb-1">
+                  Beneficiarios Totales
+                </p>
                 <p className="text-3xl font-bold text-gray-900">
                   {demoTransparencia.beneficiarios_total.toLocaleString()}
                 </p>
@@ -111,7 +115,9 @@ export default function PanelTransparencia() {
                 {/* Estadísticas */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm text-blue-700 mb-2">Presupuesto Total</p>
+                    <p className="text-sm text-blue-700 mb-2">
+                      Presupuesto Total
+                    </p>
                     <p className="text-2xl font-bold text-blue-900">
                       ${selectedData.monto.toLocaleString()}
                     </p>
@@ -123,12 +129,14 @@ export default function PanelTransparencia() {
                     </p>
                   </div>
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <p className="text-sm text-purple-700 mb-2">Porcentaje Ejercido</p>
+                    <p className="text-sm text-purple-700 mb-2">
+                      Porcentaje Ejercido
+                    </p>
                     <p className="text-2xl font-bold text-purple-900">
                       {Math.round(
                         (selectedData.beneficiarios /
                           demoTransparencia.beneficiarios_total) *
-                          100
+                          100,
                       )}
                       %
                     </p>
@@ -167,7 +175,7 @@ export default function PanelTransparencia() {
                             ></div>
                           </div>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>

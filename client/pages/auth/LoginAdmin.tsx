@@ -45,9 +45,7 @@ export default function LoginAdmin() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Acceso Administrativo
           </h2>
-          <p className="text-gray-600 text-sm mb-6">
-            Solo personal autorizado
-          </p>
+          <p className="text-gray-600 text-sm mb-6">Solo personal autorizado</p>
 
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Email */}
@@ -96,7 +94,8 @@ export default function LoginAdmin() {
             {/* Security Note */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-xs text-yellow-800">
-                ⚠️ Este es un acceso restringido. Los intentos de acceso no autorizado serán registrados.
+                ⚠️ Este es un acceso restringido. Los intentos de acceso no
+                autorizado serán registrados.
               </p>
             </div>
 

@@ -9,7 +9,11 @@ const capas = [
   { id: "pois", label: "Puntos de Interés", color: "bg-yellow-600" },
   { id: "alertas", label: "Alertas Comunitarias", color: "bg-red-600" },
   { id: "riesgos", label: "Zonas de Riesgo", color: "bg-orange-600" },
-  { id: "infraestructura", label: "Infraestructura Gubernamental", color: "bg-purple-600" },
+  {
+    id: "infraestructura",
+    label: "Infraestructura Gubernamental",
+    color: "bg-purple-600",
+  },
 ];
 
 export default function Geomapa() {
@@ -20,12 +24,12 @@ export default function Geomapa() {
     setActiveLayers((prev) =>
       prev.includes(layerId)
         ? prev.filter((id) => id !== layerId)
-        : [...prev, layerId]
+        : [...prev, layerId],
     );
   };
 
   const filteredRecursos = demoGeomapa.filter((r) =>
-    r.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    r.nombre.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (

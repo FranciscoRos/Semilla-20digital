@@ -15,7 +15,7 @@ export default function SolicitarApoyos() {
     },
   ]);
 
-  const isEligible = (apoyo: typeof demoApoyos[0]) => {
+  const isEligible = (apoyo: (typeof demoApoyos)[0]) => {
     // Lógica personalizada basada en perfil del usuario
     return true;
   };
@@ -25,7 +25,10 @@ export default function SolicitarApoyos() {
   };
 
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
+    const labels: Record<
+      string,
+      { label: string; color: string; icon: React.ReactNode }
+    > = {
       approved: {
         label: "Aprobado",
         color: "text-green-600 bg-green-50",
@@ -58,7 +61,9 @@ export default function SolicitarApoyos() {
           Volver
         </button>
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Solicitar Apoyos</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Solicitar Apoyos
+        </h1>
         <p className="text-gray-600 mb-8">
           Conoce los programas disponibles y aplica a los que eres elegible
         </p>

@@ -1,24 +1,25 @@
 /**
  * CLIENTE API SEMILLA DIGITAL
- * 
+ *
  * Este archivo centraliza todas las llamadas a la API de Laravel.
  * Reemplaza los datos demo con llamadas reales cuando el backend esté listo.
- * 
+ *
  * ESTRUCTURA DE EJEMPLO:
- * 
+ *
  * // Demo data
  * const demoCursos = [...]
- * 
+ *
  * // Función real (comentada)
  * // export const getCursos = async () => {
  * //   const response = await fetch('https://api.semilladigital.mx/api/cursos')
  * //   return response.json()
  * // }
- * 
+ *
  * // Para usar: simplemente descomenta la función real y elimina el demo
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 // ============================================
 // AUTENTICACIÓN
@@ -290,7 +291,8 @@ export const demoProductoresPendientes: ProductorPendiente[] = [
     email: "maria@email.com",
     estado: "pendiente",
     fecha_registro: "2024-01-15",
-    poligono_parcela: '{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}',
+    poligono_parcela:
+      '{"type":"Polygon","coordinates":[[[0,0],[1,0],[1,1],[0,1],[0,0]]]}',
   },
 ];
 

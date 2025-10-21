@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Cloud, Droplets, Bug, Moon } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  Droplets,
+  Bug,
+  Moon,
+} from "lucide-react";
 import Header from "@/components/Header";
 
 // DATOS DEMO - Reemplazar con API de Laravel en: GET /api/calendario-agricola
@@ -40,7 +47,7 @@ export default function CalendarioAgricola() {
     setActiveLayers((prev) =>
       prev.includes(layerId)
         ? prev.filter((id) => id !== layerId)
-        : [...prev, layerId]
+        : [...prev, layerId],
     );
   };
 
@@ -132,7 +139,7 @@ export default function CalendarioAgricola() {
               <button
                 onClick={() =>
                   setSelectedMonth((p) =>
-                    Math.min(calendarData.length - 1, p + 1)
+                    Math.min(calendarData.length - 1, p + 1),
                   )
                 }
                 className="p-2 hover:bg-gray-100 rounded-lg"

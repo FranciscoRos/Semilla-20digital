@@ -84,7 +84,9 @@ export default function CursosCapacitacion() {
                   <h3 className="text-lg font-bold text-gray-900">
                     {curso.titulo}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1">{curso.categoria}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {curso.categoria}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1 rounded-full">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />

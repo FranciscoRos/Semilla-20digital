@@ -13,17 +13,21 @@ interface Publicacion {
   reportes: number;
 }
 
-const publicacionesConEstado: Publicacion[] = demoForoPublicaciones.map((p) => ({
-  ...p,
-  estado: "aprobada" as const,
-  reportes: Math.floor(Math.random() * 5),
-}));
+const publicacionesConEstado: Publicacion[] = demoForoPublicaciones.map(
+  (p) => ({
+    ...p,
+    estado: "aprobada" as const,
+    reportes: Math.floor(Math.random() * 5),
+  }),
+);
 
 export default function ModeracionForos() {
   const [publicaciones, setPublicaciones] = useState(publicacionesConEstado);
-  const [selectedPublication, setSelectedPublication] = useState<number | null>(null);
+  const [selectedPublication, setSelectedPublication] = useState<number | null>(
+    null,
+  );
   const [filterStatus, setFilterStatus] = useState<"todas" | "reportadas">(
-    "todas"
+    "todas",
   );
 
   const handleDeletePublication = (id: number) => {
@@ -109,7 +113,9 @@ export default function ModeracionForos() {
                     {pub.titulo}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">Por: {pub.autor}</p>
-                  <p className="text-xs text-gray-400 mt-1">{pub.fecha_creacion}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {pub.fecha_creacion}
+                  </p>
                   {pub.reportes > 0 && (
                     <p className="text-xs text-red-600 font-medium mt-1">
                       🚩 {pub.reportes} reporte(s)

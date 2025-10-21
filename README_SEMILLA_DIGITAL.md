@@ -5,6 +5,7 @@
 Semilla Digital es una plataforma web y móvil (Android 9+) diseñada para conectar a productores agrícolas de Quintana Roo con recursos institucionales, conocimiento técnico y apoyos financieros de manera transparente y eficiente.
 
 **Stack Tecnológico:**
+
 - Frontend: React 18 + TypeScript + Vite + TailwindCSS
 - Backend: Laravel (a ser implementado)
 - Chatbot: Google Gemini
@@ -15,6 +16,7 @@ Semilla Digital es una plataforma web y móvil (Android 9+) diseñada para conec
 ## 🎯 Estructura de la Aplicación
 
 ### Autenticación
+
 - **`/login-productor`** - Login para productores
 - **`/login-admin`** - Login para administradores
 - **`/registro-productor`** - Registro de nuevos productores
@@ -114,15 +116,18 @@ pnpm dev
 ### 2. Acceder a la Aplicación
 
 **Como Productor:**
+
 - Ir a: `/login-productor`
 - Registrarse en: `/registro-productor`
 
 **Como Administrador:**
+
 - Ir a: `/login-admin`
 
 ### 3. Datos Demo
 
 Todos los datos demo están en `client/services/api.ts`:
+
 - `demoCursos` - Cursos de ejemplo
 - `demoApoyos` - Programas de apoyo
 - `demoGeomapa` - Recursos en mapa
@@ -161,6 +166,7 @@ export const demoCursos: Curso[] = [...]
 #### 1. Configurar URL de API
 
 **Archivo:** `.env.local`
+
 ```env
 VITE_API_URL=http://localhost:8000/api
 VITE_GEMINI_API_KEY=AIzaSyDk_oOKIcgeoodDFyvvb8u1h-JSN0bENOA
@@ -172,24 +178,26 @@ En `client/services/api.ts`:
 
 ```typescript
 export const getCursos = async () => {
-  const response = await fetch(`${API_BASE_URL}/cursos`)
-  if (!response.ok) throw new Error('Error obteniendo cursos')
-  return response.json()
-}
+  const response = await fetch(`${API_BASE_URL}/cursos`);
+  if (!response.ok) throw new Error("Error obteniendo cursos");
+  return response.json();
+};
 ```
 
 #### 3. Actualizar componentes
 
 **Antes (con demo):**
+
 ```typescript
-import { demoCursos } from "@/services/api"
+import { demoCursos } from "@/services/api";
 
 export default function Cursos() {
-  const [cursos] = useState(demoCursos)
+  const [cursos] = useState(demoCursos);
 }
 ```
 
 **Después (con API):**
+
 ```typescript
 import { getCursos, demoCursos } from "@/services/api"
 import { useEffect } from "react"
@@ -233,6 +241,7 @@ POST /api/admin/productores/{id}/validar
 El chatbot está disponible en todas las vistas como un ícono flotante en la esquina inferior derecha.
 
 ### Características:
+
 - ✅ Integrado en todos los módulos
 - ✅ Contexto de la página actual
 - ✅ Base de conocimiento sobre la plataforma
@@ -240,10 +249,11 @@ El chatbot está disponible en todas las vistas como un ícono flotante en la es
 - ✅ Interfaz flotante (no interfiere)
 
 ### Configuración:
+
 **Archivo:** `client/components/ChatBot.tsx`
 
 ```typescript
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 ```
 
 La API key ya está configurada en `.env.local`.
@@ -255,6 +265,7 @@ La API key ya está configurada en `.env.local`.
 Este proyecto frontend puede ser referencia para implementar en Kotlin:
 
 ### Decisiones de Diseño para Móvil:
+
 1. **Responsive Design** - Funciona en pantallas pequeñas
 2. **Touch-Friendly** - Botones grandes, espaciado adecuado
 3. **Mapas Interactivos** - Prepare componentes de mapa
@@ -262,6 +273,7 @@ Este proyecto frontend puede ser referencia para implementar en Kotlin:
 5. **Offline Support** - Estructura para sincronización
 
 ### Flujo de Mapas (para tu equipo de Kotlin):
+
 ```kotlin
 // Referencia del componente web
 // client/pages/producer/Geomapa.tsx
@@ -313,13 +325,16 @@ client/
 ## 🔐 Seguridad y Autenticación
 
 ### Token JWT
+
 Los tokens se guardan en `localStorage`:
+
 ```typescript
-localStorage.setItem('authToken', token)
-localStorage.setItem('userId', userId)
+localStorage.setItem("authToken", token);
+localStorage.setItem("userId", userId);
 ```
 
 ### Headers de Autenticación
+
 ```typescript
 headers: {
   'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -334,6 +349,7 @@ headers: {
 ## 🎨 Personalización de Estilos
 
 ### Colores Principales
+
 ```css
 /* Primary Green */
 --primary: 142 71% 45%; /* #22C55E */
@@ -375,6 +391,7 @@ Los archivos compilados estarán en `dist/spa/`.
 ## 📞 Contacto y Soporte
 
 **Equipo de Desarrollo:**
+
 - Frontend: React/TypeScript/TailwindCSS
 - Backend: Laravel (a implementar)
 - Mobile: Kotlin/Jetpack Compose (a implementar)
