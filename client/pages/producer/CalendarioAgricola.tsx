@@ -124,7 +124,7 @@ export default function CalendarioAgricola() {
             </h2>
             <div className="flex gap-2">
               <button
-                onClick={() =setSelectedMonth((p) => Math.max(0, p - 1))}
+                onClick={() => setSelectedMonth((p) => Math.max(0, p - 1))}
                 className="p-2 hover:bg-gray-100 rounded-lg"
               >
                 <ChevronLeft className="w-5 h-5" />
