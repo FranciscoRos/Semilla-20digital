@@ -19,10 +19,7 @@ export default function ForosDiscusion() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         <button
           onClick={() => window.history.back()}
           className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 font-medium"
@@ -166,7 +163,6 @@ export default function ForosDiscusion() {
             </div>
           </div>
         </div>
-      </main>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import logoSD from "@/assets/logoSD.jpg";
 
 export default function LoginProducer() {
   const navigate = useNavigate();
@@ -33,10 +34,12 @@ export default function LoginProducer() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4">
-            SD
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Semilla Digital</h1>
+          <img
+            src={logoSD}
+            alt="Logo Semilla Digital"
+            className="w-20 h-20 mx-auto mb-4 hover:scale-110 hover:shadow-lg transition-all duration-300"
+          />
+          <h1 className="text-3xl font-bold text-green-900">Semilla Digital</h1>
           <p className="text-gray-600 mt-2">
             Portal para Productores Agrícolas
           </p>

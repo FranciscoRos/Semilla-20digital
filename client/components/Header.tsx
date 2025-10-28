@@ -1,6 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import logoSD from "@/assets/logoSD.jpg";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -28,10 +29,14 @@ export default function Header() {
           {/* Logo */}
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 font-bold text-lg text-gray-900 hover:opacity-80 transition"
+            className="flex items-center gap-2 font-bold text-lg text-gray-900 hover:opacity-80 transition group"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-              SD
+            <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
+              <img
+                src={logoSD}
+                alt="Logo Semilla Digital"
+                className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+              />
             </div>
             <span className="hidden sm:inline">Semilla Digital</span>
           </button>

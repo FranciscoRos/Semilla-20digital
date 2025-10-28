@@ -33,7 +33,7 @@ export default function LoginAdmin() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 hover:scale-110 hover:shadow-lg transition-all duration-300">
             <Lock className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Semilla Digital</h1>

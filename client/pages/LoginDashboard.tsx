@@ -34,7 +34,6 @@ export default function LoginDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-cyan-50 flex items-center justify-center px-4">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-12">
@@ -82,7 +81,6 @@ export default function LoginDashboard() {
             <span className="font-semibold"> support@semilladigital.mx</span>
           </p>
         </div>
-      </div>
     </div>
   );
 }

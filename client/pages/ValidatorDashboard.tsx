@@ -54,10 +54,7 @@ export default function ValidatorDashboard() {
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         {/* Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
@@ -196,7 +193,6 @@ export default function ValidatorDashboard() {
             ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }

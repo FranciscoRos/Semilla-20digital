@@ -12,7 +12,7 @@ export default function GestionCursos() {
     titulo: "",
     descripcion: "",
     categoria: "",
-    modalidad: "online" as const,
+    modalidad: "online" as "online" | "presencial",
     enlace_plataforma: "",
   });
 
@@ -35,10 +35,7 @@ export default function GestionCursos() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         <button
           onClick={() => window.history.back()}
           className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-6 font-medium"
@@ -229,7 +226,6 @@ export default function GestionCursos() {
             </div>
           ))}
         </div>
-      </main>
     </div>
   );
 }

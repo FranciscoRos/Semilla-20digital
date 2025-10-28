@@ -80,10 +80,7 @@ export default function ProducerDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         {/* User Profile Section */}
         <div className="mb-8">
           <div className="flex items-start gap-4 bg-white rounded-lg p-6 shadow-sm">
@@ -168,7 +165,6 @@ export default function ProducerDashboard() {
             ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }

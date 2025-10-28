@@ -66,10 +66,7 @@ export default function Geomapa() {
       : resources.filter((r) => selectedFilters.includes(r.type));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-
-      <main className="flex-1 container mx-auto px-4 py-6 md:py-8 flex flex-col">
+    <div>
         {/* Header with back button */}
         <div className="flex items-center justify-between mb-6">
           <button
@@ -174,7 +171,6 @@ export default function Geomapa() {
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 }

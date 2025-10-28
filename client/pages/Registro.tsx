@@ -38,10 +38,7 @@ export default function Registro() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-2xl">
+    <div>
         {/* Header with back button */}
         <button
           onClick={() => navigate("/")}
@@ -178,7 +175,6 @@ export default function Registro() {
             </div>
           </form>
         </div>
-      </main>
     </div>
   );
 }

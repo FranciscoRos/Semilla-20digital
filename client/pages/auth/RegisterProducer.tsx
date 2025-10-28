@@ -1,265 +1,674 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, MapPin, Layers } from "lucide-react";
+import { ChevronLeft, Check, AlertCircle } from "lucide-react";
 
-export default function RegisterProducer() {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    fullName: "",
-    curp: "",
-    email: "",
-    phone: "",
-    municipality: "",
-    address: "",
-    password: "",
-    confirmPassword: "",
-  });
+// Estructura de datos para preguntas dinámicas
+const QUESTION_SCHEMA = [
+  {
+    id: "q1",
+    fieldName: "fullName",
+    question: "Nombre Completo",
+    type: "text",
+    required: true,
+    placeholder: "Ingresa tu nombre completo",
+    validations: {
+      minLength: 3,
+      maxLength: 100,
+      pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
+      patternMessage: "Solo se permiten letras y espacios"
+    },
+    section: "Información Personal"
+  },
+  {
+    id: "q2",
+    fieldName: "curp",
+    question: "CURP",
+    type: "text",
+    required: true,
+    placeholder: "CURP de 18 caracteres",
+    validations: {
+      minLength: 18,
+      maxLength: 18,
+      pattern: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/,
+      patternMessage: "Formato de CURP inválido"
+    },
+    section: "Información Personal"
+  },
+  {
+    id: "q3",
+    fieldName: "email",
+    question: "Correo Electrónico",
+    type: "email",
+    required: true,
+    placeholder: "correo@ejemplo.com",
+    validations: {
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      patternMessage: "Correo electrónico inválido"
+    },
+    section: "Información Personal"
+  },
+  {
+    id: "q4",
+    fieldName: "phone",
+    question: "Teléfono",
+    type: "text",
+    required: false,
+    placeholder: "10 dígitos",
+    validations: {
+      pattern: /^\d{10}$/,
+      patternMessage: "Debe contener 10 dígitos"
+    },
+    section: "Información Personal"
+  },
+  {
+    id: "q5",
+    fieldName: "age",
+    question: "Edad",
+    type: "number",
+    required: true,
+    validations: {
+      min: 18,
+      max: 120,
+      minMessage: "Debes ser mayor de 18 años",
+      maxMessage: "Por favor verifica tu edad"
+    },
+    section: "Información Personal"
+  },
+  {
+    id: "q6",
+    fieldName: "municipality",
+    question: "Municipio",
+    type: "select",
+    required: true,
+    options: [
+      { value: "chetumal", label: "Chetumal" },
+      { value: "playa_del_carmen", label: "Playa del Carmen" },
+      { value: "cancun", label: "Cancún" },
+      { value: "cozumel", label: "Cozumel" },
+      { value: "isla_mujeres", label: "Isla Mujeres" }
+    ],
+    section: "Ubicación de Parcela"
+  },
+  {
+    id: "q7",
+    fieldName: "address",
+    question: "Dirección",
+    type: "text",
+    required: true,
+    placeholder: "Calle, número, colonia",
+    validations: {
+      minLength: 10,
+      maxLength: 200
+    },
+    section: "Ubicación de Parcela"
+  },
+  {
+    id: "q8",
+    fieldName: "parcelSize",
+    question: "Tamaño de parcela (hectáreas)",
+    type: "number",
+    required: true,
+    step: "0.01",
+    validations: {
+      min: 0.1,
+      max: 10000,
+      minMessage: "El tamaño mínimo es 0.1 hectáreas"
+    },
+    section: "Ubicación de Parcela"
+  },
+  {
+    id: "q9",
+    fieldName: "cropTypes",
+    question: "Tipos de cultivos que produces",
+    type: "checkbox",
+    required: true,
+    options: [
+      { value: "maiz", label: "Maíz" },
+      { value: "frijol", label: "Frijol" },
+      { value: "chile", label: "Chile" },
+      { value: "tomate", label: "Tomate" },
+      { value: "calabaza", label: "Calabaza" },
+      { value: "otros", label: "Otros" }
+    ],
+    validations: {
+      minSelected: 1,
+      minSelectedMessage: "Selecciona al menos un tipo de cultivo"
+    },
+    section: "Información de Cultivos"
+  },
+  {
+    id: "q10",
+    fieldName: "hasIrrigation",
+    question: "¿Tu parcela cuenta con sistema de riego?",
+    type: "radio",
+    required: true,
+    options: [
+      { value: "yes", label: "Sí" },
+      { value: "no", label: "No" },
+      { value: "partial", label: "Parcial" }
+    ],
+    section: "Información de Cultivos"
+  },
+  {
+    id: "q11",
+    fieldName: "experience",
+    question: "Años de experiencia como productor",
+    type: "range",
+    required: true,
+    validations: {
+      min: 0,
+      max: 50
+    },
+    defaultValue: 5,
+    section: "Información de Cultivos"
+  },
+  {
+    id: "q12",
+    fieldName: "organicCertified",
+    question: "¿Cuentas con certificación orgánica?",
+    type: "radio",
+    required: true,
+    options: [
+      { value: "yes", label: "Sí" },
+      { value: "no", label: "No" },
+      { value: "in_process", label: "En proceso" }
+    ],
+    section: "Información de Cultivos"
+  },
+  {
+    id: "q13",
+    fieldName: "additionalInfo",
+    question: "Información adicional",
+    type: "textarea",
+    required: false,
+    placeholder: "Cuéntanos más sobre tu parcela o experiencia (opcional)",
+    validations: {
+      maxLength: 500
+    },
+    section: "Información de Cultivos"
+  },
+  {
+    id: "q14",
+    fieldName: "password",
+    question: "Contraseña",
+    type: "password",
+    required: true,
+    placeholder: "Mínimo 8 caracteres",
+    validations: {
+      minLength: 8,
+      maxLength: 50
+    },
+    section: "Seguridad"
+  },
+  {
+    id: "q15",
+    fieldName: "confirmPassword",
+    question: "Confirmar Contraseña",
+    type: "password",
+    required: true,
+    placeholder: "Repite tu contraseña",
+    validations: {
+      minLength: 8,
+      maxLength: 50,
+      matchField: "password",
+      matchMessage: "Las contraseñas no coinciden"
+    },
+    section: "Seguridad"
+  }
+];
 
-  const [mapDrawn, setMapDrawn] = useState(false);
+export default function DynamicFormDemo() {
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  // Agrupar preguntas por sección
+  const groupedQuestions = QUESTION_SCHEMA.reduce((acc, question) => {
+    if (!acc[question.section]) {
+      acc[question.section] = [];
+    }
+    acc[question.section].push(question);
+    return acc;
+  }, {});
+
+  // Validar una pregunta específica
+  const validateQuestion = (question, value) => {
+    const val = question.validations;
+    if (!val) {
+      if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
+        return "Este campo es obligatorio";
+      }
+      return null;
+    }
+
+    // Requerido
+    if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
+      return "Este campo es obligatorio";
+    }
+
+    // Si no hay valor y no es requerido, no validar más
+    if (!value && !question.required) return null;
+
+    // Longitud mínima
+    if (val.minLength && value && value.length < val.minLength) {
+      return `Mínimo ${val.minLength} caracteres`;
+    }
+
+    // Longitud máxima
+    if (val.maxLength && value && value.length > val.maxLength) {
+      return `Máximo ${val.maxLength} caracteres`;
+    }
+
+    // Patrón
+    if (val.pattern && value && !val.pattern.test(value)) {
+      return val.patternMessage || "Formato inválido";
+    }
+
+    // Número mínimo
+    if (val.min !== undefined && value !== undefined && value !== "" && parseFloat(value) < val.min) {
+      return val.minMessage || `El valor mínimo es ${val.min}`;
+    }
+
+    // Número máximo
+    if (val.max !== undefined && value !== undefined && value !== "" && parseFloat(value) > val.max) {
+      return val.maxMessage || `El valor máximo es ${val.max}`;
+    }
+
+    // Mínimo seleccionados (checkbox)
+    if (val.minSelected && Array.isArray(value) && value.length < val.minSelected) {
+      return val.minSelectedMessage || `Selecciona al menos ${val.minSelected}`;
+    }
+
+    // Coincidencia de campos (para confirmar contraseña)
+    if (val.matchField && value !== formData[val.matchField]) {
+      return val.matchMessage || "Los campos no coinciden";
+    }
+
+    return null;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (type === "checkbox") {
+      const currentValues = formData[name] || [];
+      const newValues = checked
+        ? [...currentValues, value]
+        : currentValues.filter(v => v !== value);
+      
+      setFormData(prev => ({ ...prev, [name]: newValues }));
+      setErrors(prev => ({ ...prev, [name]: null }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
 
-    if (!mapDrawn) {
-      alert("Debes dibujar el polígono de tu parcela");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    const newErrors = {};
+    let hasErrors = false;
+
+    // Validar todas las preguntas
+    QUESTION_SCHEMA.forEach(question => {
+      const error = validateQuestion(question, formData[question.fieldName]);
+      if (error) {
+        newErrors[question.fieldName] = error;
+        hasErrors = true;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (hasErrors) {
+      // Scroll al primer error
+      const firstErrorField = Object.keys(newErrors)[0];
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.f;
+      }
       return;
     }
 
-    // TODO: Reemplazar con API de Laravel
-    // const response = await fetch('/api/auth/register', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(formData)
-    // })
-
-    console.log("Registro:", formData);
-    alert("¡Registro completado! Tu cuenta está pendiente de verificación.");
-    navigate("/login-productor");
+    setSubmitted(true);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6">
-        <button
-          onClick={() => navigate("/login-productor")}
-          className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 font-medium"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Volver a Login
-        </button>
+  // Renderizar campo según tipo
+  const renderField = (question) => {
+    const value = formData[question.fieldName] || "";
+    const error = errors[question.fieldName];
 
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Crear Cuenta de Productor
-          </h1>
-          <p className="text-gray-600 mb-8">
-            Completa el siguiente formulario para registrarte
-          </p>
+    const inputClasses = `w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition ${
+      error
+        ? "border-red-300 focus:ring-red-500"
+        : "border-gray-300 focus:ring-green-500"
+    }`;
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Información Personal */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Información Personal
+    switch (question.type) {
+      case "text":
+      case "email":
+      case "password":
+        return (
+          <div>
+            <input
+              type={question.type}
+              name={question.fieldName}
+              value={value}
+              onChange={handleChange}
+              placeholder={question.placeholder}
+              maxLength={question.validations?.maxLength}
+              className={inputClasses}
+            />
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "number":
+        return (
+          <div>
+            <input
+              type="number"
+              name={question.fieldName}
+              value={value}
+              onChange={handleChange}
+              min={question.validations?.min}
+              max={question.validations?.max}
+              step={question.step || "1"}
+              className={inputClasses}
+            />
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "select":
+        return (
+          <div>
+            <select
+              name={question.fieldName}
+              value={value}
+              onChange={handleChange}
+              className={inputClasses}
+            >
+              <option value="">Seleccionar...</option>
+              {question.options.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "checkbox":
+        return (
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {question.options.map(opt => (
+                <label
+                  key={opt.value}
+                  className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                    error ? "border-red-300" : "border-gray-200"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    name={question.fieldName}
+                    value={opt.value}
+                    checked={(formData[question.fieldName] || []).includes(opt.value)}
+                    onChange={handleChange}
+                    className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "radio":
+        return (
+          <div>
+            <div className="space-y-3">
+              {question.options.map(opt => (
+                <label
+                  key={opt.value}
+                  className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                    error ? "border-red-300" : "border-gray-200"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={question.fieldName}
+                    value={opt.value}
+                    checked={value === opt.value}
+                    onChange={handleChange}
+                    className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500"
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "range":
+        return (
+          <div>
+            <div className="flex items-center gap-4">
+              <input
+                type="range"
+                name={question.fieldName}
+                value={value || question.defaultValue || 0}
+                onChange={handleChange}
+                min={question.validations?.min || 0}
+                max={question.validations?.max || 100}
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+              />
+              <span className="text-xl font-bold text-green-600 w-12 text-center">
+                {value || question.defaultValue || 0}
+              </span>
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      case "textarea":
+        return (
+          <div>
+            <textarea
+              name={question.fieldName}
+              value={value}
+              onChange={handleChange}
+              placeholder={question.placeholder}
+              maxLength={question.validations?.maxLength}
+              rows={4}
+              className={`${inputClasses} resize-none`}
+            />
+            {question.validations?.maxLength && (
+              <p className="mt-1 text-sm text-gray-500 text-right">
+                {value.length} / {question.validations.maxLength}
+              </p>
+            )}
+            {error && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="w-10 h-10 text-green-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                ¡Registro Completado!
               </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nombre Completo *
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CURP *
-                  </label>
-                  <input
-                    type="text"
-                    name="curp"
-                    value={formData.curp}
-                    onChange={handleChange}
-                    placeholder="CURP de 18 caracteres"
-                    required
-                    maxLength={18}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Correo Electrónico *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Teléfono
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
+              <p className="text-gray-600">
+                Tus respuestas han sido guardadas exitosamente
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="font-bold text-lg mb-4">Resumen de tus respuestas:</h3>
+              <div className="space-y-6">
+                {Object.keys(groupedQuestions).map(sectionName => (
+                  <div key={sectionName}>
+                    <h4 className="font-semibold text-green-600 mb-3 pb-2 border-b border-green-200">
+                      {sectionName}
+                    </h4>
+                    <div className="space-y-3">
+                      {groupedQuestions[sectionName].map(q => {
+                        const value = formData[q.fieldName];
+                        let displayValue = value;
+                        
+                        if (Array.isArray(value)) {
+                          displayValue = value.join(", ");
+                        } else if (q.type === "select" || q.type === "radio") {
+                          const option = q.options?.find(opt => opt.value === value);
+                          displayValue = option?.label || value;
+                        } else if (q.type === "password") {
+                          displayValue = "••••••••";
+                        }
+                        
+                        return (
+                          <div key={q.id} className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <p className="text-sm text-gray-600">{q.question}:</p>
+                            <p className="font-semibold text-gray-900">
+                              {displayValue || "No respondido"}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Información de Domicilio */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Domicilio
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Municipio *
-                  </label>
-                  <select
-                    name="municipality"
-                    value={formData.municipality}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Seleccionar municipio</option>
-                    <option value="chetumal">Chetumal</option>
-                    <option value="playa_del_carmen">Playa del Carmen</option>
-                    <option value="cancun">Cancún</option>
-                    <option value="cozumel">Cozumel</option>
-                    <option value="isla_mujeres">Isla Mujeres</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Dirección *
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Mapa de Parcela */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Ubicación de tu Parcela
-              </h2>
-
-              <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-lg h-64 flex items-center justify-center border-2 border-dashed border-green-300 mb-4">
-                <div className="text-center">
-                  <Layers className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 font-medium">
-                    Mapa interactivo para dibujar tu parcela
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Este campo es obligatorio
-                  </p>
-                </div>
-              </div>
-
+            <div className="flex gap-4 mt-8">
               <button
-                type="button"
-                onClick={() => setMapDrawn(true)}
-                className={`w-full ${
-                  mapDrawn
-                    ? "bg-green-100 text-green-700"
-                    : "bg-green-600 hover:bg-green-700 text-white"
-                } font-semibold py-3 rounded-lg transition`}
+                onClick={() => {
+                  setSubmitted(false);
+                  setFormData({});
+                  setErrors({});
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
               >
-                {mapDrawn
-                  ? "✓ Parcela dibujada"
-                  : "Dibujar polígono de parcela"}
+                Realizar Nuevo Registro
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Contraseña */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Crear Contraseña
-              </h2>
+  return (
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <button
+                    onClick={() => window.history.back()}
+                    className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 font-medium"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                    Volver
+                  </button>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Registro de Productor
+            </h1>
+            <p className="text-gray-600">
+              Completa todos los campos del formulario para crear tu cuenta
+            </p>
+          </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contraseña *
-                  </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {Object.keys(groupedQuestions).map(sectionName => (
+              <div key={sectionName} className="border-2 border-gray-200 rounded-lg p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-green-500">
+                  {sectionName}
+                </h2>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Confirmar Contraseña *
-                  </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
+                <div className="space-y-6">
+                  {groupedQuestions[sectionName].map(question => (
+                    <div key={question.id}>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        {question.question}
+                        {question.required && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      {renderField(question)}
+                    </div>
+                  ))}
                 </div>
               </div>
-            </div>
+            ))}
 
-            {/* Submit */}
-            <div className="flex gap-4">
+            <div className="flex gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2"
               >
-                Crear Cuenta
+                <Check className="w-5 h-5" />
+                Completar Registro
               </button>
               <button
                 type="button"
-                onClick={() => navigate("/login-productor")}
-                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-3 rounded-lg transition"
+                onClick={() => {
+                  setFormData({});
+                  setErrors({});
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-8 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-4 rounded-lg transition"
               >
-                Cancelar
+                Limpiar
               </button>
             </div>
           </form>

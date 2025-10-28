@@ -50,10 +50,7 @@ export default function Auditoria() {
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         {/* Header with back button */}
         <button
           onClick={() => navigate("/")}
@@ -180,7 +177,6 @@ export default function Auditoria() {
             ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }

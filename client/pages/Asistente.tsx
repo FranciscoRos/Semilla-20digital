@@ -73,10 +73,7 @@ export default function Asistente() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-
-      <main className="flex-1 container mx-auto px-4 py-6 md:py-8 max-w-2xl flex flex-col">
+    <div>
         {/* Header with back button */}
         <button
           onClick={() => navigate("/")}
@@ -164,7 +161,6 @@ export default function Asistente() {
             ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }

@@ -5,9 +5,7 @@ const NotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      <main className="flex-1 flex items-center justify-center px-4">
+    <div>
         <div className="text-center">
           <h1 className="text-6xl font-bold text-gray-900 mb-4">404</h1>
           <p className="text-2xl text-gray-700 mb-2">Página no encontrada</p>
@@ -21,7 +19,6 @@ const NotFound = () => {
             Volver al Inicio
           </button>
         </div>
-      </main>
     </div>
   );
 };

@@ -88,10 +88,7 @@ export default function Cursos() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-
-      <main className="container mx-auto px-4 py-6 md:py-8">
+    <div>
         {/* Header with back button */}
         <button
           onClick={() => navigate("/")}
@@ -215,7 +212,6 @@ export default function Cursos() {
               ))}
           </div>
         </div>
-      </main>
     </div>
   );
 }
