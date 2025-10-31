@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronLeft, Settings2, MapPin } from "lucide-react";
-import Header from "@/components/Header";
 import { demoGeomapa } from "@/services/api";
+import GeoMapa from "@/components/GeoMapa";
 
 const capas = [
   { id: "cultivos", label: "Cultivos", color: "bg-green-600" },
@@ -54,13 +54,7 @@ export default function Geomapa() {
         {/* Mapa */}
         <div className="bg-green-50 rounded-lg border-2 border-green-200 h-64 md:h-96 mb-8 flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <p className="text-gray-600 font-medium">Quintana Roo, México</p>
-              <p className="text-sm text-gray-500 mt-2">
-                Mapa interactivo de recursos disponibles
-              </p>
-            </div>
+            <GeoMapa/>
           </div>
         </div>
 

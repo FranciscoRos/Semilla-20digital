@@ -1,168 +1,409 @@
-import { useState } from "react";
-import { ChevronLeft, MessageCircle, User, Calendar } from "lucide-react";
-import Header from "@/components/Header";
-import { demoForoPublicaciones } from "@/services/api";
+import React, { useState } from 'react';
+import { MessageSquare, Users, Eye, ChevronRight, Plus, Search, Home, Sprout, Beef, Fish, TreePine, House } from 'lucide-react';
 
-const temas = [
-  { id: 1, nombre: "Cultivo de Maíz", publicaciones: 45 },
-  { id: 2, nombre: "Ganadería", publicaciones: 32 },
-  { id: 3, nombre: "Técnicas de Riego", publicaciones: 28 },
-  { id: 4, nombre: "Plagas y Enfermedades", publicaciones: 52 },
-];
+const ForoAgricola = () => {
+  const [currentView, setCurrentView] = useState('home'); // 'home', 'category', 'thread'
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedThread, setSelectedThread] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-export default function ForosDiscusion() {
-  const [selectedTheme, setSelectedTheme] = useState(1);
-  const [showNewPost, setShowNewPost] = useState(false);
+  // Datos de ejemplo del foro
+  const categories = [
+    {
+      id: 'agricultura',
+      name: 'Agricultura',
+      icon: <Sprout className="w-6 h-6" />,
+      description: 'Cultivos, siembra y técnicas tradicionales',
+      subcategories: [
+        { id: 'cultivos', name: 'Cultivos y Siembras', threads: 45, posts: 234 },
+        { id: 'suelos', name: 'Suelos y Abonos Naturales', threads: 32, posts: 156 },
+        { id: 'plagas', name: 'Control de Plagas Tradicional', threads: 28, posts: 189 },
+        { id: 'calendarios', name: 'Calendarios y Predicciones', threads: 19, posts: 95 },
+        { id: 'semillas', name: 'Semillas Criollas', threads: 41, posts: 203 }
+      ]
+    },
+    {
+      id: 'ganaderia',
+      name: 'Ganadería',
+      icon: <Beef className="w-6 h-6" />,
+      description: 'Crianza de animales y cuidados veterinarios',
+      subcategories: [
+        { id: 'bovinos', name: 'Bovinos', threads: 38, posts: 187 },
+        { id: 'ovinos', name: 'Ovinos y Caprinos', threads: 25, posts: 134 },
+        { id: 'aves', name: 'Aves de Corral', threads: 52, posts: 276 },
+        { id: 'remedios', name: 'Cuidados y Remedios Caseros', threads: 44, posts: 298 },
+        { id: 'pastoreo', name: 'Manejo de Pastoreo', threads: 21, posts: 112 }
+      ]
+    },
+    {
+      id: 'pesca',
+      name: 'Pesca',
+      icon: <Fish className="w-6 h-6" />,
+      description: 'Técnicas de pesca artesanal y sostenible',
+      subcategories: [
+        { id: 'dulce', name: 'Pesca de Agua Dulce', threads: 29, posts: 145 },
+        { id: 'marina', name: 'Pesca Marina', threads: 34, posts: 178 },
+        { id: 'tecnicas', name: 'Técnicas Artesanales', threads: 22, posts: 98 },
+        { id: 'conservacion', name: 'Conservación del Pescado', threads: 18, posts: 87 }
+      ]
+    },
+    {
+      id: 'vida-rural',
+      name: 'Vida Rural',
+      icon: <House className="w-6 h-6" />,
+      description: 'Tradiciones, construcción y vida en el campo',
+      subcategories: [
+        { id: 'construcciones', name: 'Construcciones Tradicionales', threads: 15, posts: 76 },
+        { id: 'cocina', name: 'Cocina y Conservas', threads: 67, posts: 389 },
+        { id: 'medicina', name: 'Medicina Natural', threads: 48, posts: 267 },
+        { id: 'tradiciones', name: 'Tradiciones y Costumbres', threads: 31, posts: 154 }
+      ]
+    }
+  ];
 
-  const filteredPublicaciones = demoForoPublicaciones.filter(
-    (p) => p.tema_id === selectedTheme,
-  );
+  // Hilos de ejemplo para una subcategoría
+  const exampleThreads = [
+    {
+      id: 1,
+      title: 'Mi abuelo predecía la lluvia observando las hormigas',
+      author: 'Carlos Méndez',
+      generation: 'Joven Agricultor',
+      region: 'Michoacán',
+      replies: 23,
+      views: 456,
+      lastActivity: 'Hace 2 horas',
+      tags: ['Conocimiento Ancestral', 'Clima', 'Predicciones'],
+      verified: true
+    },
+    {
+      id: 2,
+      title: '¿Remedios naturales contra el gusano cogollero del maíz?',
+      author: 'María Flores',
+      generation: 'Agricultora Experimentada',
+      region: 'Oaxaca',
+      replies: 18,
+      views: 234,
+      lastActivity: 'Hace 5 horas',
+      tags: ['Control de Plagas', 'Maíz', 'Remedios Caseros'],
+      verified: false
+    },
+    {
+      id: 3,
+      title: 'Técnica ancestral: Conservar semillas de calabaza por años',
+      author: 'Don Pedro Ramírez',
+      generation: 'Heredero de Tradiciones',
+      region: 'Puebla',
+      replies: 42,
+      views: 892,
+      lastActivity: 'Hace 1 día',
+      tags: ['Semillas Criollas', 'Conservación', 'Tutorial'],
+      verified: true
+    },
+    {
+      id: 4,
+      title: 'Calendario lunar para siembra 2025 - Zona Centro',
+      author: 'Javier González',
+      generation: 'Agricultor Experimentado',
+      region: 'Guanajuato',
+      replies: 67,
+      views: 1543,
+      lastActivity: 'Hace 3 días',
+      tags: ['Calendario Lunar', 'Siembra', 'Temporada 2025'],
+      verified: true
+    }
+  ];
 
-  return (
-    <div>
-        <button
-          onClick={() => window.history.back()}
-          className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 font-medium"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Volver
-        </button>
+  // Ejemplo de conversación dentro de un hilo
+  const examplePosts = [
+    {
+      id: 1,
+      author: 'Carlos Méndez',
+      generation: 'Joven Agricultor',
+      region: 'Michoacán',
+      timestamp: 'Hace 2 días',
+      content: 'Hola a todos. Mi abuelo (q.e.p.d) siempre me decía que cuando las hormigas hacían sus montículos más altos de lo normal, era porque se venía lluvia fuerte en 2-3 días. Yo lo he comprobado y tiene como 80% de acierto. ¿Alguien más conoce esta técnica? ¿Funciona en su región?',
+      isOriginalPost: true
+    },
+    {
+      id: 2,
+      author: 'Don Pedro Ramírez',
+      generation: 'Heredero de Tradiciones',
+      region: 'Puebla',
+      timestamp: 'Hace 2 días',
+      content: '¡Así es muchacho! Mi padre me enseñó lo mismo hace más de 50 años. Las hormigas sienten los cambios de presión atmosférica antes que nosotros. También fíjate en las abejas: cuando vuelan muy bajo, viene agua segura. Y si las vacas se echan todas juntas temprano, también.',
+      isOriginalPost: false
+    },
+    {
+      id: 3,
+      author: 'María Flores',
+      generation: 'Agricultora Experimentada',
+      region: 'Oaxaca',
+      timestamp: 'Hace 1 día',
+      content: 'En mi región observamos también a los pájaros. Cuando los zanates (cuervos) vuelan en círculos bajito, es señal de lluvia cercana. Y si el cielo se pone "aborregado" (nubecitas como ovejas) por la tarde, al otro día amanece lloviendo.',
+      isOriginalPost: false
+    },
+    {
+      id: 4,
+      author: 'Carlos Méndez',
+      generation: 'Joven Agricultor',
+      region: 'Michoacán',
+      timestamp: 'Hace 5 horas',
+      content: '¡Muchas gracias Don Pedro y María! Voy a empezar a observar también las abejas y las vacas. Este tipo de conocimiento es oro puro y no debe perderse. ¿Alguien ha pensado en hacer un calendario o guía con todas estas señales?',
+      isOriginalPost: false
+    }
+  ];
 
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Foros de Discusión
-        </h1>
-        <p className="text-gray-600 mb-8">
-          Comparte experiencias y aprende de otros productores
-        </p>
+  // Vista principal del foro (categorías)
+  const HomeView = () => (
+    <div className="space-y-4">
+      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-lg">
+        <h1 className="text-3xl font-bold mb-2">🌾 Foro Agricultura Tradicional</h1>
+        <p className="text-green-100">Compartiendo el conocimiento de generaciones para las generaciones futuras</p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {/* Sidebar - Temas */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sticky top-4">
-              <h2 className="font-bold text-gray-900 mb-4">Temas</h2>
-              <div className="space-y-2">
-                {temas.map((tema) => (
-                  <button
-                    key={tema.id}
-                    onClick={() => setSelectedTheme(tema.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition ${
-                      selectedTheme === tema.id
-                        ? "bg-green-600 text-white"
-                        : "hover:bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    <p className="font-medium text-sm">{tema.nombre}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        selectedTheme === tema.id
-                          ? "text-green-100"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      {tema.publicaciones} publicaciones
-                    </p>
-                  </button>
-                ))}
+      <div className="bg-white rounded-lg shadow p-4 mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Buscar temas, consejos, técnicas..."
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {categories.map(category => (
+        <div key={category.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="bg-green-100 p-3 rounded-lg text-green-700">
+                {category.icon}
               </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="md:col-span-3">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {temas.find((t) => t.id === selectedTheme)?.nombre}
-              </h2>
-              <button
-                onClick={() => setShowNewPost(!showNewPost)}
-                className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-              >
-                Nueva Publicación
-              </button>
-            </div>
-
-            {/* New Post Form */}
-            {showNewPost && (
-              <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 mb-6">
-                <h3 className="font-bold text-gray-900 mb-4">
-                  Crear Nueva Publicación
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Título
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Título de tu publicación"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Contenido
-                    </label>
-                    <textarea
-                      placeholder="Comparte tu experiencia o pregunta..."
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg transition">
-                      Publicar
-                    </button>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-gray-800 mb-1">{category.name}</h2>
+                <p className="text-gray-600 text-sm mb-4">{category.description}</p>
+                
+                <div className="space-y-2">
+                  {category.subcategories.map(sub => (
                     <button
-                      onClick={() => setShowNewPost(false)}
-                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-900 font-semibold py-2 rounded-lg transition"
+                      key={sub.id}
+                      onClick={() => {
+                        setSelectedCategory({ ...category, selectedSub: sub });
+                        setCurrentView('category');
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors group"
                     >
-                      Cancelar
+                      <div className="flex items-center gap-3">
+                        <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-green-600" />
+                        <span className="font-medium text-gray-700">{sub.name}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <MessageSquare className="w-4 h-4" />
+                          {sub.threads}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          {sub.posts}
+                        </span>
+                      </div>
                     </button>
-                  </div>
+                  ))}
                 </div>
               </div>
-            )}
-
-            {/* Publicaciones */}
-            <div className="space-y-4">
-              {filteredPublicaciones.map((pub) => (
-                <div
-                  key={pub.id}
-                  className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition cursor-pointer"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="text-lg font-bold text-gray-900 flex-1">
-                      {pub.titulo}
-                    </h3>
-                    <span className="text-xs font-medium bg-green-100 text-green-700 px-2 py-1 rounded">
-                      {pub.respuestas} respuestas
-                    </span>
-                  </div>
-
-                  <p className="text-gray-600 mb-4 line-clamp-2">
-                    {pub.contenido}
-                  </p>
-
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {pub.autor}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {pub.fecha_creacion}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-4 h-4" />
-                      {pub.respuestas} respuestas
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
+      ))}
     </div>
   );
-}
+
+  // Vista de subcategoría (lista de hilos)
+  const CategoryView = () => (
+    <div className="space-y-4">
+      <div className="bg-white rounded-lg shadow p-4">
+        <button
+          onClick={() => setCurrentView('home')}
+          className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-4"
+        >
+          <Home className="w-4 h-4" />
+          Volver al inicio
+        </button>
+        
+        <div className="flex items-center gap-3 mb-2">
+          <div className="bg-green-100 p-2 rounded text-green-700">
+            {selectedCategory.icon}
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">{selectedCategory.selectedSub.name}</h2>
+            <p className="text-sm text-gray-600">{selectedCategory.name}</p>
+          </div>
+        </div>
+      </div>
+
+      <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-medium transition-colors">
+        <Plus className="w-5 h-5" />
+        Crear Nuevo Tema
+      </button>
+
+      <div className="space-y-3">
+        {exampleThreads.map(thread => (
+          <button
+            key={thread.id}
+            onClick={() => {
+              setSelectedThread(thread);
+              setCurrentView('thread');
+            }}
+            className="w-full bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 text-left"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-800">{thread.title}</h3>
+                  {thread.verified && (
+                    <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
+                      ✓ Verificado
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {thread.tags.map(tag => (
+                    <span key={tag} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <span className="font-medium">{thread.author}</span>
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                    {thread.generation}
+                  </span>
+                  <span>📍 {thread.region}</span>
+                </div>
+              </div>
+              
+              <div className="text-right text-sm text-gray-500 space-y-1">
+                <div className="flex items-center gap-1">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{thread.replies}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Eye className="w-4 h-4" />
+                  <span>{thread.views}</span>
+                </div>
+                <div className="text-xs">{thread.lastActivity}</div>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Vista de hilo individual (conversación)
+  const ThreadView = () => (
+    <div className="space-y-4">
+      <div className="bg-white rounded-lg shadow p-4">
+        <button
+          onClick={() => setCurrentView('category')}
+          className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-4"
+        >
+          <ChevronRight className="w-4 h-4 rotate-180" />
+          Volver a {selectedCategory.selectedSub.name}
+        </button>
+        
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-2xl font-bold text-gray-800">{selectedThread.title}</h2>
+            {selectedThread.verified && (
+              <span className="bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">
+                ✓ Conocimiento Verificado
+              </span>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap gap-2">
+            {selectedThread.tags.map(tag => (
+              <span key={tag} className="bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {examplePosts.map((post, index) => (
+          <div
+            key={post.id}
+            className={`bg-white rounded-lg shadow p-6 ${post.isOriginalPost ? 'border-l-4 border-green-600' : ''}`}
+          >
+            <div className="flex gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  {post.author.charAt(0)}
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 className="font-bold text-gray-800">{post.author}</h4>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-xs">
+                        {post.generation}
+                      </span>
+                      <span>📍 {post.region}</span>
+                    </div>
+                  </div>
+                  <span className="text-sm text-gray-500">{post.timestamp}</span>
+                </div>
+                
+                <p className="text-gray-700 leading-relaxed">{post.content}</p>
+                
+                {post.isOriginalPost && (
+                  <div className="mt-3 flex gap-2">
+                    <button className="text-sm text-green-600 hover:text-green-700 font-medium">
+                      👍 Útil (15)
+                    </button>
+                    <button className="text-sm text-gray-600 hover:text-gray-700">
+                      💾 Guardar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-4">
+        <h3 className="font-bold text-gray-800 mb-3">Responder al tema</h3>
+        <textarea
+          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          rows={4}
+          placeholder="Comparte tu conocimiento o experiencia..."
+        />
+        <button className="mt-3 bg-green-600 hover:bg-green-700 text-white py-2 px-6 rounded-lg font-medium transition-colors">
+          Publicar Respuesta
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="max-w-6xl mx-auto p-4">
+        {currentView === 'home' && <HomeView />}
+        {currentView === 'category' && <CategoryView />}
+        {currentView === 'thread' && <ThreadView />}
+      </div>
+    </div>
+  );
+};
+
+export default ForoAgricola;

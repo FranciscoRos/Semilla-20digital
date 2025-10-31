@@ -36,6 +36,7 @@ import Registro from "../pages/Registro";
 import ApoyoDetalle from "../pages/ApoyoDetalle";
 import ValidatorDashboard from "../pages/ValidatorDashboard";
 import LayoutGeneral from "@/layouts/generalLayout";
+import GestionPadron from "@/pages/admin/GestionPadron";
 
 export const AppRoutes = () => {
   return (
@@ -72,6 +73,7 @@ export const AppRoutes = () => {
         <Route path="admin/gestion-cursos" element={<GestionCursos />} />
         <Route path="admin/gestion-apoyos" element={<GestionApoyos />} />
         <Route path="admin/moderacion-foros" element={<ModeracionForos />} />
+        <Route path="admin/gestion-padron" element={<GestionPadron />} />
 
         {/* ============ LEGACY ROUTES (será removidas) ============ */}
         <Route index element={<Index />} />

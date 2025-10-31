@@ -110,7 +110,7 @@ export default function LoginAdmin() {
           </form>
         </div>
 
-        {/* Producer Link */}
+        {/* Producer Link
         <div className="text-center mt-6">
           <p className="text-gray-600">
             ¿Eres productor?{" "}
@@ -121,7 +121,7 @@ export default function LoginAdmin() {
               Accede aquí
             </button>
           </p>
-        </div>
+        </div>  */}
       </div>
     </div>
   );

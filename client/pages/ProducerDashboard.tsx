@@ -34,12 +34,17 @@ const notifications: Notification[] = [
     color: "cyan",
   },
 ];
+const statusColors: Record<string, string> = {
+  Verificado: "bg-green-500",
+  Pendiente: "bg-yellow-500",
+  Rechazado: "bg-red-500",
+}
 
 export default function ProducerDashboard() {
   const navigate = useNavigate();
   const [user] = useState({
     name: "Jorge",
-    lastName: "García",
+    lastName: "Zamudio",
     initials: "J",
     status: "Verificado",
   });
@@ -56,18 +61,18 @@ export default function ProducerDashboard() {
     {
       id: "assistant",
       title: "Asistente virtual",
-      icon: "💬",
+      icon: "🤖",
       path: "/asistente",
-      color: "bg-cyan-50 hover:bg-cyan-100",
-      iconBg: "bg-cyan-500",
+      color: "bg-green-50 hover:bg-green-100",
+      iconBg: "bg-green-500",
     },
     {
       id: "courses",
       title: "Cursos y Capacitación",
       icon: "📚",
       path: "/cursos",
-      color: "bg-green-50 hover:bg-green-100",
-      iconBg: "bg-green-500",
+      color: "bg-cyan-50 hover:bg-cyan-100",
+      iconBg: "bg-cyan-500",
     },
     {
       id: "map",
@@ -76,6 +81,22 @@ export default function ProducerDashboard() {
       path: "/geomapa",
       color: "bg-cyan-50 hover:bg-cyan-100",
       iconBg: "bg-cyan-500",
+    },
+    {
+      id: "cal",
+      title: "Calendario Agricola",
+      icon: "🗓️",
+      path: "/calendario",
+      color: "bg-yellow-50 hover:bg-yellow-100",
+      iconBg: "bg-yellow-500",
+    },
+    {
+      id: "foro",
+      title: "Foro Comunitario",
+      icon: "🗣️",
+      path: "/foro",
+      color: "bg-yellow-50 hover:bg-yellow-100",
+      iconBg: "bg-yellow-500",
     },
   ];
 
@@ -92,7 +113,7 @@ export default function ProducerDashboard() {
                 {user.name} {user.lastName}
               </h1>
               <div className="flex items-center gap-2 mt-1 text-sm">
-                <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
+                <span className={statusColors[user.status]+" inline-block w-2 h-2 rounded-full"}></span>
                 <span className="text-gray-600">Estatus: {user.status}</span>
               </div>
             </div>
@@ -118,7 +139,7 @@ export default function ProducerDashboard() {
                 className={`${service.color} rounded-lg p-6 text-left transition-all duration-200 cursor-pointer border border-gray-200 shadow-sm hover:shadow-md`}
               >
                 <div
-                  className={`${service.iconBg} w-12 h-12 rounded-lg flex items-center justify-center text-white mb-4`}
+                  className={`${service.iconBg} w-16 h-12 rounded-lg flex items-center justify-center text-white mb-4`}
                 >
                   <span className="text-xl">{service.icon}</span>
                 </div>

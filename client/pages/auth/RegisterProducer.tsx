@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronLeft, Check, AlertCircle } from "lucide-react";
+import { Check, AlertCircle, Layers } from "lucide-react";
+import MapaDibujo  from "@/components/mapaDrawForm";
 
 // Estructura de datos para preguntas dinámicas
 const QUESTION_SCHEMA = [
@@ -14,9 +15,9 @@ const QUESTION_SCHEMA = [
       minLength: 3,
       maxLength: 100,
       pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-      patternMessage: "Solo se permiten letras y espacios"
+      patternMessage: "Solo se permiten letras y espacios",
     },
-    section: "Información Personal"
+    section: "Información Personal",
   },
   {
     id: "q2",
@@ -29,9 +30,9 @@ const QUESTION_SCHEMA = [
       minLength: 18,
       maxLength: 18,
       pattern: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/,
-      patternMessage: "Formato de CURP inválido"
+      patternMessage: "Formato de CURP inválido",
     },
-    section: "Información Personal"
+    section: "Información Personal",
   },
   {
     id: "q3",
@@ -42,9 +43,9 @@ const QUESTION_SCHEMA = [
     placeholder: "correo@ejemplo.com",
     validations: {
       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      patternMessage: "Correo electrónico inválido"
+      patternMessage: "Correo electrónico inválido",
     },
-    section: "Información Personal"
+    section: "Información Personal",
   },
   {
     id: "q4",
@@ -55,9 +56,9 @@ const QUESTION_SCHEMA = [
     placeholder: "10 dígitos",
     validations: {
       pattern: /^\d{10}$/,
-      patternMessage: "Debe contener 10 dígitos"
+      patternMessage: "Debe contener 10 dígitos",
     },
-    section: "Información Personal"
+    section: "Información Personal",
   },
   {
     id: "q5",
@@ -69,84 +70,9 @@ const QUESTION_SCHEMA = [
       min: 18,
       max: 120,
       minMessage: "Debes ser mayor de 18 años",
-      maxMessage: "Por favor verifica tu edad"
+      maxMessage: "Por favor verifica tu edad",
     },
-    section: "Información Personal"
-  },
-  {
-    id: "q6",
-    fieldName: "municipality",
-    question: "Municipio",
-    type: "select",
-    required: true,
-    options: [
-      { value: "chetumal", label: "Chetumal" },
-      { value: "playa_del_carmen", label: "Playa del Carmen" },
-      { value: "cancun", label: "Cancún" },
-      { value: "cozumel", label: "Cozumel" },
-      { value: "isla_mujeres", label: "Isla Mujeres" }
-    ],
-    section: "Ubicación de Parcela"
-  },
-  {
-    id: "q7",
-    fieldName: "address",
-    question: "Dirección",
-    type: "text",
-    required: true,
-    placeholder: "Calle, número, colonia",
-    validations: {
-      minLength: 10,
-      maxLength: 200
-    },
-    section: "Ubicación de Parcela"
-  },
-  {
-    id: "q8",
-    fieldName: "parcelSize",
-    question: "Tamaño de parcela (hectáreas)",
-    type: "number",
-    required: true,
-    step: "0.01",
-    validations: {
-      min: 0.1,
-      max: 10000,
-      minMessage: "El tamaño mínimo es 0.1 hectáreas"
-    },
-    section: "Ubicación de Parcela"
-  },
-  {
-    id: "q9",
-    fieldName: "cropTypes",
-    question: "Tipos de cultivos que produces",
-    type: "checkbox",
-    required: true,
-    options: [
-      { value: "maiz", label: "Maíz" },
-      { value: "frijol", label: "Frijol" },
-      { value: "chile", label: "Chile" },
-      { value: "tomate", label: "Tomate" },
-      { value: "calabaza", label: "Calabaza" },
-      { value: "otros", label: "Otros" }
-    ],
-    validations: {
-      minSelected: 1,
-      minSelectedMessage: "Selecciona al menos un tipo de cultivo"
-    },
-    section: "Información de Cultivos"
-  },
-  {
-    id: "q10",
-    fieldName: "hasIrrigation",
-    question: "¿Tu parcela cuenta con sistema de riego?",
-    type: "radio",
-    required: true,
-    options: [
-      { value: "yes", label: "Sí" },
-      { value: "no", label: "No" },
-      { value: "partial", label: "Parcial" }
-    ],
-    section: "Información de Cultivos"
+    section: "Información Personal",
   },
   {
     id: "q11",
@@ -156,10 +82,10 @@ const QUESTION_SCHEMA = [
     required: true,
     validations: {
       min: 0,
-      max: 50
+      max: 50,
     },
     defaultValue: 5,
-    section: "Información de Cultivos"
+    section: "Información de Cultivos",
   },
   {
     id: "q12",
@@ -170,9 +96,9 @@ const QUESTION_SCHEMA = [
     options: [
       { value: "yes", label: "Sí" },
       { value: "no", label: "No" },
-      { value: "in_process", label: "En proceso" }
+      { value: "in_process", label: "En proceso" },
     ],
-    section: "Información de Cultivos"
+    section: "Información de Cultivos",
   },
   {
     id: "q13",
@@ -182,9 +108,9 @@ const QUESTION_SCHEMA = [
     required: false,
     placeholder: "Cuéntanos más sobre tu parcela o experiencia (opcional)",
     validations: {
-      maxLength: 500
+      maxLength: 500,
     },
-    section: "Información de Cultivos"
+    section: "Información de Cultivos",
   },
   {
     id: "q14",
@@ -195,9 +121,9 @@ const QUESTION_SCHEMA = [
     placeholder: "Mínimo 8 caracteres",
     validations: {
       minLength: 8,
-      maxLength: 50
+      maxLength: 50,
     },
-    section: "Seguridad"
+    section: "Seguridad",
   },
   {
     id: "q15",
@@ -210,17 +136,17 @@ const QUESTION_SCHEMA = [
       minLength: 8,
       maxLength: 50,
       matchField: "password",
-      matchMessage: "Las contraseñas no coinciden"
+      matchMessage: "Las contraseñas no coinciden",
     },
-    section: "Seguridad"
-  }
+    section: "Seguridad",
+  },
 ];
 
 export default function DynamicFormDemo() {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
-
+  const [parcelPolygon, setParcelPolygon] = useState([]);
   // Agrupar preguntas por sección
   const groupedQuestions = QUESTION_SCHEMA.reduce((acc, question) => {
     if (!acc[question.section]) {
@@ -230,18 +156,34 @@ export default function DynamicFormDemo() {
     return acc;
   }, {});
 
+  const handlePolygonChange = (coordinates) => {
+    console.log("Polígono actualizado:", coordinates);
+    setParcelPolygon(coordinates);
+
+    // Limpiar error si hay al menos 3 puntos
+    if (coordinates.length >= 3) {
+      setErrors((prev) => ({ ...prev, parcelPolygon: null }));
+    }
+  };
+
   // Validar una pregunta específica
   const validateQuestion = (question, value) => {
     const val = question.validations;
     if (!val) {
-      if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
+      if (
+        question.required &&
+        (!value || value === "" || (Array.isArray(value) && value.length === 0))
+      ) {
         return "Este campo es obligatorio";
       }
       return null;
     }
 
     // Requerido
-    if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
+    if (
+      question.required &&
+      (!value || value === "" || (Array.isArray(value) && value.length === 0))
+    ) {
       return "Este campo es obligatorio";
     }
 
@@ -264,17 +206,31 @@ export default function DynamicFormDemo() {
     }
 
     // Número mínimo
-    if (val.min !== undefined && value !== undefined && value !== "" && parseFloat(value) < val.min) {
+    if (
+      val.min !== undefined &&
+      value !== undefined &&
+      value !== "" &&
+      parseFloat(value) < val.min
+    ) {
       return val.minMessage || `El valor mínimo es ${val.min}`;
     }
 
     // Número máximo
-    if (val.max !== undefined && value !== undefined && value !== "" && parseFloat(value) > val.max) {
+    if (
+      val.max !== undefined &&
+      value !== undefined &&
+      value !== "" &&
+      parseFloat(value) > val.max
+    ) {
       return val.maxMessage || `El valor máximo es ${val.max}`;
     }
 
     // Mínimo seleccionados (checkbox)
-    if (val.minSelected && Array.isArray(value) && value.length < val.minSelected) {
+    if (
+      val.minSelected &&
+      Array.isArray(value) &&
+      value.length < val.minSelected
+    ) {
       return val.minSelectedMessage || `Selecciona al menos ${val.minSelected}`;
     }
 
@@ -288,29 +244,29 @@ export default function DynamicFormDemo() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (type === "checkbox") {
       const currentValues = formData[name] || [];
       const newValues = checked
         ? [...currentValues, value]
-        : currentValues.filter(v => v !== value);
-      
-      setFormData(prev => ({ ...prev, [name]: newValues }));
-      setErrors(prev => ({ ...prev, [name]: null }));
+        : currentValues.filter((v) => v !== value);
+
+      setFormData((prev) => ({ ...prev, [name]: newValues }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const newErrors = {};
     let hasErrors = false;
 
     // Validar todas las preguntas
-    QUESTION_SCHEMA.forEach(question => {
+    QUESTION_SCHEMA.forEach((question) => {
       const error = validateQuestion(question, formData[question.fieldName]);
       if (error) {
         newErrors[question.fieldName] = error;
@@ -323,10 +279,17 @@ export default function DynamicFormDemo() {
     if (hasErrors) {
       // Scroll al primer error
       const firstErrorField = Object.keys(newErrors)[0];
-      const element = document.querySelector(`[name="${firstErrorField}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.f;
+      if (firstErrorField === "mapDrawn") {
+        const element = document.querySelector("#parcel-map");
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      } else {
+        const element = document.querySelector(`[name="${firstErrorField}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.focus();
+        }
       }
       return;
     }
@@ -401,7 +364,7 @@ export default function DynamicFormDemo() {
               className={inputClasses}
             >
               <option value="">Seleccionar...</option>
-              {question.options.map(opt => (
+              {question.options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -420,7 +383,7 @@ export default function DynamicFormDemo() {
         return (
           <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {question.options.map(opt => (
+              {question.options.map((opt) => (
                 <label
                   key={opt.value}
                   className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
@@ -431,7 +394,9 @@ export default function DynamicFormDemo() {
                     type="checkbox"
                     name={question.fieldName}
                     value={opt.value}
-                    checked={(formData[question.fieldName] || []).includes(opt.value)}
+                    checked={(formData[question.fieldName] || []).includes(
+                      opt.value,
+                    )}
                     onChange={handleChange}
                     className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
                   />
@@ -452,7 +417,7 @@ export default function DynamicFormDemo() {
         return (
           <div>
             <div className="space-y-3">
-              {question.options.map(opt => (
+              {question.options.map((opt) => (
                 <label
                   key={opt.value}
                   className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
@@ -553,38 +518,48 @@ export default function DynamicFormDemo() {
                 Tus respuestas han sido guardadas exitosamente
               </p>
             </div>
-            
+
             <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-4">Resumen de tus respuestas:</h3>
+              <h3 className="font-bold text-lg mb-4">
+                Resumen de tus respuestas:
+              </h3>
               <div className="space-y-6">
-                {Object.keys(groupedQuestions).map(sectionName => (
+                {Object.keys(groupedQuestions).map((sectionName) => (
                   <div key={sectionName}>
                     <h4 className="font-semibold text-green-600 mb-3 pb-2 border-b border-green-200">
                       {sectionName}
                     </h4>
                     <div className="space-y-3">
-                      {groupedQuestions[sectionName].map(q => {
+                      {groupedQuestions[sectionName].map((q) => {
                         const value = formData[q.fieldName];
                         let displayValue = value;
-                        
+
                         if (Array.isArray(value)) {
                           displayValue = value.join(", ");
                         } else if (q.type === "select" || q.type === "radio") {
-                          const option = q.options?.find(opt => opt.value === value);
+                          const option = q.options?.find(
+                            (opt) => opt.value === value,
+                          );
                           displayValue = option?.label || value;
                         } else if (q.type === "password") {
                           displayValue = "••••••••";
                         }
-                        
+
                         return (
-                          <div key={q.id} className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <p className="text-sm text-gray-600">{q.question}:</p>
+                          <div
+                            key={q.id}
+                            className="grid grid-cols-1 md:grid-cols-2 gap-2"
+                          >
+                            <p className="text-sm text-gray-600">
+                              {q.question}:
+                            </p>
                             <p className="font-semibold text-gray-900">
                               {displayValue || "No respondido"}
                             </p>
                           </div>
                         );
                       })}
+
                     </div>
                   </div>
                 ))}
@@ -597,7 +572,7 @@ export default function DynamicFormDemo() {
                   setSubmitted(false);
                   setFormData({});
                   setErrors({});
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
               >
@@ -614,13 +589,6 @@ export default function DynamicFormDemo() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <button
-                    onClick={() => window.history.back()}
-                    className="flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 font-medium"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                    Volver
-                  </button>
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Registro de Productor
@@ -630,30 +598,45 @@ export default function DynamicFormDemo() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {Object.keys(groupedQuestions).map(sectionName => (
-              <div key={sectionName} className="border-2 border-gray-200 rounded-lg p-6">
+          <div className="space-y-8">
+            {Object.keys(groupedQuestions).map((sectionName) => (
+              <div
+                key={sectionName}
+                className="border-2 border-gray-200 rounded-lg p-6"
+              >
                 <h2 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-green-500">
                   {sectionName}
                 </h2>
+                {sectionName === "Información de Cultivos" && (
+                    <div id="parcel-map">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Ubicación de Parcelas
+                        <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <MapaDibujo />
+                    </div>
+                  )}
 
                 <div className="space-y-6">
-                  {groupedQuestions[sectionName].map(question => (
+                  {groupedQuestions[sectionName].map((question) => (
                     <div key={question.id}>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         {question.question}
-                        {question.required && <span className="text-red-500 ml-1">*</span>}
+                        {question.required && (
+                          <span className="text-red-500 ml-1">*</span>
+                        )}
                       </label>
                       {renderField(question)}
                     </div>
                   ))}
+
                 </div>
               </div>
             ))}
 
             <div className="flex gap-4 pt-4">
               <button
-                type="submit"
+                onClick={handleSubmit}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2"
               >
                 <Check className="w-5 h-5" />
@@ -664,14 +647,14 @@ export default function DynamicFormDemo() {
                 onClick={() => {
                   setFormData({});
                   setErrors({});
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
                 className="px-8 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-4 rounded-lg transition"
               >
                 Limpiar
               </button>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>

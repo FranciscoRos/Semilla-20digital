@@ -124,7 +124,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => navigate("/auditoria")}
             className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
@@ -146,6 +146,13 @@ export default function AdminDashboard() {
             <h3 className="font-bold text-gray-900 mb-2">Reportes</h3>
             <p className="text-sm text-gray-600">
               Descargar reportes y estadísticas
+            </p>
+          </button>
+          <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
+           onClick={() => navigate("/admin/gestion-padron")}>
+            <h3 className="font-bold text-gray-900 mb-2">Gestion Padron</h3>
+            <p className="text-sm text-gray-600">
+              Gestion de Preguntas del Formulario
             </p>
           </button>
         </div>

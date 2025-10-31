@@ -56,18 +56,18 @@ export default function Index() {
     {
       id: "assistant",
       title: "Asistente virtual",
-      icon: "💬",
+      icon: "🤖",
       path: "/asistente",
-      color: "bg-cyan-50 hover:bg-cyan-100",
-      iconBg: "bg-cyan-500",
+      color: "bg-green-50 hover:bg-green-100",
+      iconBg: "bg-green-500",
     },
     {
       id: "courses",
       title: "Cursos y Capacitación",
       icon: "📚",
       path: "/cursos",
-      color: "bg-green-50 hover:bg-green-100",
-      iconBg: "bg-green-500",
+      color: "bg-cyan-50 hover:bg-cyan-100",
+      iconBg: "bg-cyan-500",
     },
     {
       id: "map",
@@ -76,6 +76,22 @@ export default function Index() {
       path: "/geomapa",
       color: "bg-cyan-50 hover:bg-cyan-100",
       iconBg: "bg-cyan-500",
+    },
+    {
+      id: "cal",
+      title: "Calendario Agricola",
+      icon: "🗓️",
+      path: "/calendario-agricola",
+      color: "bg-yellow-50 hover:bg-yellow-100",
+      iconBg: "bg-yellow-500",
+    },
+    {
+      id: "foro",
+      title: "Foro Comunitario",
+      icon: "🗣️",
+      path: "/foros-discusion",
+      color: "bg-yellow-50 hover:bg-yellow-100",
+      iconBg: "bg-yellow-500",
     },
   ];
 
