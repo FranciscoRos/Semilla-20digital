@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 
-export default function MapaDibujo({ onPolygonChange, initialPolygon }) {
+export default function MapaDibujo({ onPolygonChange, initialPolygon, typeRegistro=false }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
 
@@ -20,7 +20,7 @@ export default function MapaDibujo({ onPolygonChange, initialPolygon }) {
       attribution: "© OpenStreetMap",
     }).addTo(map);
 
-    if (navigator.geolocation) {
+    if (navigator.geolocation && !typeRegistro) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const { latitude, longitude } = pos.coords;
@@ -66,7 +66,7 @@ export default function MapaDibujo({ onPolygonChange, initialPolygon }) {
       edit: { featureGroup: drawnItems, remove: true },
     });
 
-    map.addControl(drawControl);
+    if(!typeRegistro)map.addControl(drawControl);
 
     map.on(L.Draw.Event.CREATED, (e) => {
       const layer = e.layer;
@@ -113,7 +113,7 @@ export default function MapaDibujo({ onPolygonChange, initialPolygon }) {
       map.fitBounds(polygon.getBounds(), { padding: [50, 50] });
     }
     return () => map.remove();
-  }, []);
+  }, [typeRegistro]);
 
   return (
     <div>

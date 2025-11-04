@@ -124,99 +124,98 @@ export default function CalendarioAgricola() {
   const [error, setError] = useState(null);
   const [activeLayers, setActiveLayers] = useState(["weather", "crops", "moon", "season"]);
   const [selectedCrop, setSelectedCrop] = useState("Todos");
-  const [apiKey, setApiKey] = useState("");
-  const [showApiInput, setShowApiInput] = useState(false);
 
-  // Ubicación: Cancún, Quintana Roo
-  const LOCATION = { lat: 21.1619, lon: -86.8515 };
+
+  const LOCATION = { lat: 18.51836, lon: -88.30227 };
 
   useEffect(() => {
-    // Cargar datos de demostración al inicio
-    loadDemoWeather();
+    // Cargar datos reales de Open-Meteo al inicio (sin API key necesaria)
+    fetchWeatherData();
   }, []);
 
-  const loadDemoWeather = () => {
-    setWeatherData({
-      current: {
-        temp: 28,
-        humidity: 75,
-        description: "Parcialmente nublado",
-        wind: 15,
-      },
-      forecast: [
-        { day: "Hoy", temp: 28, rain: 20, icon: "☀️" },
-        { day: "Mañana", temp: 29, rain: 30, icon: "⛅" },
-        { day: "Día 3", temp: 27, rain: 60, icon: "🌧️" },
-        { day: "Día 4", temp: 26, rain: 40, icon: "🌦️" },
-        { day: "Día 5", temp: 28, rain: 10, icon: "☀️" },
-      ]
-    });
-  };
-
   const fetchWeatherData = async () => {
-    if (!apiKey || apiKey.trim() === "") {
-      setError("Por favor ingresa tu API Key de OpenWeatherMap");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      // Datos actuales
-      const currentRes = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${LOCATION.lat}&lon=${LOCATION.lon}&units=metric&lang=es&appid=${apiKey}`
-      );
+      // Open-Meteo API - Totalmente GRATIS, sin límites, sin API key
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${LOCATION.lat}&longitude=${LOCATION.lon}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum&timezone=America/Cancun&forecast_days=7`;
       
-      // Pronóstico 5 días
-      const forecastRes = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?lat=${LOCATION.lat}&lon=${LOCATION.lon}&units=metric&lang=es&appid=${apiKey}`
-      );
+      const response = await fetch(url);
 
-      if (!currentRes.ok || !forecastRes.ok) {
-        throw new Error("Error al obtener datos. Verifica tu API Key.");
+      if (!response.ok) {
+        throw new Error("Error al obtener datos del clima");
       }
 
-      const current = await currentRes.json();
-      const forecast = await forecastRes.json();
+      const data = await response.json();
 
-      // Procesar pronóstico (tomar un dato por día)
-      const dailyForecast = [];
-      const seenDays = new Set();
+      // Mapeo de códigos de clima a emojis y descripciones
+      const getWeatherInfo = (code) => {
+        const weatherCodes = {
+          0: { icon: '☀️', desc: 'Despejado' },
+          1: { icon: '🌤️', desc: 'Mayormente despejado' },
+          2: { icon: '⛅', desc: 'Parcialmente nublado' },
+          3: { icon: '☁️', desc: 'Nublado' },
+          45: { icon: '🌫️', desc: 'Niebla' },
+          48: { icon: '🌫️', desc: 'Niebla con escarcha' },
+          51: { icon: '🌦️', desc: 'Llovizna ligera' },
+          53: { icon: '🌦️', desc: 'Llovizna moderada' },
+          55: { icon: '🌧️', desc: 'Llovizna intensa' },
+          61: { icon: '🌧️', desc: 'Lluvia ligera' },
+          63: { icon: '🌧️', desc: 'Lluvia moderada' },
+          65: { icon: '⛈️', desc: 'Lluvia intensa' },
+          71: { icon: '🌨️', desc: 'Nevada ligera' },
+          73: { icon: '🌨️', desc: 'Nevada moderada' },
+          75: { icon: '❄️', desc: 'Nevada intensa' },
+          77: { icon: '🌨️', desc: 'Granizo' },
+          80: { icon: '🌦️', desc: 'Chubascos ligeros' },
+          81: { icon: '⛈️', desc: 'Chubascos moderados' },
+          82: { icon: '⛈️', desc: 'Chubascos violentos' },
+          85: { icon: '🌨️', desc: 'Nevadas ligeras' },
+          86: { icon: '❄️', desc: 'Nevadas intensas' },
+          95: { icon: '⛈️', desc: 'Tormenta' },
+          96: { icon: '⛈️', desc: 'Tormenta con granizo ligero' },
+          99: { icon: '⛈️', desc: 'Tormenta con granizo intenso' },
+        };
+        return weatherCodes[code] || { icon: '☁️', desc: 'Variable' };
+      };
+
+      // Datos actuales
+      const currentWeather = getWeatherInfo(data.current.weather_code);
       
-      forecast.list.forEach((item) => {
-        const day = new Date(item.dt * 1000).toLocaleDateString('es', { weekday: 'short' });
-        if (!seenDays.has(day) && dailyForecast.length < 5) {
-          seenDays.add(day);
-          const iconMap = {
-            '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
-            '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
-            '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
-            '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
-            '50d': '🌫️', '50n': '🌫️'
-          };
-          dailyForecast.push({
-            day: day,
-            temp: Math.round(item.main.temp),
-            rain: Math.round(item.pop * 100),
-            icon: iconMap[item.weather[0].icon] || '☁️',
-          });
-        }
-      });
+      // Pronóstico 5 días
+      const dailyForecast = [];
+      const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(data.daily.time[i]);
+        const dayName = i === 0 ? 'Hoy' : i === 1 ? 'Mañana' : daysOfWeek[date.getDay()];
+        const weather = getWeatherInfo(data.daily.weather_code[i]);
+        
+        dailyForecast.push({
+          day: dayName,
+          date: data.daily.time[i],
+          temp: Math.round((data.daily.temperature_2m_max[i] + data.daily.temperature_2m_min[i]) / 2),
+          tempMax: Math.round(data.daily.temperature_2m_max[i]),
+          tempMin: Math.round(data.daily.temperature_2m_min[i]),
+          rain: Math.round(data.daily.precipitation_probability_max[i]),
+          precipitation: data.daily.precipitation_sum[i],
+          icon: weather.icon,
+        });
+      }
 
       setWeatherData({
         current: {
-          temp: Math.round(current.main.temp),
-          humidity: current.main.humidity,
-          description: current.weather[0].description,
-          wind: Math.round(current.wind.speed * 3.6),
+          temp: Math.round(data.current.temperature_2m),
+          humidity: Math.round(data.current.relative_humidity_2m),
+          description: currentWeather.desc,
+          wind: Math.round(data.current.wind_speed_10m),
         },
         forecast: dailyForecast,
       });
-      
-      setShowApiInput(false);
     } catch (err) {
-      setError(err.message);
+      setError("No se pudo conectar al servicio de clima. Intenta más tarde.");
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -353,69 +352,31 @@ export default function CalendarioAgricola() {
                   <Cloud className="w-5 h-5" />
                   Pronóstico a 5 Días
                 </h3>
-                {/* {!showApiInput && (
-                  <button
-                    onClick={() => setShowApiInput(true)}
-                    className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                  >
-                    Conectar API Real
-                  </button>
-                )} */}
-              </div>
-              
-              {showApiInput && (
-                <div className="bg-white rounded-lg p-4 mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    API Key de OpenWeatherMap
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                      placeholder="Ingresa tu API key aquí..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={fetchWeatherData}
-                      disabled={loading}
-                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-                    >
-                      {loading ? "Cargando..." : "Conectar"}
-                    </button>
-                    <button
-                      onClick={() => setShowApiInput(false)}
-                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-600 mt-2">
-                    Obtén tu API key gratuita en{" "}
-                    <a 
-                      href="https://openweathermap.org/api" 
-                      target="_blank" 
-                      className="text-blue-600 underline"
-                    >
-                      openweathermap.org
-                    </a>
-                  </p>
-                  {error && (
-                    <div className="mt-3 bg-red-100 border border-red-300 rounded-lg p-3 text-sm text-red-800">
-                      {error}
-                    </div>
+                <button
+                  onClick={fetchWeatherData}
+                  disabled={loading}
+                  className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Actualizando...
+                    </>
+                  ) : (
+                    <>
+                      🔄 Actualizar
+                    </>
                   )}
+                </button>
+              </div>
+
+
+              {error && (
+                <div className="bg-red-100 border border-red-300 rounded-lg p-3 mb-4 flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-red-800">{error}</div>
                 </div>
               )}
-
-             {/*  {!showApiInput && (
-                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 mb-4 flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-yellow-700 flex-shrink-0 mt-0.5" />
-                  <div className="text-sm text-yellow-800">
-                    <strong>Mostrando datos de demostración.</strong> Conecta tu API para obtener pronósticos reales.
-                  </div>
-                </div>
-              )} */}
 
               {weatherData && (
                 <>
@@ -458,13 +419,18 @@ export default function CalendarioAgricola() {
                   <div className="grid grid-cols-5 gap-2">
                     {weatherData.forecast.map((day, idx) => (
                       <div key={idx} className="bg-white rounded-lg p-3 text-center">
-                        <p className="text-xs font-medium text-blue-900 mb-2 capitalize">{day.day}</p>
-                        <p className="text-2xl mb-1">{day.icon}</p>
+                        <p className="text-xs font-medium text-blue-900 mb-1 capitalize">{day.day}</p>
+                        <p className="text-xs text-gray-600 mb-2">{day.date}</p>
+                        <p className="text-3xl mb-2">{day.icon}</p>
                         <p className="text-lg font-bold text-blue-900">{day.temp}°C</p>
-                        <div className="flex items-center justify-center gap-1 mt-1">
+                        <p className="text-xs text-gray-600">↑{day.tempMax}° ↓{day.tempMin}°</p>
+                        <div className="flex items-center justify-center gap-1 mt-2">
                           <CloudRain className="w-3 h-3 text-blue-600" />
                           <p className="text-xs text-blue-700">{day.rain}%</p>
                         </div>
+                        {day.precipitation > 0 && (
+                          <p className="text-xs text-blue-600 mt-1">{day.precipitation.toFixed(1)}mm</p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -569,12 +535,12 @@ export default function CalendarioAgricola() {
           <h4 className="font-bold text-blue-900 mb-3">📋 Guía de Implementación:</h4>
           <ul className="space-y-2 text-sm text-blue-800">
             <li>• <strong>Calendario de Cultivos:</strong> Basado en condiciones típicas de Quintana Roo. Modifica el objeto CROP_CALENDAR para tus cultivos.</li>
-            <li>• <strong>API del Clima:</strong> Obtén tu key gratuita en <a href="https://openweathermap.org/api" target="_blank" className="underline">OpenWeatherMap</a> (1000 llamadas/día gratis).</li>
+            <li>• <strong>API del Clima:</strong> Usa <a href="https://open-meteo.com" target="_blank" className="underline font-semibold">Open-Meteo</a> - totalmente gratis, sin límites, sin API key necesaria.</li>
             <li>• <strong>Ciclos Lunares:</strong> Calculados automáticamente usando algoritmo astronómico preciso.</li>
-            <li>• <strong>Backend Laravel:</strong> Crea el endpoint GET /api/calendario-agricola para servir los datos de cultivos desde tu base de datos.</li>
+            <li>• <strong>Backend Laravel:</strong> Opcional - para personalizar por usuario y agregar funciones como historial de siembras, alertas personalizadas, etc.</li>
+            <li>• <strong>Datos Locales:</strong> Consulta INIFAP México o extensionistas agrícolas de Quintana Roo para calendarios más precisos.</li>
           </ul>
-        </div>
-        */}
+        </div> */}
       </div>
     </div>
   );

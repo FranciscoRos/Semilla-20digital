@@ -154,18 +154,7 @@ export default function RegistroParcelas() {
     console.log('Nueva parcela guardada:', nuevaParcela);
     console.log('Arreglo completo de parcelas:', [...parcelas, nuevaParcela]);
 
-    // Limpiar formulario
-    setParcelaActual({
-      ciudad: '',
-      municipio: '',
-      localidad: '',
-      direccionAdicional: '',
-      coordenadas: [],
-      area: 0,
-      areaUso: '',
-      actividadesEspecificas: []
-    });
-    setErrors({});
+    handleLimpiar()
 
     // Mostrar mensaje de éxito
     alert('Parcela registrada');
@@ -501,6 +490,7 @@ export default function RegistroParcelas() {
               <MapaDibujo 
           onPolygonChange={handlePolygonChange}
           initialPolygon={parcela.coordenadas}
+          typeRegistro={true}
         />
             </div>
           ))}
