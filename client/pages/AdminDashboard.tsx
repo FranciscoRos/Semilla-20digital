@@ -134,13 +134,16 @@ export default function AdminDashboard() {
               Revisar y validar registros de productores
             </p>
           </button>
-          <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left">
+          <button 
+          onClick={() => navigate("/admin/gestion-apoyos")}
+          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left">
+          
             <h3 className="font-bold text-gray-900 mb-2">
-              Gestionar Programas
+              Gestionar Apoyos
             </h3>
             <p className="text-sm text-gray-600">
               Crear y editar programas de apoyo
-            </p>
+            </p>  
           </button>
           <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left">
             <h3 className="font-bold text-gray-900 mb-2">Reportes</h3>
@@ -155,6 +158,40 @@ export default function AdminDashboard() {
               Gestion de Preguntas del Formulario
             </p>
           </button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+
+           <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
+           onClick={() => navigate("/admin/gestion-cursos")}>
+            <h3 className="font-bold text-gray-900 mb-2">Gestion de Cursos</h3>
+            <p className="text-sm text-gray-600">
+              Crear y editar programas de cursos
+            </p>
+          </button>
+          <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
+           onClick={() => navigate("/admin/gestion-padron")}>
+            <h3 className="font-bold text-gray-900 mb-2">Gestion de Calendario</h3>
+            <p className="text-sm text-gray-600">
+              Gestion del calendario 
+            </p>
+          </button>
+           
+           <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
+           //pendiente 
+           onClick={() => navigate("/admin/validacion-geomapa")}>
+            <h3 className="font-bold text-gray-900 mb-2">Gestion de Geomapa</h3>
+            <p className="text-sm text-gray-600">
+              Geomapa de las parcelas  
+            </p>  
+          </button>
+           <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
+           onClick={() => navigate("/admin/moderacion-foros")}>
+            <h3 className="font-bold text-gray-900 mb-2">Gestion de Foro</h3>
+            <p className="text-sm text-gray-600">
+              Gestion del foro comunitario 
+            </p>
+          </button>
+
         </div>
 
         {/* Recent Activity */}

@@ -25,6 +25,8 @@ import ValidacionSolicitudes from "../pages/admin/ValidacionSolicitudes";
 import GestionCursos from "../pages/admin/GestionCursos";
 import GestionApoyos from "../pages/admin/GestionApoyos";
 import ModeracionForos from "../pages/admin/ModeracionForos";
+import ValidacionGeomapa from "../pages/admin/ValidacionGeomapa";
+
 
 // Old pages (será reemplazadas gradualmente)
 import Index from "../pages/Index";
@@ -74,6 +76,8 @@ export const AppRoutes = () => {
         <Route path="admin/gestion-apoyos" element={<GestionApoyos />} />
         <Route path="admin/moderacion-foros" element={<ModeracionForos />} />
         <Route path="admin/gestion-padron" element={<GestionPadron />} />
+        <Route path="admin/validacion-geomapa" element={<ValidacionGeomapa />} />
+
 
         {/* ============ LEGACY ROUTES (será removidas) ============ */}
         <Route index element={<Index />} />
