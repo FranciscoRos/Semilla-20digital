@@ -10,10 +10,16 @@ export default function GestionCursos() {
 
   const [formData, setFormData] = useState({
     titulo: "",
+    tema:"",
     descripcion: "",
-    categoria: "",
+    detalles:"",
     modalidad: "online" as "online" | "presencial",
-    enlace_plataforma: "",
+    fechacurso:"",
+    direccionubicacion:"",
+    latitud: "",
+    longitud: "",
+    url: "",
+
   });
 
   const handleDelete = (id: number) => {
@@ -27,10 +33,15 @@ export default function GestionCursos() {
     setShowForm(false);
     setFormData({
       titulo: "",
+      tema:"",
       descripcion: "",
-      categoria: "",
+      detalles:"",
       modalidad: "online",
-      enlace_plataforma: "",
+      fechacurso:"",
+      direccionubicacion:"",
+      latitud: "",
+      longitud: "",
+      url: "",
     });
   };
 
@@ -63,6 +74,20 @@ export default function GestionCursos() {
         </div>
 
         {/* Formulario */}
+        {/* 
+           id
+            titulo
+            tema 
+            descripcion
+            detalles
+            modalidad
+             Fechacurso
+             direccion
+             latitud
+             longituf
+             url
+        
+        */}
         {showForm && (
           <form
             onSubmit={handleSubmit}
@@ -72,7 +97,7 @@ export default function GestionCursos() {
               {editingId ? "Editar Curso" : "Crear Nuevo Curso"}
             </h2>
 
-            <div className="space-y-4">
+            <div className=" grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Título
@@ -82,6 +107,22 @@ export default function GestionCursos() {
                   value={formData.titulo}
                   onChange={(e) =>
                     setFormData({ ...formData, titulo: e.target.value })
+                  }
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+                  {/*Tema */}
+                <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tema
+                </label>
+                <input
+                  type="text"
+                  value={formData.tema}
+                  onChange={(e) =>
+                    setFormData({ ...formData, tema: e.target.value })
                   }
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -103,23 +144,27 @@ export default function GestionCursos() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categoría
+                    Detalles
                   </label>
-                  <input
-                    type="text"
-                    value={formData.categoria}
+                  <textarea
+                    
+                    value={formData.detalles}
                     onChange={(e) =>
-                      setFormData({ ...formData, categoria: e.target.value })
+                      setFormData({ ...formData, detalles: e.target.value })
                     }
+                    rows={4}
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
-                <div>
+                
+              </div>
+
+              <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Modalidad
                   </label>
@@ -137,7 +182,6 @@ export default function GestionCursos() {
                     <option value="presencial">Presencial</option>
                   </select>
                 </div>
-              </div>
 
               {formData.modalidad === "online" && (
                 <div>
@@ -146,17 +190,93 @@ export default function GestionCursos() {
                   </label>
                   <input
                     type="url"
-                    value={formData.enlace_plataforma}
+                    value={formData.url}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        enlace_plataforma: e.target.value,
+                        url: e.target.value,
                       })
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
-              )}
+                )}
+
+                {/*fechacurso */}
+               
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha
+                      </label>
+
+                      <input
+                        type="date"
+                        value={formData.fechacurso}
+                        onChange={(e) =>
+                          setFormData({ ...formData, fechacurso: e.target.value })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                                  focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+
+                   
+
+                      <div>
+                               {/*direccion */}
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Direccion 
+                      </label>
+
+                        <input
+                        type="text"
+                        value={formData.direccionubicacion}
+                        onChange={(e) =>
+                          setFormData({ ...formData, direccionubicacion: e.target.value })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                      </div>
+                        
+
+                       <div className="grid grid-cols-2 gap-4">
+                    <div>
+                       {/*latitud */}
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Latitud
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.latitud}
+                        onChange={(e) =>
+                          setFormData({ ...formData, latitud: e.target.value })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                                  focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+
+                    <div>
+                      {/*longitud */}
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Longitud
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.longitud}
+                        onChange={(e) =>
+                          setFormData({ ...formData, longitud: e.target.value })
+                        }
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+                                  focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
 
               <div className="flex gap-3">
                 <button
