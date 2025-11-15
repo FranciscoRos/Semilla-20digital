@@ -125,10 +125,7 @@ export default function ValidacionGeomapa() {
       {/* Panel inferior: lista de zonas con botones 1,2,3 */}
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="font-bold text-gray-900 mb-4">Zonas marcadas</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          Selecciona un estatus para cada zona usando los botones <strong>1</strong>,{" "}
-          <strong>2</strong> y <strong>3</strong>.
-        </p>
+     
 
         {zones.length > 0 ? (
           <div className="space-y-3">
@@ -160,7 +157,6 @@ export default function ValidacionGeomapa() {
                     </p>
                     {currentStatus && (
                       <p className="text-xs text-green-700 mt-2">
-                        Estatus seleccionado: <span className="font-semibold">{currentStatus}</span>
                       </p>
                     )}
                   </div>

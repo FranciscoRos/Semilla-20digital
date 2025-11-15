@@ -12,8 +12,9 @@ export default function GestionApoyos() {
     descripcion: "",
     monto: 0,
     requisitos: "",
-    vigencia_inicio: "",
-    vigencia_fin: "",
+    estatus:"",
+    creado: "",
+    actualizado: "",
   });
 
   const handleDelete = (id: number) => {
@@ -26,12 +27,13 @@ export default function GestionApoyos() {
     // TODO: POST/PUT /api/admin/apoyos
     setShowForm(false);
     setFormData({
-      nombre: "",
-      descripcion: "",
-      monto: 0,
-      requisitos: "",
-      vigencia_inicio: "",
-      vigencia_fin: "",
+       nombre: "",
+    descripcion: "",
+    monto: 0,
+    requisitos: "",
+    estatus:"",
+    creado: "",
+    actualizado: "",
     });
   };
 
@@ -104,7 +106,7 @@ export default function GestionApoyos() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Monto (MXN)
@@ -123,6 +125,43 @@ export default function GestionApoyos() {
                   />
                 </div>
 
+
+               
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Estado
+  </label>
+
+  <div className="w-full px-4 py-3 rounded-lg flex items-center gap-6 focus-within:ring-2 ">
+    
+      <input type="radio" name="estatus" value="activo"
+        checked={formData.estatus === "activo"}
+        onChange={(e) =>
+          setFormData({ ...formData, estatus: e.target.value })
+        }
+        required
+        className="text-green-600 focus:ring-green-500"
+      />
+      <span className="text-gray-700 text-sm">Activo</span>
+   
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input type="radio" name="estatus" value="inactivo"
+        checked={formData.estatus === "inactivo"}
+        onChange={(e) =>
+          setFormData({ ...formData, estatus: e.target.value })
+        }
+        required
+        className="text-green-600 focus:ring-green-500"
+      />
+      <span className="text-gray-700 text-sm">Inactivo</span>
+    </label>
+  </div>
+</div>
+
+
+
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Requisitos (separados por coma)
@@ -139,18 +178,18 @@ export default function GestionApoyos() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid gSrid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vigencia Inicial
+                    Creado
                   </label>
                   <input
                     type="date"
-                    value={formData.vigencia_inicio}
+                    value={formData.creado}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        vigencia_inicio: e.target.value,
+                        creado: e.target.value,
                       })
                     }
                     required
@@ -160,13 +199,13 @@ export default function GestionApoyos() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Vigencia Final
+                    Actualizado
                   </label>
                   <input
                     type="date"
-                    value={formData.vigencia_fin}
+                    value={formData.actualizado}
                     onChange={(e) =>
-                      setFormData({ ...formData, vigencia_fin: e.target.value })
+                      setFormData({ ...formData, actualizado: e.target.value })
                     }
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
