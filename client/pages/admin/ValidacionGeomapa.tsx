@@ -38,14 +38,54 @@ const zones: Zone[] = [
   },
 ];
 
+type ModalType = "revision" | "denegado" | null;
+
+function SimpleModal({
+  isOpen,
+  title,
+  onClose,
+  children,
+}: {
+  isOpen: boolean;
+  title: string;
+  onClose: () => void;
+  children?: React.ReactNode;
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+          >
+            ×
+          </button>
+        </div>
+        {/* Contenido vacío por ahora, listo para que después agregues lo que necesites */}
+        <div className="mt-2">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function ValidacionGeomapa() {
   const navigate = useNavigate();
 
-  // Estado para saber qué zona está seleccionada en el mapa/lista
+  // Zona seleccionada
   const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
 
-  // Estado para guardar el "estatus" 1,2,3 de cada zona (por ahora solo visual)
-  const [zoneStatuses, setZoneStatuses] = useState<Record<string, number | null>>({});
+  // Estatus visual por zona (1 = En revisión, 2 = Aprobado, 3 = Denegado)
+  const [zoneStatuses, setZoneStatuses] = useState<
+    Record<string, number | null>
+  >({});
+
+  // Estado del modal
+  const [modalType, setModalType] = useState<ModalType>(null);
+  const [modalZoneId, setModalZoneId] = useState<string | null>(null);
 
   const handleSelectZone = (id: string) => {
     setSelectedZoneId(id);
@@ -56,13 +96,42 @@ export default function ValidacionGeomapa() {
       ...prev,
       [id]: status,
     }));
-    // Aquí después puedes hacer llamado a API para validar/rechazar/etc.
-    console.log(`Zona ${id} marcadada con estado ${status}`);
+
+    console.log(`Zona ${id} marcada con estado ${status}`);
+
+    // Abrir modal según el botón
+    if (status === 1) {
+      // En revisión
+      setModalType("revision");
+      setModalZoneId(id);
+    } else if (status === 3) {
+      // Denegado
+      setModalType("denegado");
+      setModalZoneId(id);
+    } else {
+      // Aprobado: sin modal
+      setModalType(null);
+      setModalZoneId(null);
+    }
   };
+
+  const closeModal = () => {
+    setModalType(null);
+    setModalZoneId(null);
+  };
+
+  const getStatusLabel = (status: number | null | undefined) => {
+    if (status === 1) return "En revisión";
+    if (status === 2) return "Aprobado";
+    if (status === 3) return "Denegado";
+    return null;
+  };
+
+  const currentModalZone = zones.find((z) => z.id === modalZoneId);
 
   return (
     <div>
-      {/* Header con botón de volver y ajustes */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => navigate("/")}
@@ -122,16 +191,16 @@ export default function ValidacionGeomapa() {
         ))}
       </div>
 
-      {/* Panel inferior: lista de zonas con botones 1,2,3 */}
+      {/* Panel inferior: lista de zonas con botones de estatus */}
       <div className="bg-white rounded-lg p-6 shadow-sm">
         <h2 className="font-bold text-gray-900 mb-4">Zonas marcadas</h2>
-     
 
         {zones.length > 0 ? (
           <div className="space-y-3">
             {zones.map((zone) => {
               const currentStatus = zoneStatuses[zone.id] ?? null;
               const isSelected = selectedZoneId === zone.id;
+              const statusLabel = getStatusLabel(currentStatus);
 
               return (
                 <div
@@ -151,36 +220,64 @@ export default function ValidacionGeomapa() {
                         {zone.type}
                       </span>
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">{zone.location}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {zone.location}
+                    </p>
                     <p className="text-xs text-gray-500 mt-1">
                       Lat: {zone.lat} · Lng: {zone.lng}
                     </p>
-                    {currentStatus && (
-                      <p className="text-xs text-green-700 mt-2">
-                      </p>
-                    )}
+                   
                   </div>
 
-                  {/* Botones 1, 2, 3 */}
-                  <div className="flex items-center gap-2">
-                    {[1, 2, 3].map((status) => (
-                      <button
-                        key={status}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation(); // para que no dispare el onClick del contenedor
-                          handleStatusChange(zone.id, status);
-                        }}
-                        className={`px-3 py-1 text-xs font-semibold rounded-full border transition
-                          ${
-                            currentStatus === status
-                              ? "bg-green-600 text-white border-green-600"
-                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-                          }`}
-                      >
-                        {status}
-                      </button>
-                    ))}
+                  {/*acciones*/}
+                  <div className="flex flex-col sm:flex-row items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(zone.id, 1); // revision
+                      }}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border transition
+                        ${
+                          currentStatus === 1
+                            ? "bg-yellow-500 text-white border-yellow-500"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                        }`}
+                    >
+                      En revisión
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(zone.id, 2); // Aprobado
+                      }}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border transition
+                        ${
+                          currentStatus === 2
+                            ? "bg-green-600 text-white border-green-600"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                        }`}
+                    >
+                      Aprobado
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStatusChange(zone.id, 3); // denegao
+                      }}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full border transition
+                        ${
+                          currentStatus === 3
+                            ? "bg-red-500 text-white border-red-500"
+                            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
+                        }`}
+                    >
+                      Denegado
+                    </button>
                   </div>
                 </div>
               );
@@ -192,6 +289,82 @@ export default function ValidacionGeomapa() {
           </p>
         )}
       </div>
+
+      {/* Modal En revisión */}
+      {/* Modal En revisión */}
+<SimpleModal
+  isOpen={modalType === "revision"}
+  title={
+    currentModalZone
+      ? `Revisión de : ${currentModalZone.name}`
+      : "Revisión de zona"
+  }
+  onClose={closeModal}
+>
+  <div className="space-y-4">
+    {/* Persona encargada */}
+    <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Personal asigando</label>
+        <input type="text" className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"/>
+
+    </div>
+  
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Fecha de revisión
+      </label>
+      <input
+        type="date"
+        className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+      />
+    </div>
+
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Hora de revisión
+      </label>
+      <input
+        type="time"
+        className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+      />
+    </div>
+
+    <button
+      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg mt-4"
+    >
+      Guardar revisión
+    </button>
+  </div>
+</SimpleModal>
+
+
+      {/* Modal Denegado */}
+      <SimpleModal
+        isOpen={modalType === "denegado"}
+        title={
+          currentModalZone
+            ? `Denegar zona: ${currentModalZone.name}`
+            : "Denegar zona"
+        }
+        onClose={closeModal}
+      >
+
+
+        <div>
+           <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Motivo del rechazo
+              </label>
+              <textarea
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                rows={4}
+                placeholder="Por este medio...."
+              />
+            </div>
+
+        </div>
+
+      </SimpleModal>
     </div>
   );
 }
