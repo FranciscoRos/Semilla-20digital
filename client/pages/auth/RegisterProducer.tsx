@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Save, MapPin, User, Home, FileText, AlertCircle } from 'lucide-react';
 import MapaDibujo from '@/components/mapaDrawForm';
 import { useRegisterProducer } from '@/hooks/useRegisterPro';
+import { Toaster } from '@/components/ui/toaster';
 
 // Estructura de preguntas dinámicas
 const QUESTION_SCHEMA = [
@@ -927,6 +928,7 @@ const FormularioUsuarioParcelas = () => {
       {loadingRegister && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]"/>
       )}
+      <Toaster/>
     </div>  
   );
 };

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import logoSD from "@/assets/logoSD.jpg";
 import { useAuthUser } from "@/hooks/authUser";
 import { useAuth } from "@/providers/authProvider";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function LayoutGeneral() {
   const { handleLogout, loginLogout } = useAuthUser();
@@ -26,6 +27,7 @@ const {user}=useAuth()
   ];
 
   useEffect(()=>{
+    if(!user)return 
     setRolado(user.Tipo==="Usuario"?true:false)
   },[user])
 
@@ -136,6 +138,8 @@ const {user}=useAuth()
           </div>
         </div>
       )}
+            <Toaster/>
+      
     </div>
   );
 }
