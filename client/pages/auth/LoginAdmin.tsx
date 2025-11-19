@@ -1,32 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { useAuthUser } from "@/hooks/authUser";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function LoginAdmin() {
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    // TODO: Reemplazar con API de Laravel
-    // const response = await fetch('/api/admin/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // })
-
-    // Simulación de login
-    setTimeout(() => {
-      localStorage.setItem("userRole", "admin");
-      navigate("/admin-panel");
-      setLoading(false);
-    }, 1000);
-  };
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    handleLogin,
+    loading,
+  } =useAuthUser()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4">
@@ -47,7 +34,8 @@ export default function LoginAdmin() {
           </h2>
           <p className="text-gray-600 text-sm mb-6">Solo personal autorizado</p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={(e)=>{e.preventDefault();
+            handleLogin("Administracion")}} className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -123,6 +111,7 @@ export default function LoginAdmin() {
           </p>
         </div>  */}
       </div>
+      <Toaster/>
     </div>
   );
 }

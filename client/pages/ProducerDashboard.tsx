@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronRight, User } from "lucide-react";
-import Header from "@/components/Header";
+import { Bell, ChevronRight, LucideShieldUser } from "lucide-react";
+import { useAuth } from "@/providers/authProvider";
+
 
 interface Notification {
   id: string;
@@ -41,12 +42,15 @@ const statusColors: Record<string, string> = {
 }
 
 export default function ProducerDashboard() {
+
+  const {user}=useAuth()
+
   const navigate = useNavigate();
-  const [user] = useState({
-    name: "Jorge",
-    lastName: "Zamudio",
-    initials: "J",
-    status: "Verificado",
+  const [usuarioA] = useState({
+    name: user.Nombre,
+    lastName: `${user.Apellido1} ${user.Apellido2}`,
+    initials: user.nombre[0] ??'',
+    status: user.Estatus,
   });
 
   const services = [
@@ -102,26 +106,26 @@ export default function ProducerDashboard() {
 
   return (
     <div>
-        {/* User Profile Section */}
+        {/* usuarioA Profile Section */}
         <div className="mb-8">
           <div className="flex items-start gap-4 bg-white rounded-lg p-6 shadow-sm">
             <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center text-2xl font-bold flex-shrink-0">
-              {user.initials}
+              {usuarioA.initials}
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">
-                {user.name} {user.lastName}
+                {usuarioA.name} {usuarioA.lastName}
               </h1>
               <div className="flex items-center gap-2 mt-1 text-sm">
-                <span className={statusColors[user.status]+" inline-block w-2 h-2 rounded-full"}></span>
-                <span className="text-gray-600">Estatus: {user.status}</span>
+                <span className={statusColors[usuarioA.status]+" inline-block w-2 h-2 rounded-full"}></span>
+                <span className="text-gray-600">Estatus: {usuarioA.status}</span>
               </div>
             </div>
             <button
               onClick={() => navigate("/registro")}
               className="text-gray-500 hover:text-gray-700"
             >
-              <User className="w-6 h-6" />
+              <LucideShieldUser className="w-6 h-6" />
             </button>
           </div>
         </div>

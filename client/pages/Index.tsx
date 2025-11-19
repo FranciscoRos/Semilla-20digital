@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ChevronRight } from "lucide-react";
-import Header from "@/components/Header";
 
 interface Notification {
   id: string;

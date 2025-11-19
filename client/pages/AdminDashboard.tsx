@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Users, CheckCircle2, AlertCircle } from "lucide-react";
-import Header from "@/components/Header";
+import { useAuth } from "@/providers/authProvider";
 
 interface AdminStats {
   label: string;
@@ -87,6 +87,7 @@ const recentActivities: RecentActivity[] = [
 ];
 
 export default function AdminDashboard() {
+  const {user}=useAuth()
   const navigate = useNavigate();
 
   return (
@@ -94,11 +95,11 @@ export default function AdminDashboard() {
         {/* Title */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Panel Administrativo
+            Administrativo: {user.Nombre} {user.Apellido1} {user.Apellido2}
           </h1>
           <p className="text-gray-600 mt-1">
             <span className="inline-block w-2 h-2 bg-green-600 rounded-full align-middle mr-2"></span>
-            Sistema SEDARPE · Administrador
+            Sistema SEDARPE · {user.Tipo}
           </p>
         </div>
 

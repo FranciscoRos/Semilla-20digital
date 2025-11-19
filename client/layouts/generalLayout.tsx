@@ -1,16 +1,19 @@
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+// 1. Importa el icono 'LogOut'
+import { Menu, X, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import logoSD from "@/assets/logoSD.jpg";
+import { useAuthUser } from "@/hooks/authUser";
+import { useAuth } from "@/providers/authProvider";
 
 export default function LayoutGeneral() {
+  const { handleLogout, loginLogout } = useAuthUser();
   const navigate = useNavigate();
+  const [rolado,setRolado]=useState(false)
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+const {user}=useAuth()
+  const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
     { label: "Inicio", path: "/" },
@@ -22,28 +25,44 @@ export default function LayoutGeneral() {
     { label: "Roles", path: "/login" },
   ];
 
+  useEffect(()=>{
+    setRolado(user.Tipo==="Usuario"?true:false)
+  },[user])
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50 relative">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <button
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 font-bold text-lg text-gray-900 hover:opacity-80 transition group"
-            >
-              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center">
-                <img
-                  src={logoSD}
-                  alt="Logo Semilla Digital"
-                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              <span className="hidden sm:inline">Semilla Digital</span>
-            </button>
+            {/* Logo + Salir */}
+            <div className="flex items-center gap-4">
+              {/* 2. Botón Salir Desktop (Actualizado) */}
+              <button
+                onClick={()=>handleLogout()}
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-red-700 transition"
+              >
+                <LogOut className="w-4 h-4" /> {/* <-- Icono añadido */}
+                Salir
+              </button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
+              {/* Logo */}
+              <button
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2 font-bold text-lg text-gray-900 hover:opacity-80 transition group"
+              >
+                <div className="w-10 h-10 rounded-lg overflow-hidden">
+                  <img
+                    src={logoSD}
+                    alt="Logo Semilla Digital"
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                  />
+                </div>
+                <span className="hidden sm:inline">Semilla Digital</span>
+              </button>
+            </div>
+
+            {/* Navegación Desktop */}
+            {rolado && <nav className="hidden md:flex items-center gap-8">
               {navItems.map((item) => (
                 <button
                   key={item.path}
@@ -57,7 +76,16 @@ export default function LayoutGeneral() {
                   {item.label}
                 </button>
               ))}
-            </nav>
+            </nav>}
+
+            {/* 3. Botón Salir Mobile (Actualizado) */}
+            <button
+              onClick={()=>handleLogout()}
+              className="md:hidden flex items-center gap-2 mr-2 px-3 py-2 bg-red-600 text-white rounded-md shadow hover:bg-red-700 transition"
+            >
+              <LogOut className="w-4 h-4" /> {/* <-- Icono añadido */}
+              Salir
+            </button>
 
             {/* Mobile Menu Button */}
             <button
@@ -95,9 +123,19 @@ export default function LayoutGeneral() {
           )}
         </div>
       </header>
+
       <main className="container mx-auto px-4 py-6 md:py-8">
         <Outlet />
       </main>
+
+      {/* Overlay pantalla bloqueada cuando hay loading */}
+      {loginLogout && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-white px-6 py-4 rounded-lg shadow-lg text-gray-800 font-medium">
+            Procesando...
+          </div>
+        </div>
+      )}
     </div>
   );
 }

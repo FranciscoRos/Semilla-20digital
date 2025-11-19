@@ -1,33 +1,30 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useAuthUser } from "@/hooks/authUser";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import logoSD from "@/assets/logoSD.jpg";
-
+import { useEffect } from "react";
+import { Toaster } from "@/components/ui/toaster";
 export default function LoginProducer() {
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate=useNavigate()
+  const{state}=useLocation()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    handleLogin,
+    loading,
+  } =useAuthUser()
 
-    // TODO: Reemplazar con API de Laravel
-    // const response = await fetch('/api/auth/login', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ email, password })
-    // })
-
-    // Simulación de login
-    setTimeout(() => {
-      localStorage.setItem("userRole", "producer");
-      navigate("/producer-dashboard");
-      setLoading(false);
-    }, 1000);
-  };
+useEffect(()=>{
+  if(state){
+  setEmail(state.correo || '')
+  setPassword(state.contrasena || '')
+  }
+},[state])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-cyan-50 flex items-center justify-center px-4">
@@ -51,7 +48,8 @@ export default function LoginProducer() {
             Iniciar Sesión
           </h2>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={(e)=>{e.preventDefault();
+            handleLogin("Usuario")}} className="space-y-4">
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -136,7 +134,7 @@ export default function LoginProducer() {
             onClick={() => navigate("/registro-productor")}
             className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 rounded-lg transition"
           >
-            Crear Nueva Cuenta
+            Crear Cuenta como Productor
           </button>
         </div>
 
@@ -153,6 +151,7 @@ export default function LoginProducer() {
           </p>
         </div>
       </div>
+      <Toaster/>
     </div>
   );
 }

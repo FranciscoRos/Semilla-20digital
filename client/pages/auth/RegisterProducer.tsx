@@ -1,152 +1,220 @@
-import { useState } from "react";
-import { Check, AlertCircle, Layers } from "lucide-react";
-import MapaDibujo  from "@/components/mapaDrawForm";
+import React, { useState } from 'react';
+import { ChevronDown, ChevronUp, Save, MapPin, User, Home, FileText, AlertCircle } from 'lucide-react';
+import MapaDibujo from '@/components/mapaDrawForm';
+import { useRegisterProducer } from '@/hooks/useRegisterPro';
 
-// Estructura de datos para preguntas dinámicas
+// Estructura de preguntas dinámicas
 const QUESTION_SCHEMA = [
   {
     id: "q1",
-    fieldName: "fullName",
-    question: "Nombre Completo",
-    type: "text",
+    fieldName: "tipoProduccion",
+    question: "¿Qué tipo de producción realiza?",
+    type: "select",
     required: true,
-    placeholder: "Ingresa tu nombre completo",
-    validations: {
-      minLength: 3,
-      maxLength: 100,
-      pattern: /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/,
-      patternMessage: "Solo se permiten letras y espacios",
-    },
-    section: "Información Personal",
+    options: [
+      { value: "agricola", label: "Agrícola" },
+      { value: "ganadera", label: "Ganadera" },
+      { value: "mixta", label: "Mixta" },
+      { value: "forestal", label: "Forestal" },
+    ],
+    section: "Producción",
   },
   {
     id: "q2",
-    fieldName: "curp",
-    question: "CURP",
-    type: "text",
-    required: true,
-    placeholder: "CURP de 18 caracteres",
-    validations: {
-      minLength: 18,
-      maxLength: 18,
-      pattern: /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/,
-      patternMessage: "Formato de CURP inválido",
-    },
-    section: "Información Personal",
-  },
-  {
-    id: "q3",
-    fieldName: "email",
-    question: "Correo Electrónico",
-    type: "email",
-    required: true,
-    placeholder: "correo@ejemplo.com",
-    validations: {
-      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-      patternMessage: "Correo electrónico inválido",
-    },
-    section: "Información Personal",
-  },
-  {
-    id: "q4",
-    fieldName: "phone",
-    question: "Teléfono",
-    type: "text",
-    required: false,
-    placeholder: "10 dígitos",
-    validations: {
-      pattern: /^\d{10}$/,
-      patternMessage: "Debe contener 10 dígitos",
-    },
-    section: "Información Personal",
-  },
-  {
-    id: "q5",
-    fieldName: "age",
-    question: "Edad",
+    fieldName: "anosExperiencia",
+    question: "¿Cuántos años de experiencia tiene?",
     type: "number",
     required: true,
     validations: {
-      min: 18,
-      max: 120,
-      minMessage: "Debes ser mayor de 18 años",
-      maxMessage: "Por favor verifica tu edad",
-    },
-    section: "Información Personal",
-  },
-  {
-    id: "q11",
-    fieldName: "experience",
-    question: "Años de experiencia como productor",
-    type: "range",
-    required: true,
-    validations: {
       min: 0,
-      max: 50,
+      max: 80,
+      minMessage: "La experiencia no puede ser negativa",
+      maxMessage: "Por favor verifica los años de experiencia",
     },
-    defaultValue: 5,
-    section: "Información de Cultivos",
+    section: "Producción",
   },
   {
-    id: "q12",
-    fieldName: "organicCertified",
-    question: "¿Cuentas con certificación orgánica?",
+    id: "q3",
+    fieldName: "cultivos",
+    question: "¿Qué cultivos produce? (Seleccione todos los que apliquen)",
+    type: "checkbox",
+    required: true,
+    options: [
+      { value: "maiz", label: "Maíz" },
+      { value: "frijol", label: "Frijol" },
+      { value: "trigo", label: "Trigo" },
+      { value: "sorgo", label: "Sorgo" },
+      { value: "hortalizas", label: "Hortalizas" },
+      { value: "frutales", label: "Frutales" },
+    ],
+    validations: {
+      minSelected: 1,
+      minSelectedMessage: "Selecciona al menos un cultivo",
+    },
+    section: "Producción",
+  },
+  {
+    id: "q4",
+    fieldName: "tieneRiego",
+    question: "¿Cuenta con sistema de riego?",
     type: "radio",
     required: true,
     options: [
-      { value: "yes", label: "Sí" },
+      { value: "si", label: "Sí" },
       { value: "no", label: "No" },
-      { value: "in_process", label: "En proceso" },
     ],
-    section: "Información de Cultivos",
+    section: "Infraestructura",
+  },
+  {
+    id: "q5",
+    fieldName: "fuenteAgua",
+    question: "¿Cuál es la fuente de agua?",
+    type: "text",
+    required: false,
+    placeholder: "Ej: Pozo, río, presa...",
+    conditionalDisplay: {
+      dependsOn: "tieneRiego",
+      value: "si",
+    },
+    section: "Infraestructura",
+  },
+  {
+    id: "q6",
+    fieldName: "usaPesticidas",
+    question: "¿Utiliza pesticidas o agroquímicos?",
+    type: "radio",
+    required: false,
+    options: [
+      { value: "si", label: "Sí" },
+      { value: "no", label: "No" },
+    ],
+    section: "Prácticas Agrícolas",
+  },
+  {
+    id: "q7",
+    fieldName: "certificacionOrganica",
+    question: "¿Tiene certificación orgánica?",
+    type: "radio",
+    required: false,
+    options: [
+      { value: "si", label: "Sí" },
+      { value: "no", label: "No" },
+      { value: "en_proceso", label: "En proceso" },
+    ],
+    section: "Prácticas Agrícolas",
+  },
+  {
+    id: "q8",
+    fieldName: "tipoMaquinaria",
+    question: "¿Qué tipo de maquinaria utiliza?",
+    type: "checkbox",
+    required: false,
+    options: [
+      { value: "tractor", label: "Tractor" },
+      { value: "cosechadora", label: "Cosechadora" },
+      { value: "sembradora", label: "Sembradora" },
+      { value: "aspersora", label: "Aspersora" },
+      { value: "ninguna", label: "Ninguna" },
+    ],
+    section: "Infraestructura",
+  },
+  {
+    id: "q9",
+    fieldName: "trabajadores",
+    question: "¿Cuántos trabajadores emplea?",
+    type: "number",
+    required: false,
+    validations: {
+      min: 0,
+      max: 500,
+    },
+    section: "Recursos Humanos",
+  },
+  {
+    id: "q10",
+    fieldName: "ventaProductos",
+    question: "¿Dónde vende sus productos?",
+    type: "select",
+    required: false,
+    options: [
+      { value: "local", label: "Mercado local" },
+      { value: "intermediario", label: "Intermediarios" },
+      { value: "exportacion", label: "Exportación" },
+      { value: "consumo_propio", label: "Consumo propio" },
+    ],
+    section: "Comercialización",
+  },
+  {
+    id: "q11",
+    fieldName: "apoyosGubernamentales",
+    question: "¿Ha recibido apoyos gubernamentales?",
+    type: "radio",
+    required: false,
+    options: [
+      { value: "si", label: "Sí" },
+      { value: "no", label: "No" },
+    ],
+    section: "Apoyos",
+  },
+  {
+    id: "q12",
+    fieldName: "experienciaRiego",
+    question: "Años de experiencia con sistema de riego",
+    type: "range",
+    required: false,
+    validations: {
+      min: 0,
+      max: 30,
+    },
+    defaultValue: 0,
+    conditionalDisplay: {
+      dependsOn: "tieneRiego",
+      value: "si",
+    },
+    section: "Infraestructura",
   },
   {
     id: "q13",
-    fieldName: "additionalInfo",
-    question: "Información adicional",
+    fieldName: "comentariosAdicionales",
+    question: "Comentarios adicionales",
     type: "textarea",
     required: false,
-    placeholder: "Cuéntanos más sobre tu parcela o experiencia (opcional)",
+    placeholder: "Escriba cualquier información adicional que considere relevante...",
     validations: {
       maxLength: 500,
     },
-    section: "Información de Cultivos",
-  },
-  {
-    id: "q14",
-    fieldName: "password",
-    question: "Contraseña",
-    type: "password",
-    required: true,
-    placeholder: "Mínimo 8 caracteres",
-    validations: {
-      minLength: 8,
-      maxLength: 50,
-    },
-    section: "Seguridad",
-  },
-  {
-    id: "q15",
-    fieldName: "confirmPassword",
-    question: "Confirmar Contraseña",
-    type: "password",
-    required: true,
-    placeholder: "Repite tu contraseña",
-    validations: {
-      minLength: 8,
-      maxLength: 50,
-      matchField: "password",
-      matchMessage: "Las contraseñas no coinciden",
-    },
-    section: "Seguridad",
+    section: "Información Adicional",
   },
 ];
 
-export default function DynamicFormDemo() {
-  const [formData, setFormData] = useState({});
+const FormularioUsuarioParcelas = () => {
+  const [seccionAbierta, setSeccionAbierta] = useState('basica');
+  const {handleRegister,loadingRegister}=useRegisterProducer()
+  const [usuario, setDatosusuario] = useState({
+    Nombre: '',
+    Apellido1: '',
+    Apellido2: '',
+    Curp: '',
+    Correo: '',
+    Contrasena:'',
+    Telefono: '',
+    FechaNacimiento: '',
+    Ine: '',
+    Rfc: '',
+    Domicilio: {
+      Calle: '',
+      Colonia: '',
+      Municipio: '',
+      Ciudad: '',
+      Estado: '',
+      CodigoPostal: '',
+      Referencia: ''
+    },
+    Parcela: [],
+});
+
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-  const [parcelPolygon, setParcelPolygon] = useState([]);
+
   // Agrupar preguntas por sección
   const groupedQuestions = QUESTION_SCHEMA.reduce((acc, question) => {
     if (!acc[question.section]) {
@@ -156,34 +224,19 @@ export default function DynamicFormDemo() {
     return acc;
   }, {});
 
-  const handlePolygonChange = (coordinates) => {
-    console.log("Polígono actualizado:", coordinates);
-    setParcelPolygon(coordinates);
-
-    // Limpiar error si hay al menos 3 puntos
-    if (coordinates.length >= 3) {
-      setErrors((prev) => ({ ...prev, parcelPolygon: null }));
-    }
-  };
-
   // Validar una pregunta específica
   const validateQuestion = (question, value) => {
     const val = question.validations;
+    
     if (!val) {
-      if (
-        question.required &&
-        (!value || value === "" || (Array.isArray(value) && value.length === 0))
-      ) {
+      if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
         return "Este campo es obligatorio";
       }
       return null;
     }
 
     // Requerido
-    if (
-      question.required &&
-      (!value || value === "" || (Array.isArray(value) && value.length === 0))
-    ) {
+    if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
       return "Este campo es obligatorio";
     }
 
@@ -206,68 +259,86 @@ export default function DynamicFormDemo() {
     }
 
     // Número mínimo
-    if (
-      val.min !== undefined &&
-      value !== undefined &&
-      value !== "" &&
-      parseFloat(value) < val.min
-    ) {
+    if (val.min !== undefined && value !== undefined && value !== "" && parseFloat(value) < val.min) {
       return val.minMessage || `El valor mínimo es ${val.min}`;
     }
 
     // Número máximo
-    if (
-      val.max !== undefined &&
-      value !== undefined &&
-      value !== "" &&
-      parseFloat(value) > val.max
-    ) {
+    if (val.max !== undefined && value !== undefined && value !== "" && parseFloat(value) > val.max) {
       return val.maxMessage || `El valor máximo es ${val.max}`;
     }
 
     // Mínimo seleccionados (checkbox)
-    if (
-      val.minSelected &&
-      Array.isArray(value) &&
-      value.length < val.minSelected
-    ) {
+    if (val.minSelected && Array.isArray(value) && value.length < val.minSelected) {
       return val.minSelectedMessage || `Selecciona al menos ${val.minSelected}`;
-    }
-
-    // Coincidencia de campos (para confirmar contraseña)
-    if (val.matchField && value !== formData[val.matchField]) {
-      return val.matchMessage || "Los campos no coinciden";
     }
 
     return null;
   };
 
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setDatosusuario(prev => ({
+      ...prev,
+        [name]: value
+    }));
+  };
+
+  const handleDomicilioChange = (e) => {
+    console.log(e.target)
+    const { name, value } = e.target;
+    setDatosusuario(prev => ({
+      ...prev,
+      Domicilio: {
+        ...prev.Domicilio,
+        [name]: value
+      }
+    }));
+  };
+
+  const handleDynamicChange = (e) => {
     const { name, value, type, checked } = e.target;
 
     if (type === "checkbox") {
-      const currentValues = formData[name] || [];
+      const currentValues = usuario[name] || [];
       const newValues = checked
         ? [...currentValues, value]
         : currentValues.filter((v) => v !== value);
 
-      setFormData((prev) => ({ ...prev, [name]: newValues }));
-      setErrors((prev) => ({ ...prev, [name]: null }));
+      setDatosusuario(prev => ({
+        ...prev,
+          [name]: newValues
+      }));
+      setErrors(prev => ({ ...prev, [name]: null }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-      setErrors((prev) => ({ ...prev, [name]: null }));
+      setDatosusuario(prev => ({
+        ...prev,
+          [name]: value
+        
+      }));
+      setErrors(prev => ({ ...prev, [name]: null }));
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const toggleSeccion = (seccion) => {
+    setSeccionAbierta(seccionAbierta === seccion ? null : seccion);
+  };
 
+  const handleSubmit = () => {
     const newErrors = {};
     let hasErrors = false;
 
-    // Validar todas las preguntas
+    // Validar todas las preguntas dinámicas
     QUESTION_SCHEMA.forEach((question) => {
-      const error = validateQuestion(question, formData[question.fieldName]);
+      // Verificar si la pregunta debe mostrarse (condicionales)
+      if (question.conditionalDisplay) {
+        const dependValue = usuario[question.conditionalDisplay.dependsOn];
+        if (dependValue !== question.conditionalDisplay.value) {
+          return; // No validar si no se muestra
+        }
+      }
+
+      const error = validateQuestion(question, usuario[question.fieldName]);
       if (error) {
         newErrors[question.fieldName] = error;
         hasErrors = true;
@@ -279,33 +350,59 @@ export default function DynamicFormDemo() {
     if (hasErrors) {
       // Scroll al primer error
       const firstErrorField = Object.keys(newErrors)[0];
-      if (firstErrorField === "mapDrawn") {
-        const element = document.querySelector("#parcel-map");
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      } else {
-        const element = document.querySelector(`[name="${firstErrorField}"]`);
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "center" });
-          element.focus();
-        }
+      const element = document.querySelector(`[name="${firstErrorField}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus();
       }
+      alert('Por favor corrige los errores en el formulario');
       return;
     }
-
-    setSubmitted(true);
+    if(!confirm('¿Esta seguro de la informacion proporcionada?'))
+    console.log('Datos completos:', JSON.stringify(usuario));
+    handleRegister(usuario)
+    setErrors({})
+    setDatosusuario({
+    Nombre: '',
+    Apellido1: '',
+    Apellido2: '',
+    Curp: '',
+    Correo: '',
+    Contrasena:'',
+    Telefono: '',
+    FechaNacimiento: '',
+    Ine: '',
+    Rfc: '',
+    Domicilio: {
+      Calle: '',
+      Colonia: '',
+      Municipio: '',
+      Ciudad: '',
+      Estado: '',
+      CodigoPostal: '',
+      Referencia: ''
+    },
+    Parcela: [],
+})
   };
 
   // Renderizar campo según tipo
-  const renderField = (question) => {
-    const value = formData[question.fieldName] || "";
+  const renderDynamicField = (question) => {
+    const value = usuario[question.fieldName] || "";
     const error = errors[question.fieldName];
+
+    // Verificar si debe mostrarse (condicional)
+    if (question.conditionalDisplay) {
+      const dependValue = usuario[question.conditionalDisplay.dependsOn];
+      if (dependValue !== question.conditionalDisplay.value) {
+        return null;
+      }
+    }
 
     const inputClasses = `w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 transition ${
       error
         ? "border-red-300 focus:ring-red-500"
-        : "border-gray-300 focus:ring-green-500"
+        : "border-gray-300 focus:ring-blue-500"
     }`;
 
     switch (question.type) {
@@ -313,12 +410,16 @@ export default function DynamicFormDemo() {
       case "email":
       case "password":
         return (
-          <div>
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
             <input
               type={question.type}
               name={question.fieldName}
               value={value}
-              onChange={handleChange}
+              onChange={handleDynamicChange}
               placeholder={question.placeholder}
               maxLength={question.validations?.maxLength}
               className={inputClasses}
@@ -334,15 +435,18 @@ export default function DynamicFormDemo() {
 
       case "number":
         return (
-          <div>
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
             <input
               type="number"
               name={question.fieldName}
               value={value}
-              onChange={handleChange}
+              onChange={handleDynamicChange}
               min={question.validations?.min}
               max={question.validations?.max}
-              step={question.step || "1"}
               className={inputClasses}
             />
             {error && (
@@ -356,11 +460,15 @@ export default function DynamicFormDemo() {
 
       case "select":
         return (
-          <div>
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
             <select
               name={question.fieldName}
               value={value}
-              onChange={handleChange}
+              onChange={handleDynamicChange}
               className={inputClasses}
             >
               <option value="">Seleccionar...</option>
@@ -381,8 +489,12 @@ export default function DynamicFormDemo() {
 
       case "checkbox":
         return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="space-y-2">
               {question.options.map((opt) => (
                 <label
                   key={opt.value}
@@ -394,11 +506,9 @@ export default function DynamicFormDemo() {
                     type="checkbox"
                     name={question.fieldName}
                     value={opt.value}
-                    checked={(formData[question.fieldName] || []).includes(
-                      opt.value,
-                    )}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                    checked={(usuario[question.fieldName] || []).includes(opt.value)}
+                    onChange={handleDynamicChange}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -415,8 +525,12 @@ export default function DynamicFormDemo() {
 
       case "radio":
         return (
-          <div>
-            <div className="space-y-3">
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
+            <div className="space-y-2">
               {question.options.map((opt) => (
                 <label
                   key={opt.value}
@@ -429,8 +543,8 @@ export default function DynamicFormDemo() {
                     name={question.fieldName}
                     value={opt.value}
                     checked={value === opt.value}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500"
+                    onChange={handleDynamicChange}
+                    className="w-5 h-5 text-blue-600 focus:ring-2 focus:ring-blue-500"
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -447,18 +561,22 @@ export default function DynamicFormDemo() {
 
       case "range":
         return (
-          <div>
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
             <div className="flex items-center gap-4">
               <input
                 type="range"
                 name={question.fieldName}
                 value={value || question.defaultValue || 0}
-                onChange={handleChange}
+                onChange={handleDynamicChange}
                 min={question.validations?.min || 0}
                 max={question.validations?.max || 100}
-                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-600"
+                className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
-              <span className="text-xl font-bold text-green-600 w-12 text-center">
+              <span className="text-xl font-bold text-blue-600 w-12 text-center">
                 {value || question.defaultValue || 0}
               </span>
             </div>
@@ -473,11 +591,15 @@ export default function DynamicFormDemo() {
 
       case "textarea":
         return (
-          <div>
+          <div key={question.id}>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              {question.question}
+              {question.required && <span className="text-red-500 ml-1">*</span>}
+            </label>
             <textarea
               name={question.fieldName}
               value={value}
-              onChange={handleChange}
+              onChange={handleDynamicChange}
               placeholder={question.placeholder}
               maxLength={question.validations?.maxLength}
               rows={4}
@@ -502,162 +624,311 @@ export default function DynamicFormDemo() {
     }
   };
 
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-10 h-10 text-green-600" />
-              </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                ¡Registro Completado!
-              </h2>
-              <p className="text-gray-600">
-                Tus respuestas han sido guardadas exitosamente
-              </p>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="font-bold text-lg mb-4">
-                Resumen de tus respuestas:
-              </h3>
-              <div className="space-y-6">
-                {Object.keys(groupedQuestions).map((sectionName) => (
-                  <div key={sectionName}>
-                    <h4 className="font-semibold text-green-600 mb-3 pb-2 border-b border-green-200">
-                      {sectionName}
-                    </h4>
-                    <div className="space-y-3">
-                      {groupedQuestions[sectionName].map((q) => {
-                        const value = formData[q.fieldName];
-                        let displayValue = value;
-
-                        if (Array.isArray(value)) {
-                          displayValue = value.join(", ");
-                        } else if (q.type === "select" || q.type === "radio") {
-                          const option = q.options?.find(
-                            (opt) => opt.value === value,
-                          );
-                          displayValue = option?.label || value;
-                        } else if (q.type === "password") {
-                          displayValue = "••••••••";
-                        }
-
-                        return (
-                          <div
-                            key={q.id}
-                            className="grid grid-cols-1 md:grid-cols-2 gap-2"
-                          >
-                            <p className="text-sm text-gray-600">
-                              {q.question}:
-                            </p>
-                            <p className="font-semibold text-gray-900">
-                              {displayValue || "No respondido"}
-                            </p>
-                          </div>
-                        );
-                      })}
-
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-4 mt-8">
-              <button
-                onClick={() => {
-                  setSubmitted(false);
-                  setFormData({});
-                  setErrors({});
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
-              >
-                Realizar Nuevo Registro
-              </button>
-            </div>
-          </div>
-        </div>
+  const SeccionHeader = ({ id, titulo, icono: Icono }) => (
+    <button
+      onClick={() => toggleSeccion(id)}
+      className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all"
+    >
+      <div className="flex items-center gap-3">
+        <Icono size={24} />
+        <span className="font-semibold text-lg">{titulo}</span>
       </div>
-    );
-  }
+      {seccionAbierta === id ? <ChevronUp /> : <ChevronDown />}
+    </button>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Registro de Productor
-            </h1>
-            <p className="text-gray-600">
-              Completa todos los campos del formulario para crear tu cuenta
-            </p>
-          </div>
+        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+          <h1 className="text-4xl font-bold text-gray-800 mb-2 text-center">
+            Registro de usuario y Parcelas
+          </h1>
+          <p className="text-gray-600 text-center mb-8">
+            Complete todos los campos para registrar su información
+          </p>
 
-          <div className="space-y-8">
-            {Object.keys(groupedQuestions).map((sectionName) => (
-              <div
-                key={sectionName}
-                className="border-2 border-gray-200 rounded-lg p-6"
-              >
-                <h2 className="text-xl font-bold text-gray-900 mb-6 pb-3 border-b-2 border-green-500">
-                  {sectionName}
-                </h2>
-                {sectionName === "Información de Cultivos" && (
-                    <div id="parcel-map">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Ubicación de Parcelas
-                        <span className="text-red-500 ml-1">*</span>
+          <div className="space-y-6">
+            
+            {/* Sección: Información Básica */}
+            <div>
+              <SeccionHeader id="basica" titulo="Información Básica" icono={User} />
+              {seccionAbierta === 'basica' && (
+                <div className="mt-4 p-6 bg-gray-50 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nombre *
                       </label>
-                      <MapaDibujo />
+                      <input
+                        type="text"
+                        name="Nombre"
+                        value={usuario.Nombre}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
                     </div>
-                  )}
-
-                <div className="space-y-6">
-                  {groupedQuestions[sectionName].map((question) => (
-                    <div key={question.id}>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        {question.question}
-                        {question.required && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Primer Apellido *
                       </label>
-                      {renderField(question)}
+                      <input
+                        type="text"
+                        name="Apellido1"
+                        value={usuario.Apellido1}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Segundo Apellido
+                      </label>
+                      <input
+                        type="text"
+                        name="Apellido2"
+                        value={usuario.Apellido2}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        CURP *
+                      </label>
+                      <input
+                        type="text"
+                        name="Curp"
+                        value={usuario.Curp}
+                        onChange={handleInputChange}
+                        maxLength={18}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Correo Electrónico *
+                      </label>
+                      <input
+                        type="email"
+                        name="Correo"
+                        value={usuario.Correo}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Contrase&ntilde;a *
+                      </label>
+                      <input
+                        type="contrasena"
+                        name="Contrasena"
+                        value={usuario.Contrasena}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Teléfono *
+                      </label>
+                      <input
+                        type="tel"
+                        name="Telefono"
+                        value={usuario.Telefono}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Fecha de Nacimiento *
+                      </label>
+                      <input
+                        type="date"
+                        name="FechaNacimiento"
+                        value={usuario.FechaNacimiento}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Número de INE (reverso) *
+                      </label>
+                      <input
+                        type="text"
+                        name="Ine"
+                        value={usuario.Ine}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        RFC *
+                      </label>
+                      <input
+                        type="text"
+                        name="Rfc"
+                        value={usuario.Rfc}
+                        onChange={handleInputChange}
+                        maxLength={13}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sección: Domicilio */}
+            <div>
+              <SeccionHeader id="domicilio" titulo="Domicilio" icono={Home} />
+              {seccionAbierta === 'domicilio' && (
+                <div className="mt-4 p-6 bg-gray-50 rounded-lg space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Calle *
+                      </label>
+                      <input
+                        type="text"
+                        name="Calle"
+                        value={usuario.Domicilio.Calle}
+                        onChange={handleDomicilioChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Colonia *
+                      </label>
+                      <input
+                        type="text"
+                        name="Colonia"
+                        value={usuario.Domicilio.Colonia}
+                        onChange={handleDomicilioChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Municipio *
+                      </label>
+                      <input
+                        type="text"
+                        name="Municipio"
+                        value={usuario.Domicilio.Municipio}
+                        onChange={handleDomicilioChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ciudad *
+                      </label>
+                      <input
+                        type="text"
+                        name="Ciudad"
+                        value={usuario.Domicilio.Ciudad}
+                        onChange={handleDomicilioChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Estado *
+                      </label>
+                      <input
+                        type="text"
+                        name="Estado"
+                        value={usuario.Domicilio.Estado}
+                        onChange={handleDomicilioChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Código Postal *
+                      </label>
+                      <input
+                        type="text"
+                        name="CodigoPostal"
+                        value={usuario.Domicilio.CodigoPostal}
+                        onChange={handleDomicilioChange}
+                        maxLength={5}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Referencias
+                      </label>
+                      <textarea
+                        name="Referencia"
+                        value={usuario.Domicilio.Referencia}
+                        onChange={handleDomicilioChange}
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Ej: Entre calle X y Y, cerca de..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Sección: Parcelas */}
+            <div>
+              <SeccionHeader id="parcelas" titulo="Parcelas" icono={MapPin} />
+              {seccionAbierta === 'parcelas' && (
+                <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                  <MapaDibujo 
+                    onParcelasChange={(parcelas) => setDatosusuario(prev => ({...prev,Parcela:parcelas}))}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Sección: Preguntas Dinámicas */}
+            <div>
+              <SeccionHeader id="dinamicas" titulo="Información Adicional" icono={FileText} />
+              {seccionAbierta === 'dinamicas' && (
+                <div className="mt-4 p-6 bg-gray-50 rounded-lg space-y-8">
+                  {Object.keys(groupedQuestions).map((sectionName) => (
+                    <div key={sectionName} className="border-b-2 border-gray-200 pb-6 last:border-b-0">
+                      <h3 className="text-lg font-bold text-blue-600 mb-4">{sectionName}</h3>
+                      <div className="space-y-6">
+                        {groupedQuestions[sectionName].map((question) => (
+                          renderDynamicField(question)
+                        ))}
+                      </div>
                     </div>
                   ))}
-
                 </div>
-              </div>
-            ))}
-
-            <div className="flex gap-4 pt-4">
-              <button
-                onClick={handleSubmit}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2"
-              >
-                <Check className="w-5 h-5" />
-                Completar Registro
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setFormData({});
-                  setErrors({});
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
-                className="px-8 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-4 rounded-lg transition"
-              >
-                Limpiar
-              </button>
+              )}
             </div>
+
+            {/* Botón Submit */}
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center gap-2 text-lg font-semibold shadow-lg hover:shadow-xl"
+            >
+              <Save size={24} />
+             { loadingRegister?'Registrando...':'Registrarse'}
+            </button>
           </div>
         </div>
+
       </div>
-    </div>
+      {/* Overlay pantalla bloqueada cuando hay loading */}
+      {loadingRegister && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]"/>
+      )}
+    </div>  
   );
-}
+};
+
+export default FormularioUsuarioParcelas;

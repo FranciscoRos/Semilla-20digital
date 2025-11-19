@@ -1,12 +1,42 @@
-import { useState, useRef, useEffect } from "react";
-import { Check, AlertCircle, MapPin, Trash2, Plus, Eye } from "lucide-react";
+import { useState, useRef, useEffect, act } from "react";
+import {
+  Check,
+  AlertCircle,
+  MapPin,
+  Trash2,
+  Plus,
+  Eye,
+  Key,
+} from "lucide-react";
 
 import MapaDibujo from "./mapaDraw";
 
-// Catálogo de usos de parcela (área y actividades específicas)
+interface Parcela {
+  id: string | undefined;
+  fechaRegistro: string;
+  ciudad: string;
+  municipio: string;
+  localidad: string;
+  direccionAdicional: string;
+  coordenadas: { lat: number; lng: number }[];
+  area: number;
+  nombre: string;
+  usos: {
+    area: string;
+    actividadesEspecificas: string[];
+  }[];
+}
+
+const COLOR_MAP = {
+  Verde: "bg-[#16a34a]",
+  Cafe: "bg-[#dc2626]",
+  Azul: "bg-[#0284c7]",
+};
 const USOS_PARCELA = {
   agricultura: {
     label: "Agricultura",
+    color: "Verde",
+    icon: "🌾",
     actividades: [
       { value: "maiz", label: "Siembra de Maíz" },
       { value: "frijol", label: "Siembra de Frijol" },
@@ -14,87 +44,76 @@ const USOS_PARCELA = {
       { value: "tomate", label: "Siembra de Tomate" },
       { value: "calabaza", label: "Siembra de Calabaza" },
       { value: "hortalizas", label: "Cultivo de Hortalizas" },
-      { value: "frutas", label: "Cultivo de Frutas" }
-    ]
+      { value: "frutas", label: "Cultivo de Frutas" },
+    ],
   },
   ganaderia: {
     label: "Ganadería",
+    color: "Cafe",
+    icon: "🐄",
     actividades: [
       { value: "vacas", label: "Cría de Vacas" },
       { value: "cerdos", label: "Cría de Cerdos" },
       { value: "ovejas", label: "Cría de Ovejas" },
       { value: "cabras", label: "Cría de Cabras" },
       { value: "pollos", label: "Cría de Pollos" },
-      { value: "caballos", label: "Cría de Caballos" }
-    ]
+      { value: "caballos", label: "Cría de Caballos" },
+    ],
   },
   pesca: {
     label: "Pesca/Acuacultura",
+    color: "Azul",
+    icon: "🐟",
     actividades: [
       { value: "mojarra", label: "Cría de Mojarra" },
       { value: "tilapia", label: "Cría de Tilapia" },
       { value: "camaron", label: "Cría de Camarón" },
       { value: "trucha", label: "Cría de Trucha" },
       { value: "carpa", label: "Cría de Carpa" },
-      { value: "bagre", label: "Cría de Bagre" }
-    ]
-  }
+      { value: "bagre", label: "Cría de Bagre" },
+    ],
+  },
 };
 
-
-
 // Componente principal: Registro de Parcelas
-export default function RegistroParcelas() {
-  const [parcelas, setParcelas] = useState([]);
-  const [vistaActual, setVistaActual] = useState('registro'); // 'registro' o 'lista'
-  
+export default function RegistroParcelas({onParcelasChange}) {
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [vistaActual, setVistaActual] = useState("registro"); // 'registro' o 'lista'
+
   // Datos de la parcela actual
-  const [parcelaActual, setParcelaActual] = useState({
-    ciudad: '',
-    municipio: '',
-    localidad: '',
-    direccionAdicional: '',
+  const [parcelaActual, setParcelaActual] = useState<Parcela>({
+    id: undefined,
+    fechaRegistro: "",
+    ciudad: "",
+    municipio: "",
+    localidad: "",
+    direccionAdicional: "",
     coordenadas: [],
     area: 0,
-    areaUso: '', // agricultura, ganaderia, pesca
-    actividadesEspecificas: [] // maiz, vacas, mojarra, etc.
+    nombre: "",
+    usos: [
+      {
+        area: "",
+        actividadesEspecificas: [],
+      },
+    ],
   });
 
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+  onParcelasChange(parcelas); 
+}, [parcelas]);
   // Manejar cambios en el polígono del mapa
   const handlePolygonChange = ({ coordinates, area }) => {
-    setParcelaActual(prev => ({
+    setParcelaActual((prev) => ({
       ...prev,
       coordenadas: coordinates,
-      area: parseFloat(area)
+      area: parseFloat(area),
     }));
     if (coordinates.length >= 3) {
-      setErrors(prev => ({ ...prev, coordenadas: null }));
+      setErrors((prev) => ({ ...prev, coordenadas: null }));
     }
-  };
-
-  // Manejar cambio de área de uso
-  const handleAreaUsoChange = (e) => {
-    const areaUso = e.target.value;
-    setParcelaActual(prev => ({
-      ...prev,
-      areaUso,
-      actividadesEspecificas: [] // Resetear actividades al cambiar área
-    }));
-    setErrors(prev => ({ ...prev, areaUso: null }));
-  };
-
-  // Manejar cambio de actividades específicas
-  const handleActividadToggle = (actividad) => {
-    setParcelaActual(prev => {
-      const actividades = prev.actividadesEspecificas.includes(actividad)
-        ? prev.actividadesEspecificas.filter(a => a !== actividad)
-        : [...prev.actividadesEspecificas, actividad];
-      
-      return { ...prev, actividadesEspecificas: actividades };
-    });
-    setErrors(prev => ({ ...prev, actividadesEspecificas: null }));
   };
 
   // Validar y guardar parcela
@@ -103,74 +122,110 @@ export default function RegistroParcelas() {
 
     // Validaciones
     if (!parcelaActual.ciudad.trim()) {
-      newErrors['ciudad'] = 'La ciudad es obligatoria';
+      newErrors["ciudad"] = "La ciudad es obligatoria";
     }
     if (!parcelaActual.municipio.trim()) {
-      newErrors['municipio'] = 'El municipio es obligatorio';
+      newErrors["municipio"] = "El municipio es obligatorio";
     }
     if (!parcelaActual.localidad.trim()) {
-      newErrors['localidad'] = 'La localidad es obligatoria';
+      newErrors["localidad"] = "La localidad es obligatoria";
     }
     if (parcelaActual.coordenadas.length < 3) {
-      newErrors['coordenadas'] = 'Debes dibujar el polígono de la parcela';
+      newErrors["coordenadas"] = "Debes dibujar el polígono de la parcela";
     }
-    if (!parcelaActual.areaUso) {
-      newErrors['areaUso'] = 'Selecciona el área de uso';
-    }
-    if (parcelaActual.actividadesEspecificas.length === 0) {
-      newErrors['actividadesEspecificas'] = 'Selecciona al menos una actividad';
+    if (parcelaActual.usos.length === 0) {
+      newErrors["usos"] = "Selecciona minimo un área de uso";
+    } else {
+      parcelaActual.usos.map((pA) => {
+        if (pA.actividadesEspecificas.length === 0) {
+          newErrors[`actEsp${pA.area}`] = "Selecciona al menos una actividad";
+        }
+      });
     }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      return;
+      return console.error(newErrors);
     }
 
     // Crear objeto de parcela con estructura definida
-    const nuevaParcela = {
-      id: Date.now(),
-      ciudad: parcelaActual.ciudad,
-      municipio: parcelaActual.municipio,
-      localidad: parcelaActual.localidad,
-      direccionAdicional: parcelaActual.direccionAdicional,
-      coordenadas: parcelaActual.coordenadas,
-      area: parcelaActual.area,
-      uso: {
-        area: parcelaActual.areaUso,
-        areaLabel: USOS_PARCELA[parcelaActual.areaUso].label,
-        actividades: parcelaActual.actividadesEspecificas,
-        actividadesLabels: parcelaActual.actividadesEspecificas.map(act => {
-          const actividad = USOS_PARCELA[parcelaActual.areaUso].actividades.find(a => a.value === act);
-          return actividad?.label || act;
-        })
-      },
-      fechaRegistro: new Date().toISOString()
-    };
+    if (parcelaActual.id === undefined) {
+      const nuevaParcela = {
+        id: Date.now().toString(),
+        ciudad: parcelaActual.ciudad,
+        municipio: parcelaActual.municipio,
+        localidad: parcelaActual.localidad,
+        direccionAdicional: parcelaActual.direccionAdicional,
+        coordenadas: parcelaActual.coordenadas,
+        area: parcelaActual.area,
+        nombre: parcelaActual.nombre
+          ? parcelaActual.nombre
+          : `Parcela ${parcelas.length + 1}`,
+        usos: parcelaActual.usos.map((uso) => ({
+          area: uso.area,
+          actividadesEspecificas: uso.actividadesEspecificas,
+        })),
+        fechaRegistro: new Date().toISOString(),
+      };
 
-    // Agregar a la lista de parcelas
-    setParcelas(prev => [...prev, nuevaParcela]);
+      // Agregar a la lista de parcelas
+      setParcelas((prev) => [...prev, nuevaParcela]);
 
-    // Aquí guardarías en tu base de datos
-    console.log('Nueva parcela guardada:', nuevaParcela);
-    console.log('Arreglo completo de parcelas:', [...parcelas, nuevaParcela]);
+      // Aquí guardarías en tu base de datos
+      console.log("Nueva parcela guardada:", nuevaParcela);
+      console.log("Arreglo completo de parcelas:", [...parcelas, nuevaParcela]);
+    } else {
+      setParcelas((prev) =>
+        prev.map((p) =>
+          p.id === parcelaActual.id
+            ? {
+                id: parcelaActual.id,
+                ciudad: parcelaActual.ciudad,
+                municipio: parcelaActual.municipio,
+                localidad: parcelaActual.localidad,
+                direccionAdicional: parcelaActual.direccionAdicional,
+                coordenadas: parcelaActual.coordenadas,
+                area: parcelaActual.area,
+                nombre: parcelaActual.nombre
+                  ? parcelaActual.nombre
+                  : `Parcela ${parcelas.length + 1}`,
+                usos: parcelaActual.usos.map((uso) => ({
+                  area: uso.area,
+                  actividadesEspecificas: uso.actividadesEspecificas,
+                })),
+        fechaRegistro: new Date().toISOString(),
+              }
+            : p,
+        ),
+      );
 
-    handleLimpiar()
+      // Aquí guardarías en tu base de datos
+      console.log("Parcela Actualizada Correctamente");
+      console.log("Arreglo completo de parcelas:", parcelas);
+    }
 
+    handleLimpiar();
     // Mostrar mensaje de éxito
-    alert('Parcela registrada');
+    alert(
+      parcelaActual.id
+        ? "Parcela actualizada exitosamente"
+        : "Parcela registrada exitosamente",
+    );
   };
 
   // Limpiar formulario
   const handleLimpiar = () => {
     setParcelaActual({
-      ciudad: '',
-      municipio: '',
-      localidad: '',
-      direccionAdicional: '',
+      id: undefined,
+      fechaRegistro: "",
+      ciudad: "",
+      municipio: "",
+      localidad: "",
+      direccionAdicional: "",
       coordenadas: [],
       area: 0,
-      areaUso: '',
-      actividadesEspecificas: []
+      nombre: "",
+      usos: [{ area: "", actividadesEspecificas: [] }],
     });
     setErrors({});
   };
@@ -180,10 +235,12 @@ export default function RegistroParcelas() {
     <div className="bg-white rounded-lg shadow-lg p-8">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Registro de Nueva Parcela
+          {parcelaActual.id ? "Editar Parcela" : "Registro de Nueva Parcela"}
         </h2>
         <p className="text-gray-600">
-          Completa todos los campos y dibuja el polígono en el mapa
+          {parcelaActual.id
+            ? `Modificando: ${parcelaActual.nombre}`
+            : "Completa todos los campos y dibuja el polígono en el mapa"}
         </p>
       </div>
 
@@ -202,18 +259,21 @@ export default function RegistroParcelas() {
               type="text"
               value={parcelaActual.ciudad}
               onChange={(e) => {
-                setParcelaActual(prev => ({ ...prev, ciudad: e.target.value }));
-                setErrors(prev => ({ ...prev, ciudad: null }));
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  ciudad: e.target.value,
+                }));
+                setErrors((prev) => ({ ...prev, ciudad: null }));
               }}
               placeholder="Ej: Cancún"
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 ${
-                errors['ciudad'] ? 'border-red-300' : 'border-gray-300'
+                errors["ciudad"] ? "border-red-300" : "border-gray-300"
               }`}
             />
-            {errors['ciudad'] && (
+            {errors["ciudad"] && (
               <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4" />
-                {errors['ciudad']}
+                {errors["ciudad"]}
               </div>
             )}
           </div>
@@ -226,18 +286,21 @@ export default function RegistroParcelas() {
               type="text"
               value={parcelaActual.municipio}
               onChange={(e) => {
-                setParcelaActual(prev => ({ ...prev, municipio: e.target.value }));
-                setErrors(prev => ({ ...prev, municipio: null }));
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  municipio: e.target.value,
+                }));
+                setErrors((prev) => ({ ...prev, municipio: null }));
               }}
               placeholder="Ej: Benito Juárez"
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 ${
-                errors['municipio'] ? 'border-red-300' : 'border-gray-300'
+                errors["municipio"] ? "border-red-300" : "border-gray-300"
               }`}
             />
-            {errors['municipio'] && (
+            {errors["municipio"] && (
               <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4" />
-                {errors['municipio']}
+                {errors["municipio"]}
               </div>
             )}
           </div>
@@ -250,18 +313,21 @@ export default function RegistroParcelas() {
               type="text"
               value={parcelaActual.localidad}
               onChange={(e) => {
-                setParcelaActual(prev => ({ ...prev, localidad: e.target.value }));
-                setErrors(prev => ({ ...prev, localidad: null }));
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  localidad: e.target.value,
+                }));
+                setErrors((prev) => ({ ...prev, localidad: null }));
               }}
               placeholder="Ej: Región 100"
               className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 ${
-                errors['localidad'] ? 'border-red-300' : 'border-gray-300'
+                errors["localidad"] ? "border-red-300" : "border-gray-300"
               }`}
             />
-            {errors['localidad'] && (
+            {errors["localidad"] && (
               <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
                 <AlertCircle className="w-4 h-4" />
-                {errors['localidad']}
+                {errors["localidad"]}
               </div>
             )}
           </div>
@@ -273,8 +339,32 @@ export default function RegistroParcelas() {
             <input
               type="text"
               value={parcelaActual.direccionAdicional}
-              onChange={(e) => setParcelaActual(prev => ({ ...prev, direccionAdicional: e.target.value }))}
+              onChange={(e) =>
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  direccionAdicional: e.target.value,
+                }))
+              }
               placeholder="Ej: A 2km de la carretera principal"
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+            />
+          </div>
+          {/* Nombre del Sector */}
+          <div className="mb-6 col-span-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Nombre del Sector
+            </label>
+            <input
+              type="text"
+              value={parcelaActual.nombre}
+              onChange={(e) => {
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  nombre: e.target.value,
+                }));
+                setErrors((prev) => ({ ...prev, nombreSector: null }));
+              }}
+              placeholder="Ej: Zona de Maíz Norte, Área de Ganado Sur, Estanque Este"
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2"
             />
           </div>
@@ -287,7 +377,7 @@ export default function RegistroParcelas() {
           🗺️ Delimitar Parcela
         </h3>
 
-        <MapaDibujo 
+        <MapaDibujo
           onPolygonChange={handlePolygonChange}
           initialPolygon={parcelaActual.coordenadas}
         />
@@ -313,78 +403,141 @@ export default function RegistroParcelas() {
           </div>
         )}
 
-        {errors['coordenadas'] && (
+        {errors["coordenadas"] && (
           <div className="flex items-center gap-2 mt-3 text-sm text-red-600">
             <AlertCircle className="w-4 h-4" />
-            {errors['coordenadas']}
+            {errors["coordenadas"]}
           </div>
         )}
       </div>
 
-      {/* Uso de la Parcela */}
+      {/* Usos de la Parcela (múltiples) */}
       <div className="border-2 border-gray-200 rounded-lg p-6 mb-6">
         <h3 className="text-xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-green-500">
-          🌾 Uso de la Parcela
+          🌾 Usos de la Parcela
         </h3>
 
-        {/* Área de Uso */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Área de Uso <span className="text-red-500">*</span>
-          </label>
-          <select
-            value={parcelaActual.areaUso}
-            onChange={handleAreaUsoChange}
-            className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 ${
-              errors['areaUso'] ? 'border-red-300' : 'border-gray-300'
-            }`}
+        {parcelaActual.usos.map((uso, index) => (
+          <div
+            key={index}
+            className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50 relative"
           >
-            <option value="">Seleccionar área...</option>
-            {Object.entries(USOS_PARCELA).map(([key, data]) => (
-              <option key={key} value={key}>{data.label}</option>
-            ))}
-          </select>
-          {errors['areaUso'] && (
-            <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
-              <AlertCircle className="w-4 h-4" />
-              {errors['areaUso']}
-            </div>
-          )}
-        </div>
+            <button
+              onClick={() => {
+                setParcelaActual((prev) => ({
+                  ...prev,
+                  usos: prev.usos.filter((_, i) => i !== index),
+                }));
+              }}
+              className="absolute top-2 right-2 text-red-600 hover:text-red-800"
+              title="Eliminar este uso"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
 
-        {/* Actividades Específicas */}
-        {parcelaActual.areaUso && (
-          <div>
+            {/* Selector de tipo de uso */}
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Actividades Específicas <span className="text-red-500">*</span>
-              <span className="text-gray-500 font-normal ml-2">(Selecciona todas las que apliquen)</span>
+              Tipo de Uso <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {USOS_PARCELA[parcelaActual.areaUso].actividades.map(actividad => (
-                <label
-                  key={actividad.value}
-                  className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
-                    parcelaActual.actividadesEspecificas.includes(actividad.value)
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200'
-                  } ${errors['actividadesEspecificas'] ? 'border-red-300' : ''}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={parcelaActual.actividadesEspecificas.includes(actividad.value)}
-                    onChange={() => handleActividadToggle(actividad.value)}
-                    className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
-                  />
-                  <span>{actividad.label}</span>
+            <select
+              value={uso.area}
+              onChange={(e) => {
+                const newArea = e.target.value;
+                setParcelaActual((prev) => {
+                  const nuevosUsos = [...prev.usos];
+                  nuevosUsos[index] = {
+                    area: newArea,
+                    actividadesEspecificas: [],
+                  };
+                  return { ...prev, usos: nuevosUsos };
+                });
+              }}
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+            >
+              <option value="">Seleccionar área...</option>
+              {Object.entries(USOS_PARCELA)
+                // 🔧 Aquí está la lógica para evitar repetir áreas
+                .filter(([key]) => {
+                  // Deja pasar el área actual seleccionada o las que no están seleccionadas en otros usos
+                  return !parcelaActual.usos.some(
+                    (p, i) => i !== index && p.area === key,
+                  );
+                })
+                .map(([key, data]) => (
+                  <option key={key} value={key}>
+                    {data.label}
+                  </option>
+                ))}
+            </select>
+
+            {/* Actividades específicas */}
+            {uso.area && (
+              <div className="mt-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Actividades Específicas{" "}
+                  <span className="text-red-500">*</span>
                 </label>
-              ))}
-            </div>
-            {errors['actividadesEspecificas'] && (
-              <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
-                <AlertCircle className="w-4 h-4" />
-                {errors['actividadesEspecificas']}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {USOS_PARCELA[uso.area].actividades.map((act) => (
+                    <label
+                      key={act.value}
+                      className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer hover:bg-gray-50 transition ${
+                        uso.actividadesEspecificas.includes(act.value)
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={uso.actividadesEspecificas.includes(act.value)}
+                        onChange={() => {
+                          setParcelaActual((prev) => {
+                            const nuevosUsos = [...prev.usos];
+                            const actividades =
+                              nuevosUsos[index].actividadesEspecificas;
+                            nuevosUsos[index].actividadesEspecificas =
+                              actividades.includes(act.value)
+                                ? actividades.filter((a) => a !== act.value)
+                                : [...actividades, act.value];
+                            return { ...prev, usos: nuevosUsos };
+                          });
+                        }}
+                        className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                      />
+                      <span>{act.label}</span>
+                    </label>
+                  ))}
+                </div>
+                {errors[`actEsp${uso.area}`] && (
+                  <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors[`actEsp${uso.area}`]}
+                  </div>
+                )}
               </div>
             )}
+          </div>
+        ))}
+
+        {/* Botón para agregar nuevo uso */}
+        <button
+          onClick={() => {
+            setParcelaActual((prev) => ({
+              ...prev,
+              usos: [...prev.usos, { area: "", actividadesEspecificas: [] }],
+            }));
+          }}
+          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold"
+        >
+          <Plus className="w-5 h-5" />
+          Agregar otro uso
+        </button>
+
+        {/* Validaciones */}
+        {errors["usos"] && (
+          <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+            <AlertCircle className="w-4 h-4" />
+            {errors["usos"]}
           </div>
         )}
       </div>
@@ -393,14 +546,14 @@ export default function RegistroParcelas() {
       <div className="flex gap-4">
         <button
           onClick={handleGuardarParcela}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2"
+          className={`flex-1 ${parcelaActual.id ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"} text-white font-bold py-4 rounded-lg transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl`}
         >
           <Check className="w-5 h-5" />
-          Guardar Parcela
+          {parcelaActual.id ? "Actualizar Parcela" : "Guardar Parcela"}
         </button>
         <button
           onClick={handleLimpiar}
-          className="px-8 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-4 rounded-lg transition flex items-center gap-2"
+          className="px-8 bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold py-4 rounded-lg transition flex items-center gap-2 shadow hover:shadow-md"
         >
           <Trash2 className="w-5 h-5" />
           Limpiar
@@ -416,9 +569,7 @@ export default function RegistroParcelas() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Parcelas Registradas ({parcelas.length})
         </h2>
-        <p className="text-gray-600">
-          Listado de todas las parcelas guardadas
-        </p>
+        <p className="text-gray-600">Listado de todas las parcelas guardadas</p>
       </div>
 
       {parcelas.length === 0 ? (
@@ -426,7 +577,7 @@ export default function RegistroParcelas() {
           <MapPin className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-gray-600 text-lg">No hay parcelas registradas</p>
           <button
-            onClick={() => setVistaActual('registro')}
+            onClick={() => setVistaActual("registro")}
             className="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition"
           >
             Registrar Primera Parcela
@@ -435,63 +586,132 @@ export default function RegistroParcelas() {
       ) : (
         <div className="space-y-4">
           {parcelas.map((parcela, index) => (
-            <div key={parcela.id} className="border-2 border-gray-200 rounded-lg p-6 hover:border-green-300 transition">
+            <div
+              key={parcela.id}
+              className="border-2 border-gray-200 rounded-lg p-6 hover:border-green-300 transition"
+            >
               <div className="flex justify-between items-start mb-4">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-xl font-bold text-gray-900">
-                    Parcela #{index + 1}
+                    {parcela.nombre || `Parcela #${index + 1}`}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    Registrada: {new Date(parcela.fechaRegistro).toLocaleString('es-MX')}
+                    Registrada:{" "}
+                    {new Date(parcela.fechaRegistro).toLocaleString("es-MX")}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-600">{parcela.area} ha</p>
-                  <p className="text-sm text-gray-600">{parcela.coordenadas.length} puntos</p>
+                <div className="text-right mr-4">
+                  <p className="text-2xl font-bold text-green-600">
+                    {parcela.area} ha
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {parcela.coordenadas.length} puntos
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setParcelaActual(parcela);
+                      setVistaActual("registro");
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
+                    title="Editar parcela"
+                  >
+                    <Key className="w-4 h-4" />
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (
+                        confirm(
+                          `¿Estás seguro de eliminar "${parcela.nombre}"?`,
+                        )
+                      ) {
+                        setParcelas((prev) =>
+                          prev.filter((p) => p.id !== parcela.id),
+                        );
+                        alert("Parcela eliminada exitosamente");
+                      }
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
+                    title="Eliminar parcela"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar
+                  </button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {/* Ubicación - Ocupa todo el ancho */}
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">📍 Ubicación:</h4>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    📍 Ubicación:
+                  </h4>
                   <p className="text-sm text-gray-600">
-                    <strong>Ciudad:</strong> {parcela.ciudad}<br />
-                    <strong>Municipio:</strong> {parcela.municipio}<br />
+                    <strong>Ciudad:</strong> {parcela.ciudad}
+                    <br />
+                    <strong>Municipio:</strong> {parcela.municipio}
+                    <br />
                     <strong>Localidad:</strong> {parcela.localidad}
                     {parcela.direccionAdicional && (
-                      <><br /><strong>Adicional:</strong> {parcela.direccionAdicional}</>
+                      <>
+                        <br />
+                        <strong>Adicional:</strong> {parcela.direccionAdicional}
+                      </>
                     )}
                   </p>
                 </div>
 
+                {/* Usos - Todos en una sola fila */}
                 <div>
-                  <h4 className="font-semibold text-gray-700 mb-2">🌾 Uso:</h4>
-                  <p className="text-sm text-gray-600">
-                    <strong>Área:</strong> {parcela.uso.areaLabel}<br />
-                    <strong>Actividades:</strong><br />
-                    {parcela.uso.actividadesLabels.map((act, i) => (
-                      <span key={i} className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-2 mt-1">
-                        {act}
-                      </span>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    🌾 Usos de la Parcela:
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {parcela.usos.map((act, i) => (
+                      <div
+                        key={i}
+                        className="bg-gray-50 p-3 rounded-lg border border-gray-200"
+                      >
+                        <p className="text-sm text-gray-600">
+                          <strong className="text-green-700">
+                            {USOS_PARCELA[act.area]?.label || act.area}
+                          </strong>
+                          <br />
+                          <span className="text-xs text-gray-500">
+                            Actividades:
+                          </span>
+                          <br />
+                          {act.actividadesEspecificas.map((ae, ix) => (
+                            <span
+                              key={ix}
+                              className="inline-block bg-green-100 text-green-700 px-2 py-1 rounded text-xs mr-1 mt-1"
+                            >
+                              {ae}
+                            </span>
+                          ))}
+                        </p>
+                      </div>
                     ))}
-                  </p>
+                  </div>
                 </div>
               </div>
 
               <div className="mt-4">
                 <button
-                  onClick={() => console.log('Ver detalles:', parcela)}
+                  onClick={() => console.log("Ver detalles:", parcela)}
                   className="text-green-600 hover:text-green-700 font-semibold text-sm flex items-center gap-1"
                 >
                   <Eye className="w-4 h-4" />
                   Ver coordenadas completas en consola
                 </button>
               </div>
-              <MapaDibujo 
-          onPolygonChange={handlePolygonChange}
-          initialPolygon={parcela.coordenadas}
-          typeRegistro={true}
-        />
+              <MapaDibujo
+                onPolygonChange={handlePolygonChange}
+                initialPolygon={parcela.coordenadas}
+                typeRegistro={true}
+              />
             </div>
           ))}
         </div>
@@ -505,22 +725,22 @@ export default function RegistroParcelas() {
         {/* Navegación */}
         <div className="mb-6 flex gap-4">
           <button
-            onClick={() => setVistaActual('registro')}
+            onClick={() => setVistaActual("registro")}
             className={`flex-1 py-3 px-6 rounded-lg font-bold transition flex items-center justify-center gap-2 ${
-              vistaActual === 'registro'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 border-2 border-gray-300'
+              vistaActual === "registro"
+                ? "bg-green-600 text-white"
+                : "bg-white text-gray-700 border-2 border-gray-300"
             }`}
           >
             <Plus className="w-5 h-5" />
             Nueva Parcela
           </button>
           <button
-            onClick={() => setVistaActual('lista')}
+            onClick={() => setVistaActual("lista")}
             className={`flex-1 py-3 px-6 rounded-lg font-bold transition flex items-center justify-center gap-2 ${
-              vistaActual === 'lista'
-                ? 'bg-green-600 text-white'
-                : 'bg-white text-gray-700 border-2 border-gray-300'
+              vistaActual === "lista"
+                ? "bg-green-600 text-white"
+                : "bg-white text-gray-700 border-2 border-gray-300"
             }`}
           >
             <Eye className="w-5 h-5" />
@@ -529,12 +749,14 @@ export default function RegistroParcelas() {
         </div>
 
         {/* Vista actual */}
-        {vistaActual === 'registro' ? renderRegistro() : renderLista()}
+        {vistaActual === "registro" ? renderRegistro() : renderLista()}
 
         {/* Debug: Mostrar estructura de datos */}
-        {(parcelas.length > 0 && vistaActual==='lista') && (
+        {parcelas.length > 0 && vistaActual === "lista" && (
           <div className="mt-6 p-4 bg-gray-900 text-white rounded-lg">
-            <p className="text-sm font-mono mb-2">📊 Estructura de datos (últimas 2 parcelas):</p>
+            <p className="text-sm font-mono mb-2">
+              📊 Estructura de datos (últimas 2 parcelas):
+            </p>
             <pre className="text-xs overflow-auto max-h-96">
               {JSON.stringify(parcelas.slice(-2), null, 2)}
             </pre>

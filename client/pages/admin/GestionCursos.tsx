@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { ChevronLeft, Plus, Edit2, Trash2 } from "lucide-react";
-import Header from "@/components/Header";
 import { demoCursos } from "@/services/api";
 
 export default function GestionCursos() {

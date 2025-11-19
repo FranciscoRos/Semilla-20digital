@@ -7,11 +7,22 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import {AppRoutes} from "./routes/appRouter";
+import { AuthProvider } from "./providers/authProvider";
 
 // Global
 import ChatBot from "./components/ChatBot";
 
-const queryClient = new QueryClient();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 1000 * 60 * 1,     // 1 minuto
+      retry: 2,                  // número de reintentos
+      retryDelay: 1000,          // 1 segundo entre intentos
+      refetchOnReconnect: "always", // siempre que vuelva Internet
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -19,10 +30,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+      <AuthProvider>
       <AppRoutes/>
 
         {/* Global ChatBot - Disponible en todas las vistas */}
         <ChatBot />
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
