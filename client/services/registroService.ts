@@ -12,9 +12,21 @@ const registerApi=axios.create({
 export const postRegistro=async(data)=>{
     try {
         const res=await registerApi.post('',data)
-        console.log(res.data)
         return res.data
     } catch (error) {
-        
+        console.error('Error Peticion Registro: ',error)
+       throw new Error(error.message || 'Error desconocido');
+    }
+}
+
+
+export const getRegistro=async(id:string)=>{
+    try {
+        await authHeader(registerApi)
+        const res=await registerApi.get(id)
+        return res.data
+    } catch (error) {
+        console.error('Error Peticion Registro: ',error)
+       throw new Error(error.message || 'Error desconocido');
     }
 }

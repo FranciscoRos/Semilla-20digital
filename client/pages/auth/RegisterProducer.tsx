@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Save, MapPin, User, Home, FileText, AlertCircle
 import MapaDibujo from '@/components/mapaDrawForm';
 import { useRegisterProducer } from '@/hooks/useRegisterPro';
 import { Toaster } from '@/components/ui/toaster';
-
+import SDloading from "@/assets/SDloading.svg"
 // Estructura de preguntas dinámicas
 const QUESTION_SCHEMA = [
   {
@@ -354,6 +354,7 @@ const FormularioUsuarioParcelas = () => {
       const element = document.querySelector(`[name="${firstErrorField}"]`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
+        //@ts-ignore
         element.focus();
       }
       alert('Por favor corrige los errores en el formulario');
@@ -924,9 +925,10 @@ const FormularioUsuarioParcelas = () => {
         </div>
 
       </div>
-      {/* Overlay pantalla bloqueada cuando hay loading */}
-      {loadingRegister && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]"/>
+       {loadingRegister && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+              <img src={SDloading} alt="Cargando..." width="100" height="100"/>
+        </div>
       )}
       <Toaster/>
     </div>  

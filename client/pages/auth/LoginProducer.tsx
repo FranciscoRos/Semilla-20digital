@@ -2,6 +2,7 @@ import { useAuthUser } from "@/hooks/authUser";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import logoSD from "@/assets/logoSD.jpg";
+import SDloading from "@/assets/SDloading.svg"
 import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 export default function LoginProducer() {
@@ -144,13 +145,18 @@ useEffect(()=>{
             ¿Eres administrador?{" "}
             <button
               onClick={() => navigate("/login-admin")}
-              className="text-green-600 hover:text-green-700 font-bold"
+              className="font-bold"
             >
               Inicia sesión aquí
             </button>
           </p>
         </div>
       </div>
+       {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+              <img src={SDloading} alt="Cargando..." width="100" height="100"/>
+        </div>
+      )}
       <Toaster/>
     </div>
   );

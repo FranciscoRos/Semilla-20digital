@@ -79,6 +79,36 @@ const USOS_PARCELA = {
 export default function RegistroParcelas({onParcelasChange}) {
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
   const [vistaActual, setVistaActual] = useState("registro"); // 'registro' o 'lista'
+  const getEnvApiKey = () => {
+
+    let envKey = "";
+
+    try {
+
+        // @ts-ignore
+
+        if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
+
+            // @ts-ignore
+
+            envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+        }
+
+        else if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
+
+            envKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+
+        }
+
+    } catch (e) { console.log("No env key detected"); }
+
+    return envKey;
+
+  };
+
+
+  const [apiKey] = useState(getEnvApiKey()); 
 
   // Datos de la parcela actual
   const [parcelaActual, setParcelaActual] = useState<Parcela>({
@@ -115,6 +145,8 @@ export default function RegistroParcelas({onParcelasChange}) {
       setErrors((prev) => ({ ...prev, coordenadas: null }));
     }
   };
+
+
 
   // Validar y guardar parcela
   const handleGuardarParcela = () => {
@@ -379,6 +411,7 @@ export default function RegistroParcelas({onParcelasChange}) {
 
         <MapaDibujo
           onPolygonChange={handlePolygonChange}
+          apiKey={apiKey}
           initialPolygon={parcelaActual.coordenadas}
         />
 
@@ -710,6 +743,7 @@ export default function RegistroParcelas({onParcelasChange}) {
               <MapaDibujo
                 onPolygonChange={handlePolygonChange}
                 initialPolygon={parcela.coordenadas}
+                apiKey={apiKey}
                 typeRegistro={true}
               />
             </div>

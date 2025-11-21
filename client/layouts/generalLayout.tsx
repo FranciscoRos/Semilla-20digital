@@ -6,7 +6,7 @@ import logoSD from "@/assets/logoSD.jpg";
 import { useAuthUser } from "@/hooks/authUser";
 import { useAuth } from "@/providers/authProvider";
 import { Toaster } from "@/components/ui/toaster";
-
+import SDloading from "@/assets/SDloading.svg"
 export default function LayoutGeneral() {
   const { handleLogout, loginLogout } = useAuthUser();
   const navigate = useNavigate();
@@ -133,9 +133,7 @@ const {user}=useAuth()
       {/* Overlay pantalla bloqueada cuando hay loading */}
       {loginLogout && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
-          <div className="bg-white px-6 py-4 rounded-lg shadow-lg text-gray-800 font-medium">
-            Procesando...
-          </div>
+              <img src={SDloading} alt="Cargando..." width="100" height="100"/>
         </div>
       )}
             <Toaster/>

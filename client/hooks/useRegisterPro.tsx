@@ -1,10 +1,11 @@
 import { postRegistro } from "@/services/registroService"
-import { useMutation } from "@tanstack/react-query"
-import { useNavigate } from "react-router-dom" // 1. Cambia Navigate por useNavigate
+import { useMutation, useQuery } from "@tanstack/react-query"
+import { useNavigate } from "react-router-dom"
 
 
 export const useRegisterProducer=()=>{
 const Navigate=useNavigate() 
+
     const {mutate:handleRegister,isPending:loadingRegister}=useMutation({
         mutationKey:['registerProducer'],
         mutationFn:(Usuario:Record<string,any>)=>postRegistro({Usuario}),

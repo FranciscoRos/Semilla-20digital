@@ -1,7 +1,7 @@
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { useAuthUser } from "@/hooks/authUser";
 import { Toaster } from "@/components/ui/toaster";
-
+import SDloading from "@/assets/SDloading.svg"
 export default function LoginAdmin() {
 
   const {
@@ -111,6 +111,11 @@ export default function LoginAdmin() {
           </p>
         </div>  */}
       </div>
+       {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+              <img src={SDloading} alt="Cargando..." width="100" height="100"/>
+        </div>
+      )}
       <Toaster/>
     </div>
   );

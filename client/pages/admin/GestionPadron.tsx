@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
+import SDloading from "@/assets/SDloading.svg"
+import { usePreguntas } from "@/hooks/usePreguntas";
+import { set } from "date-fns";
 
 // Tipos de pregunta disponibles
 const QUESTION_TYPES = [
@@ -15,7 +19,7 @@ const QUESTION_TYPES = [
 ];
 
 // Preguntas iniciales de ejemplo
-const INITIAL_QUESTIONS = [
+const INITIAL_QUESTIONS:Question[] = [
   {
     id: "q1",
     fieldName: "fullName",
@@ -32,6 +36,35 @@ const INITIAL_QUESTIONS = [
     section: "Información Personal",
     options: []
   },
+  {
+            fieldName: "form_registro",
+            question: "¿Cuál es tu nombre completo?",
+            type: "text",
+            required: true,
+            placeholder: "Ingresa tu nombre",
+            validations: {
+                minLength: 3,
+                maxLength: 50,
+                min: 3.5,
+                max: 3.5,
+                pattern: "^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$",
+                patternMessage: "Solo se permiten letras y espacios",
+                minSelected: 4,
+                minSelectedMessage: "asd",
+                matchField: "asd2",
+                matchMessage: "asd3",
+                minMessage: "Debe contener al menos 3 caracteres",
+                maxMessage: "No puede superar los 50 caracteres"
+            },
+            section: "datos_personales",
+            step: "1",
+            defaultValue: 0.5,
+            options: [
+                { value: "chetumal", label: "Chetumal" },
+      { value: "cancun", label: "Cancún" }
+            ],
+            id: "69165bf0691272c5c504164b"
+        },
   {
     id: "q2",
     fieldName: "email",
@@ -89,10 +122,15 @@ type Question = {
 };
 
 export default function GestionPadron() {
-  const [questions, setQuestions] = useState<Question[]>(INITIAL_QUESTIONS);
+  const {dataPreguntas,loadingPreguntas}=usePreguntas()
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedQuestions, setExpandedQuestions] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (!loadingPreguntas && dataPreguntas) setQuestions(dataPreguntas);
+  }, [dataPreguntas]);
 
   const emptyQuestion: Question = {
     id: "",
@@ -492,7 +530,13 @@ export default function GestionPadron() {
         )}
 
         {/* Lista de Preguntas por Sección */}
-        <div className="space-y-6">
+        {loadingPreguntas ? (
+             <div className="flex flex-col items-center justify-center py-20">
+            <img src={SDloading} alt="Cargando..." width="100" height="100" />
+            <p className="text-gray-500 mt-4">Cargando preguntas...</p>
+          </div>
+            ):(
+       <div className="space-y-6">
           {Object.keys(groupedQuestions).map(sectionName => (
             <div key={sectionName} className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <h2 className="text-xl font-bold text-green-600 mb-4 pb-2 border-b-2 border-green-500">
@@ -600,14 +644,17 @@ export default function GestionPadron() {
             </div>
           ))}
         </div>
+        )}
 
-        {questions.length === 0 && (
+        {!loadingPreguntas && questions.length === 0 && (
           <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
             <p className="text-gray-500 text-lg">No hay preguntas creadas</p>
             <p className="text-gray-400 text-sm mt-2">Haz clic en "Nueva Pregunta" para comenzar</p>
           </div>
         )}
       </div>
+      
+            <Toaster/>
     </div>
   );
 }

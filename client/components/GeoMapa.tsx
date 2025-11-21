@@ -1,219 +1,280 @@
-import { useRef, useEffect, useState } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import React, { useRef, useEffect, useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 
-export default function GeoMapa({ 
+const COLORES_USO: any = {
+  agricultura: { border: "#16a34a", fill: "#86efac", icon: "🌾" },
+  ganaderia: { border: "#dc2626", fill: "#fca5a5", icon: "🐄" },
+  pesca: { border: "#0284c7", fill: "#7dd3fc", icon: "🐟" }
+};
+
+const  GeoMapa = ({ 
+  apiKey, 
   parcelas = [], 
   centrosAcopio = [], 
   sedesGobierno = [],
-  activeLayers = [],
-  onItemClick
-}) {
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const layersRef = useRef({});
+  activeLayers = [], 
+  onItemClick 
+}: any) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  // @ts-ignore
+  const googleMapRef = useRef<google.maps.Map>(null);
+  // @ts-ignore
+  const infoWindowRef = useRef<google.maps.InfoWindow>(null);
+  const overlaysRef = useRef<any>({
+    parcelas: [],
+    centros: [],
+    sedes: []
+  });
 
-  // Colores por tipo de uso
-  const COLORES_USO = {
-    agricultura: { border: "#16a34a", fill: "#86efac", icon: "🌾" },
-    ganaderia: { border: "#dc2626", fill: "#fca5a5", icon: "🐄" },
-    pesca: { border: "#0284c7", fill: "#7dd3fc", icon: "🐟" }
-  };
-
+  // 1. Inicialización del Mapa
   useEffect(() => {
-    if (mapInstanceRef.current) return;
+    if (!apiKey) return;
 
-    const L = window.L;
-    const map = L.map(mapRef.current).setView([18.51836, -88.30227], 12);
-    mapInstanceRef.current = map;
+    const initMap = () => {
+      // @ts-ignore
+      if (!mapRef.current || googleMapRef.current || !window.google) return;
 
-    // Capa base
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "© OpenStreetMap contributors",
-    }).addTo(map);
+      // @ts-ignore
+      googleMapRef.current = new window.google.maps.Map(mapRef.current, {
+        center: { lat: 21.1619, lng: -89.0 }, // Centrado aprox en la península
+        zoom: 8,
+        // @ts-ignore
+        mapTypeId: window.google.maps.MapTypeId.ROADMAP,
+        streetViewControl: false,
+        mapTypeControlOptions: {
+            // @ts-ignore
+            position: window.google.maps.ControlPosition.TOP_RIGHT,
+        }
+      });
 
-    // Intentar obtener ubicación del usuario
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          L.marker([latitude, longitude])
-            .addTo(map)
-            .bindPopup("📍 Tu ubicación")
-            .openPopup();
-        },
-        (err) => console.warn("Error obteniendo ubicación:", err.message),
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    }
-
-    // Inicializar grupos de capas
-    layersRef.current = {
-      parcelas: L.featureGroup().addTo(map),
-      centros_acopio: L.featureGroup().addTo(map),
-      sedes_gobierno: L.featureGroup().addTo(map)
+      // @ts-ignore
+      infoWindowRef.current = new window.google.maps.InfoWindow();
+      
+      updateMapLayers();
     };
 
-  }, []);
+    // @ts-ignore
+    if (window.google && window.google.maps) {
+      initMap();
+    } else {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+  }, [apiKey]);
 
-  // Actualizar capas cuando cambien los datos o capas activas
+  // 2. Actualización de Capas
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
-    updateMapLayers();
+    if (googleMapRef.current) {
+      updateMapLayers();
+    }
   }, [parcelas, centrosAcopio, sedesGobierno, activeLayers]);
 
   const updateMapLayers = () => {
-    const L = window.L;
-    const map = mapInstanceRef.current;
-    const layers = layersRef.current;
+    const map = googleMapRef.current;
+    // @ts-ignore
+    if (!map || !window.google) return;
 
-    // Limpiar todas las capas
-    Object.values(layers).forEach(layer => layer.clearLayers());
+    // @ts-ignore
+    const bounds = new window.google.maps.LatLngBounds();
+    let hasData = false;
+
+    const clearLayerGroup = (groupName: string) => {
+      if (overlaysRef.current[groupName]) {
+        overlaysRef.current[groupName].forEach((obj: any) => obj.setMap(null));
+      }
+      overlaysRef.current[groupName] = [];
+    };
 
     // ==================== PARCELAS ====================
+    clearLayerGroup('parcelas');
+    
     if (activeLayers.includes('parcelas') && parcelas.length > 0) {
-      parcelas.forEach(parcela => {
-        const color = COLORES_USO[parcela.uso.area];
-        const latLngs = parcela.coordenadas.map(c => [c.lat, c.lng]);
-
-        const polygon = L.polygon(latLngs, {
-          color: color.border,
-          fillColor: color.fill,
+      parcelas.forEach((parcela: any) => {
+        const tipoUso = parcela.uso?.area || 'agricultura';
+        const estilo = COLORES_USO[tipoUso] || COLORES_USO.agricultura;
+        
+        // @ts-ignore
+        const polygon = new window.google.maps.Polygon({
+          paths: parcela.coordenadas,
+          strokeColor: estilo.border,
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: estilo.fill,
           fillOpacity: 0.5,
-          weight: 3
-        }).addTo(layers.parcelas);
-
-        polygon.bindPopup(`
-          <div class="p-2">
-            <h3 class="font-bold text-lg mb-1">${color.icon} ${parcela.nombre}</h3>
-            <p class="text-sm text-gray-600 mb-2">Productor: ${parcela.productor}</p>
-            <p class="text-sm"><strong>Área:</strong> ${parcela.area} ha</p>
-            <p class="text-sm"><strong>Tipo:</strong> ${parcela.uso.areaLabel}</p>
-            <p class="text-sm"><strong>Actividades:</strong></p>
-            <ul class="text-xs ml-4 list-disc">
-              ${parcela.uso.actividadesLabels.map(act => `<li>${act}</li>`).join('')}
-            </ul>
-          </div>
-        `);
-
-        polygon.on('click', () => {
-          if (onItemClick) onItemClick(parcela);
+          map: map,
+          clickable: true
         });
 
-        // Icono en el centroide
-        const centroid = parcela.coordenadas.reduce(
-          (acc, c) => ({ lat: acc.lat + c.lat, lng: acc.lng + c.lng }),
-          { lat: 0, lng: 0 }
-        );
-        centroid.lat /= parcela.coordenadas.length;
-        centroid.lng /= parcela.coordenadas.length;
+        // @ts-ignore
+        const polyBounds = new window.google.maps.LatLngBounds();
+        parcela.coordenadas.forEach((c: any) => polyBounds.extend(c));
+        const center = polyBounds.getCenter();
+        bounds.union(polyBounds);
+        hasData = true;
 
-        const icon = L.divIcon({
-          html: `<div style="background: ${color.border}; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-            ${color.icon}
-          </div>`,
-          className: '',
-          iconSize: [32, 32]
+        // @ts-ignore
+        const marker = new window.google.maps.Marker({
+          position: center,
+          map: map,
+          label: {
+            text: estilo.icon,
+            fontSize: "18px",
+          },
+          icon: {
+            // @ts-ignore
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 16,
+            fillColor: estilo.border,
+            fillOpacity: 1,
+            strokeColor: "white",
+            strokeWeight: 2,
+          },
+          zIndex: 100
         });
 
-        L.marker([centroid.lat, centroid.lng], { icon })
-          .addTo(layers.parcelas)
-          .bindTooltip(parcela.nombre, { direction: 'top' });
-      });
-    }
+        const actividadesHtml = parcela.uso?.actividadesLabels?.length 
+          ? `<ul style="font-size: 12px; padding-left: 16px; margin-top: 2px;">
+               ${parcela.uso.actividadesLabels.map((act: string) => `<li>${act}</li>`).join('')}
+             </ul>`
+          : '<span style="font-size: 12px; color: #666;">No registradas</span>';
 
-    // ==================== CENTROS DE ACOPIO ====================
-    if (activeLayers.includes('centros_acopio') && centrosAcopio.length > 0) {
-      centrosAcopio.forEach(centro => {
-        const icon = L.divIcon({
-          html: `<div style="background: #ea580c; color: white; border-radius: 8px; padding: 6px 10px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); white-space: nowrap;">
-            🏪 ${centro.nombre.split(' ').slice(0, 2).join(' ')}
-          </div>`,
-          className: '',
-          iconSize: [120, 32]
-        });
+        const tituloParcela = parcela.nombre || `Parcela en ${parcela.municipio}`;
 
-        const marker = L.marker([centro.coordenadas.lat, centro.coordenadas.lng], { icon })
-          .addTo(layers.centros_acopio);
-
-        marker.bindPopup(`
-          <div class="p-2" style="min-width: 200px;">
-            <h3 class="font-bold text-lg mb-1">🏪 ${centro.nombre}</h3>
-            <p class="text-sm text-gray-600 mb-2">${centro.descripcion}</p>
-            <p class="text-sm"><strong>Horario:</strong> ${centro.horario}</p>
-            <p class="text-sm"><strong>Capacidad:</strong> ${centro.capacidad}</p>
-            <p class="text-sm"><strong>Teléfono:</strong> ${centro.telefono}</p>
-            <p class="text-sm mt-2"><strong>Productos:</strong></p>
-            <div class="flex flex-wrap gap-1 mt-1">
-              ${centro.productos.map(p => `<span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">${p}</span>`).join('')}
+        const contentString = `
+          <div style="padding: 8px; min-width: 200px; font-family: sans-serif;">
+            <h3 style="font-weight: bold; font-size: 15px; margin-bottom: 4px;">${estilo.icon} ${tituloParcela}</h3>
+            <p style="font-size: 13px; margin-bottom: 4px;"><strong>Municipio:</strong> ${parcela.municipio}</p>
+            <p style="font-size: 13px;"><strong>Uso:</strong> ${parcela.uso?.areaLabel || tipoUso}</p>
+            <div style="margin-top: 6px;">
+               <strong>Actividades:</strong>
+               ${actividadesHtml}
             </div>
           </div>
-        `);
+        `;
 
-        marker.on('click', () => {
-          if (onItemClick) onItemClick(centro);
-        });
+        const handleClick = () => {
+            // @ts-ignore
+            infoWindowRef.current.close();
+            // @ts-ignore
+            infoWindowRef.current.setContent(contentString);
+            // @ts-ignore
+            infoWindowRef.current.setPosition(center);
+            // @ts-ignore
+            infoWindowRef.current.open(map);
+            if (onItemClick) onItemClick(parcela);
+        };
+
+        polygon.addListener("click", handleClick);
+        marker.addListener("click", handleClick);
+
+        overlaysRef.current.parcelas.push(polygon, marker);
       });
     }
 
-    // ==================== SEDES GUBERNAMENTALES ====================
-    if (activeLayers.includes('sedes_gobierno') && sedesGobierno.length > 0) {
-      sedesGobierno.forEach(sede => {
-        const icon = L.divIcon({
-          html: `<div style="background: #7c3aed; color: white; border-radius: 8px; padding: 6px 10px; font-weight: bold; font-size: 12px; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); white-space: nowrap;">
-            🏛️ ${sede.nombre.split(' ')[0]}
-          </div>`,
-          className: '',
-          iconSize: [100, 32]
+    // Función para renderizar puntos
+    const renderUbicaciones = (ubicaciones: any[], layerName: string, color: string, iconChar: string) => {
+        clearLayerGroup(layerName);
+        
+        if (!activeLayers.includes(layerName === 'centros' ? 'centros_acopio' : layerName === 'mercados' ? 'mercado_local' : 'sedes_gobierno')) return;
+        if (!ubicaciones || ubicaciones.length === 0) return;
+
+        ubicaciones.forEach(ubicacion => {
+            const pos = ubicacion.coordenadas; 
+            bounds.extend(pos);
+            hasData = true;
+
+            // @ts-ignore
+            const marker = new window.google.maps.Marker({
+                position: pos,
+                map: map,
+                title: ubicacion.nombre,
+                icon: {
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z", 
+                    fillColor: color,
+                    fillOpacity: 1,
+                    strokeColor: "white",
+                    strokeWeight: 2,
+                    scale: 2,
+                    // @ts-ignore
+                    labelOrigin: new window.google.maps.Point(12, 9)
+                },
+                label: {
+                    text: iconChar,
+                    fontSize: "14px"
+                }
+            });
+
+            const extraInfo = [];
+            if(ubicacion.horario) extraInfo.push(`<p><strong>Horario:</strong> ${ubicacion.horario}</p>`);
+            if(ubicacion.productos) extraInfo.push(`<p><strong>Productos:</strong> ${ubicacion.productos.join(', ')}</p>`);
+
+            const contentString = `
+                <div style="padding: 5px; font-family: sans-serif; min-width: 200px;">
+                    <h3 style="font-weight: bold; font-size: 14px; color: ${color};">${iconChar} ${ubicacion.nombre}</h3>
+                    <div style="font-size: 11px; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 6px; text-transform: uppercase; font-weight: bold; color: #555;">
+                        ${ubicacion.tipo || (layerName === 'centros' ? 'Centro Acopio' : 'Sede Gob')}
+                    </div>
+                    <p style="font-size: 12px; color: #444; margin-bottom: 6px;">${ubicacion.descripcion}</p>
+                    ${ubicacion.telefono ? `<p style="font-size: 12px;">📞 <a href="tel:${ubicacion.telefono}">${ubicacion.telefono}</a></p>` : ''}
+                    <div style="font-size: 12px; margin-top: 4px; color: #555;">
+                        ${extraInfo.join('')}
+                    </div>
+                </div>
+            `;
+
+            marker.addListener("click", () => {
+                // @ts-ignore
+                infoWindowRef.current.close();
+                // @ts-ignore
+                infoWindowRef.current.setContent(contentString);
+                // @ts-ignore
+                infoWindowRef.current.open(map, marker);
+                if (onItemClick) onItemClick(ubicacion);
+            });
+
+            overlaysRef.current[layerName].push(marker);
         });
+    };
 
-        const marker = L.marker([sede.coordenadas.lat, sede.coordenadas.lng], { icon })
-          .addTo(layers.sedes_gobierno);
+    // Renderizar Centros
+    renderUbicaciones(centrosAcopio, 'centros', '#ea580c', '🏪');
+    // Renderizar Mercados como si fueran centros pero con otro icono/color si se desea, o mismo grupo
+    // Aquí usaremos un grupo 'mercados' si está en activeLayers
+    const mercados = centrosAcopio.filter((c: any) => c.tipo === 'mercado_local');
+    const centrosPuros = centrosAcopio.filter((c: any) => c.tipo !== 'mercado_local');
+    
+    // Re-renderizar separando lógica si queremos control fino, o usar la lógica anterior
+    // Para simplificar con el prop 'centrosAcopio' que recibimos ya filtrado:
+    renderUbicaciones(centrosAcopio.filter((c:any) => c.tipo === 'mercado_local'), 'mercados', '#2563eb', '🛒');
+    renderUbicaciones(centrosAcopio.filter((c:any) => c.tipo !== 'mercado_local'), 'centros', '#ea580c', '🏪');
 
-        marker.bindPopup(`
-          <div class="p-2" style="min-width: 200px;">
-            <h3 class="font-bold text-lg mb-1">🏛️ ${sede.nombre}</h3>
-            <p class="text-sm text-gray-600 mb-2">${sede.descripcion}</p>
-            <p class="text-sm"><strong>Horario:</strong> ${sede.horario}</p>
-            <p class="text-sm"><strong>Teléfono:</strong> ${sede.telefono}</p>
-            <p class="text-sm mt-2"><strong>Servicios:</strong></p>
-            <ul class="text-xs ml-4 list-disc">
-              ${sede.servicios.map(s => `<li>${s}</li>`).join('')}
-            </ul>
-          </div>
-        `);
+    renderUbicaciones(sedesGobierno, 'sedes', '#7c3aed', '🏛️');
 
-        marker.on('click', () => {
-          if (onItemClick) onItemClick(sede);
-        });
+    if (hasData) {
+      map.fitBounds(bounds, {
+          top: 50, bottom: 50, left: 50, right: 50
       });
-    }
-
-    // Ajustar vista del mapa
-    const allLayers = [...parcelas, ...centrosAcopio, ...sedesGobierno];
-    if (allLayers.length > 0) {
-      const bounds = L.latLngBounds();
-      
-      parcelas.forEach(p => {
-        p.coordenadas.forEach(c => bounds.extend([c.lat, c.lng]));
-      });
-      
-      centrosAcopio.forEach(c => bounds.extend([c.coordenadas.lat, c.coordenadas.lng]));
-      sedesGobierno.forEach(s => bounds.extend([s.coordenadas.lat, s.coordenadas.lng]));
-      
-      if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [100, 50] });
-      }
     }
   };
 
   return (
-    <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-gray-300 shadow-sm z-0" />
+    <div className="w-full h-full relative bg-gray-100 rounded-lg overflow-hidden border-2 border-gray-300 shadow-sm">
+      {!apiKey ? (
+         <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 bg-gray-200 z-10">
+           <AlertCircle className="w-10 h-10 mb-2 text-red-400" />
+           <p className="font-semibold">Falta la API Key</p>
+           <p className="text-xs mt-1">Ingresa tu clave en el código</p>
+         </div>
+      ) : (
+         <div ref={mapRef} className="w-full h-full" />
+      )}
+    </div>
   );
-}
+};
 
-
+export default  GeoMapa;
