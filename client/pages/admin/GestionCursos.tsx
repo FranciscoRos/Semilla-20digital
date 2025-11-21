@@ -1,48 +1,101 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, Plus, Edit2, Trash2 } from "lucide-react";
-import { demoCursos } from "@/services/api";
+import {
+  Curso,
+  CursoPayload,
+  getCursos,
+  createCurso,
+  updateCurso,
+  deleteCurso,
+} from "@/services/CursosService";
 
 export default function GestionCursos() {
-  const [cursos, setCursos] = useState(demoCursos);
+  const [cursos, setCursos] = useState<Curso[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
-    titulo: "",
-    tema:"",
-    descripcion: "",
-    detalles:"",
-    modalidad: "online" as "online" | "presencial",
-    fechacurso:"",
-    direccionubicacion:"",
-    latitud: "",
-    longitud: "",
-    url: "",
-
+  const [formData, setFormData] = useState<CursoPayload>({
+    Titulo: "",
+    Descripcion: "",
+    Detalles: "",
+    Tema: "",
+    Modalidad: "online",
+    FechaCurso: "",
+    DireccionUbicacion: "",
+    Latitud: "",
+    Longitud: "",
+    Url: "",
+    Creado: "",
+    Actualizado: "",
   });
 
-  const handleDelete = (id: number) => {
-    // TODO: DELETE /api/admin/cursos/{id}
-    setCursos(cursos.filter((c) => c.id !== id));
+    useEffect(() => {
+    const loadCursos = async () => {
+      try {
+        const data = await getCursos();
+        setCursos(data);
+      } catch (error) {
+        console.error("Error cargando cursos", error);
+      }
+    };
+
+    loadCursos();
+  }, []);
+
+
+    const handleDelete = async (_id: string) => {
+    try {
+      await deleteCurso(_id);
+      setCursos((prev) => prev.filter((c) => c._id !== _id));
+    } catch (error) {
+      console.error("Error eliminando curso", error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: POST/PUT /api/admin/cursos
-    setShowForm(false);
-    setFormData({
-      titulo: "",
-      tema:"",
-      descripcion: "",
-      detalles:"",
-      modalidad: "online",
-      fechacurso:"",
-      direccionubicacion:"",
-      latitud: "",
-      longitud: "",
-      url: "",
-    });
+
+    // Actualizamos fechas (puedes dejar que Laravel las llene, si quieres)
+    const payload: CursoPayload = {
+      ...formData,
+      Creado: formData.Creado || new Date().toISOString(),
+      Actualizado: new Date().toISOString(),
+    };
+
+    try {
+      if (editingId === null) {
+        const nuevo = await createCurso(payload);
+        setCursos((prev) => [...prev, nuevo]);
+      } else {
+        const actualizado = await updateCurso(editingId, payload);
+        setCursos((prev) =>
+          prev.map((c) => (c._id === editingId ? actualizado : c))
+        );
+      }
+
+      setShowForm(false);
+      setEditingId(null);
+      setFormData({
+        Titulo: "",
+        Descripcion: "",
+        Detalles: "",
+        Tema: "",
+        Modalidad: "online",
+        FechaCurso: "",
+        DireccionUbicacion: "",
+        Latitud: "",
+        Longitud: "",
+        Url: "",
+        Creado: "",
+        Actualizado: "",
+      });
+    } catch (error: any) {
+      console.error("Error guardando curso", error);
+      console.log("Respuesta Laravel:", error.response?.data);
+    }
   };
+
 
   return (
     <div>
@@ -103,9 +156,9 @@ export default function GestionCursos() {
                 </label>
                 <input
                   type="text"
-                  value={formData.titulo}
+                  value={formData.Titulo}
                   onChange={(e) =>
-                    setFormData({ ...formData, titulo: e.target.value })
+                    setFormData({ ...formData, Titulo: e.target.value })
                   }
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -119,9 +172,9 @@ export default function GestionCursos() {
                 </label>
                 <input
                   type="text"
-                  value={formData.tema}
+                  value={formData.Tema}
                   onChange={(e) =>
-                    setFormData({ ...formData, tema: e.target.value })
+                    setFormData({ ...formData, Tema: e.target.value })
                   }
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -133,9 +186,9 @@ export default function GestionCursos() {
                   Descripción
                 </label>
                 <textarea
-                  value={formData.descripcion}
+                  value={formData.Descripcion}
                   onChange={(e) =>
-                    setFormData({ ...formData, descripcion: e.target.value })
+                    setFormData({ ...formData, Descripcion: e.target.value })
                   }
                   rows={4}
                   required
@@ -150,9 +203,9 @@ export default function GestionCursos() {
                   </label>
                   <textarea
                     
-                    value={formData.detalles}
+                    value={formData.Detalles}
                     onChange={(e) =>
-                      setFormData({ ...formData, detalles: e.target.value })
+                      setFormData({ ...formData, Detalles: e.target.value })
                     }
                     rows={4}
                     required
@@ -168,11 +221,11 @@ export default function GestionCursos() {
                     Modalidad
                   </label>
                   <select
-                    value={formData.modalidad}
+                    value={formData.Modalidad}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        modalidad: e.target.value as "online" | "presencial",
+                        Modalidad: e.target.value as "online" | "presencial",
                       })
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -182,18 +235,18 @@ export default function GestionCursos() {
                   </select>
                 </div>
 
-              {formData.modalidad === "online" && (
+              {formData.Modalidad === "online" && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Enlace de Plataforma
                   </label>
                   <input
                     type="url"
-                    value={formData.url}
+                    value={formData.Url}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        url: e.target.value,
+                        Url: e.target.value,
                       })
                     }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -210,9 +263,9 @@ export default function GestionCursos() {
 
                       <input
                         type="date"
-                        value={formData.fechacurso}
+                        value={formData.FechaCurso}
                         onChange={(e) =>
-                          setFormData({ ...formData, fechacurso: e.target.value })
+                          setFormData({ ...formData, FechaCurso: e.target.value })
                         }
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg 
@@ -230,9 +283,9 @@ export default function GestionCursos() {
 
                         <input
                         type="text"
-                        value={formData.direccionubicacion}
+                        value={formData.DireccionUbicacion}
                         onChange={(e) =>
-                          setFormData({ ...formData, direccionubicacion: e.target.value })
+                          setFormData({ ...formData, DireccionUbicacion: e.target.value })
                         }
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -248,9 +301,9 @@ export default function GestionCursos() {
                       </label>
                       <input
                         type="text"
-                        value={formData.latitud}
+                        value={formData.Latitud}
                         onChange={(e) =>
-                          setFormData({ ...formData, latitud: e.target.value })
+                          setFormData({ ...formData, Latitud: e.target.value })
                         }
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg 
@@ -265,9 +318,9 @@ export default function GestionCursos() {
                       </label>
                       <input
                         type="text"
-                        value={formData.longitud}
+                        value={formData.Longitud}
                         onChange={(e) =>
-                          setFormData({ ...formData, longitud: e.target.value })
+                          setFormData({ ...formData, Longitud: e.target.value })
                         }
                         required
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg 
@@ -303,39 +356,31 @@ export default function GestionCursos() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {cursos.map((curso) => (
             <div
-              key={curso.id}
-              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition"
-            >
-              <h3 className="text-lg font-bold text-gray-900 mb-2">
-                {curso.titulo}
-              </h3>
-              <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                {curso.descripcion}
-              </p>
-
-              <div className="space-y-2 mb-4">
-                <p className="text-xs text-gray-500">
-                  Categoría:{" "}
-                  <span className="font-medium">{curso.categoria}</span>
-                </p>
-                <p className="text-xs text-gray-500">
-                  Modalidad:{" "}
-                  <span className="font-medium">
-                    {curso.modalidad === "online" ? "En Línea" : "Presencial"}
-                  </span>
-                </p>
-              </div>
+               key={curso._id}
+                className="bg-white rounded-xl border p-4 space-y-2"
+              >
+            <h3 className="font-semibold text-lg">{curso.Titulo}</h3>
+            <p className="text-sm text-gray-600">{curso.Descripcion}</p>
+            <p className="text-sm">
+              <span className="font-medium">Tema:</span> {curso.Tema}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Modalidad:</span> {curso.Modalidad}
+            </p>
+            <p className="text-sm">
+              <span className="font-medium">Fecha:</span> {curso.FechaCurso}
+            </p>
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => setEditingId(curso.id)}
+                  onClick={() => setEditingId(curso._id)}
                   className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(curso.id)}
+                  onClick={() => handleDelete(curso._id)}
                   className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />

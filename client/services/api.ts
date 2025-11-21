@@ -92,7 +92,7 @@ export const demoCalendario: CalendarioData[] = [
 // ============================================
 
 export interface Curso {
-  id: number;
+  /*id: number;
   titulo: string;
   descripcion: string;
   modalidad: "online" | "presencial" | "hibrida";
@@ -101,7 +101,18 @@ export interface Curso {
   ubicacion?: string;
   enlace_plataforma?: string;
   inscritos: number;
-  calificacion: number;
+  calificacion: number;*/
+  id: number;
+  titulo: string;
+  tema: string;
+  descripcion: string;
+  detalles: string;
+  modalidad: "online" | "presencial";
+  fechacurso: string;
+  direccionubicacion: string;
+  latitud: string;
+  longitud: string;
+  url: string;
 }
 
 // Demo data
@@ -109,12 +120,17 @@ export const demoCursos: Curso[] = [
   {
     id: 1,
     titulo: "Gestión Financiera Agrícola",
+    tema:"tema del curso",
     descripcion: "Aprende a administrar recursos financieros",
     modalidad: "online",
-    categoria: "Asesoría Financiera",
-    enlace_plataforma: "https://ejemplo.com",
-    inscritos: 245,
-    calificacion: 4.8,
+    detalles: "Asesoría Financiera",
+    url: "https://ejemplo.com",
+    fechacurso: "2024-01-01",
+    direccionubicacion: "calle naranjal",
+    latitud: "13.11",
+    longitud: "12.22",
+
+
   },
 ];
 
@@ -147,11 +163,10 @@ export interface Apoyo {
   nombre: string;
   descripcion: string;
   monto: number;
-  requisitos: string[];
-  vigencia_inicio: string;
-  vigencia_fin: string;
-  estado: "activo" | "inactivo";
-  beneficiarios: number;
+  requisitos: string[];   
+  estatus: string;
+  creado: string;       // fecha 
+  actualizado: string;  // fecha 
 }
 
 // Demo data
@@ -161,15 +176,16 @@ export const demoApoyos: Apoyo[] = [
     nombre: "Apoyo para Siembra de Maíz",
     descripcion: "Subsidio para compra de semillas",
     monto: 15000,
-    requisitos: ["Ser productor", "Menos de 5 hectáreas"],
-    vigencia_inicio: "2024-01-01",
-    vigencia_fin: "2024-12-31",
-    estado: "activo",
-    beneficiarios: 450,
+    requisitos: ["Ser productor", "tener 50 hectaras"],
+    creado: "2024-01-01",
+    actualizado: "2024-12-31",
+    estatus: "activo",
+
   },
 ];
 
-// TODO: Descomentar cuando Laravel esté listo
+
+// TODO: Descomentar cuando Laravel esté listo  
 // export const getApoyos = async () => {
 //   const response = await fetch(`${API_BASE_URL}/apoyos`)
 //   return response.json()

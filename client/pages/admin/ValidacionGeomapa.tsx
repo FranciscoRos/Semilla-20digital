@@ -361,6 +361,17 @@ export default function ValidacionGeomapa() {
                 placeholder="Por este medio...."
               />
             </div>
+            <div>
+                <button
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg mt-4"
+                > 
+                Enviar
+              
+                </button>
+
+
+
+            </div>
 
         </div>
 

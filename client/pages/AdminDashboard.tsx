@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Users, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/providers/authProvider";
+import { Input } from "postcss";
 
 interface AdminStats {
   label: string;
@@ -34,11 +35,13 @@ const adminStats: AdminStats[] = [
     icon: <BarChart3 className="w-6 h-6 text-emerald-600" />,
   },
   {
+    
     label: "Pendientes de Revisión",
     value: "47",
     subtext: "-15 desde ayer",
     color: "bg-amber-50",
     icon: <AlertCircle className="w-6 h-6 text-amber-600" />,
+    
   },
 ];
 
@@ -105,23 +108,68 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {adminStats.map((stat, idx) => (
-            <div
-              key={idx}
-              className={`${stat.color} rounded-lg p-6 border border-gray-200 shadow-sm`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-sm font-medium text-gray-700">
-                  {stat.label}
-                </h3>
-                {stat.icon}
-              </div>
-              <p className="text-2xl font-bold text-gray-900 mb-1">
-                {stat.value}
-              </p>
-              <p className="text-xs text-gray-600">{stat.subtext}</p>
-            </div>
-          ))}
+          {adminStats.map((stat, i) => {
+  const isPendientes = stat.label === "Pendientes de Revisión";
+  const isProductores = stat.label === "Productores Registrados";
+
+  // --- BOTÓN: Productores Registrados ---
+  if (isProductores) {
+    return (
+      <button
+        key={i}
+        onClick={() => navigate("/admin/productores")}
+        className={`
+          p-4 rounded-xl border shadow-sm ${stat.color}
+          text-left w-full cursor-pointer hover:shadow-md transition
+        `}
+      >
+        <div className="flex items-center justify-between mb-2">
+          {stat.icon}
+          <span className="text-xl font-semibold">{stat.value}</span>
+        </div>
+        <p className="text-sm font-medium">{stat.label}</p>
+        <p className="text-xs text-gray-500">{stat.subtext}</p>
+      </button>
+    );
+  }
+
+  // --- BOTÓN: Pendientes de Revisión ---
+  if (isPendientes) {
+    return (
+      <button
+        key={i}
+        onClick={() => navigate("/admin/revision-usuarios")}
+        className={`
+          p-4 rounded-xl border shadow-sm ${stat.color}
+          text-left w-full cursor-pointer hover:shadow-md transition
+        `}
+      >
+        <div className="flex items-center justify-between mb-2">
+          {stat.icon}
+          <span className="text-xl font-semibold">{stat.value}</span>
+        </div>
+        <p className="text-sm font-medium">{stat.label}</p>
+        <p className="text-xs text-gray-500">{stat.subtext}</p>
+      </button>
+    );
+  }
+
+  // --- LOS DEMÁS QUEDAN COMO CARDS ---
+  return (
+    <div
+      key={i}
+      className={`p-4 rounded-xl border shadow-sm ${stat.color}`}
+    >
+      <div className="flex items-center justify-between mb-2">
+        {stat.icon}
+        <span className="text-xl font-semibold">{stat.value}</span>
+      </div>
+      <p className="text-sm font-medium">{stat.label}</p>
+      <p className="text-xs text-gray-500">{stat.subtext}</p>
+    </div>
+  );
+})}
+
         </div>
 
         {/* Quick Actions */}

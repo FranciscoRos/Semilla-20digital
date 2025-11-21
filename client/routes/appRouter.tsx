@@ -31,6 +31,7 @@ import GestionCursos from "../pages/admin/GestionCursos";
 import GestionApoyos from "../pages/admin/GestionApoyos";
 import ModeracionForos from "../pages/admin/ModeracionForos";
 import GestionPadron from "@/pages/admin/GestionPadron";
+import UsuariosRevision from "../pages/admin/UsuariosRevision";
 
 // Legacy
 import Index from "../pages/Index";
@@ -175,6 +176,16 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+                {/* resision ususario */}
+
+        <Route
+          path="admin/revision-usuarios"
+          element={
+            <ProtectedRoute role="Administracion">
+              <UsuariosRevision />
+            </ProtectedRoute>
+          }
+        />
 
         {/* ------- Legacy ------- */}
         <Route
@@ -241,8 +252,9 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+         
       </Route>
-
+      
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>

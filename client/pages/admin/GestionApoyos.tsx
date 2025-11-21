@@ -1,41 +1,93 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, Plus, Edit2, Trash2 } from "lucide-react";
-import { demoApoyos } from "@/services/api";
+import {
+  Apoyo,
+  getApoyos,
+  createApoyo,
+  updateApoyo,
+  deleteApoyo,
+} from "@/services/ApoyoService";
 
 export default function GestionApoyos() {
-  const [apoyos, setApoyos] = useState(demoApoyos);
+  const [apoyos, setApoyos] = useState<Apoyo[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [formData, setFormData] = useState({
-    nombre: "",
-    descripcion: "",
-    monto: 0,
-    requisitos: "",
-    estatus:"",
-    creado: "",
-    actualizado: "",
-  });
+const [formData, setFormData] = useState({
+  Titulo: "",
+  Descripcion: "",
+  Requisitos: "",
+  Estatus: "",
+  Creado: "",
+  Actualizado: "",
+});
 
-  const handleDelete = (id: number) => {
-    // TODO: DELETE /api/admin/apoyos/{id}
-    setApoyos(apoyos.filter((a) => a.id !== id));
+    useEffect(() => {
+    const loadApoyos = async () => {
+      try {
+        const data = await getApoyos();
+        setApoyos(data);
+      } catch (error) {
+        console.error("Error cargando apoyos", error);
+      }
+    };
+
+    loadApoyos();
+  }, []);
+
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteApoyo(id);
+      setApoyos((prev) => prev.filter((a) => a._id !== id));
+    } catch (error) {
+      console.error("Error eliminando apoyo", error);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: POST/PUT /api/admin/apoyos
-    setShowForm(false);
-    setFormData({
-       nombre: "",
-    descripcion: "",
-    monto: 0,
-    requisitos: "",
-    estatus:"",
-    creado: "",
-    actualizado: "",
-    });
+
+    // Preparamos el payload sin id
+    const payload: Omit<Apoyo, "_id"> = {
+      Titulo: formData.Titulo,
+    Descripcion: formData.Descripcion,
+      Requisitos: formData.Requisitos,
+      Estatus: formData.Estatus,
+      Creado: formData.Creado,
+      Actualizado: formData.Actualizado,
+    };
+
+    try {
+      if (editingId === null) {
+        // Crear nuevo apoyo
+        const nuevo = await createApoyo(payload);
+        setApoyos((prev) => [...prev, nuevo]);
+      } else {
+        // Actualizar apoyo existente
+        const actualizado = await updateApoyo(editingId, payload);
+        setApoyos((prev) =>
+          prev.map((a) => (a._id === editingId ? actualizado : a))
+        );
+      }
+
+      // Limpiar formulario y cerrar modal
+      setShowForm(false);
+      setEditingId(null);
+      setFormData({
+        Titulo: "",
+        Descripcion: "",
+        Requisitos: "",
+        Estatus: "",
+        Creado: "",
+        Actualizado: "",
+      });
+    } catch (error) {
+      console.error("Error guardando apoyo", error);
+    }
   };
+
 
   return (
     <div>
@@ -82,9 +134,9 @@ export default function GestionApoyos() {
                 </label>
                 <input
                   type="text"
-                  value={formData.nombre}
+                  value={formData.Titulo}
                   onChange={(e) =>
-                    setFormData({ ...formData, nombre: e.target.value })
+                    setFormData({ ...formData, Titulo: e.target.value })
                   }
                   required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -96,9 +148,9 @@ export default function GestionApoyos() {
                   Descripción
                 </label>
                 <textarea
-                  value={formData.descripcion}
+                  value={formData.Descripcion}
                   onChange={(e) =>
-                    setFormData({ ...formData, descripcion: e.target.value })
+                    setFormData({ ...formData, Descripcion: e.target.value })
                   }
                   rows={4}
                   required
@@ -106,24 +158,8 @@ export default function GestionApoyos() {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Monto (MXN)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.monto}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        monto: parseInt(e.target.value),
-                      })
-                    }
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-4">
+               
 
 
                
@@ -135,9 +171,9 @@ export default function GestionApoyos() {
   <div className="w-full px-4 py-3 rounded-lg flex items-center gap-6 focus-within:ring-2 ">
     
       <input type="radio" name="estatus" value="activo"
-        checked={formData.estatus === "activo"}
+        checked={formData.Estatus === "activo"}
         onChange={(e) =>
-          setFormData({ ...formData, estatus: e.target.value })
+          setFormData({ ...formData, Estatus: e.target.value })
         }
         required
         className="text-green-600 focus:ring-green-500"
@@ -147,9 +183,9 @@ export default function GestionApoyos() {
 
     <label className="flex items-center gap-2 cursor-pointer">
       <input type="radio" name="estatus" value="inactivo"
-        checked={formData.estatus === "inactivo"}
+        checked={formData.Estatus === "inactivo"}
         onChange={(e) =>
-          setFormData({ ...formData, estatus: e.target.value })
+          setFormData({ ...formData, Estatus: e.target.value })
         }
         required
         className="text-green-600 focus:ring-green-500"
@@ -166,9 +202,9 @@ export default function GestionApoyos() {
                   </label>
                   <input
                     type="text"
-                    value={formData.requisitos}
+                    value={formData.Requisitos}
                     onChange={(e) =>
-                      setFormData({ ...formData, requisitos: e.target.value })
+                      setFormData({ ...formData, Requisitos: e.target.value })
                     }
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -183,11 +219,11 @@ export default function GestionApoyos() {
                   </label>
                   <input
                     type="date"
-                    value={formData.creado}
+                    value={formData.Creado}
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        creado: e.target.value,
+                        Creado: e.target.value,
                       })
                     }
                     required
@@ -201,9 +237,9 @@ export default function GestionApoyos() {
                   </label>
                   <input
                     type="date"
-                    value={formData.actualizado}
+                    value={formData.Actualizado}
                     onChange={(e) =>
-                      setFormData({ ...formData, actualizado: e.target.value })
+                      setFormData({ ...formData, Actualizado: e.target.value })
                     }
                     required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -237,41 +273,37 @@ export default function GestionApoyos() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {apoyos.map((apoyo) => (
             <div
-              key={apoyo.id}
+              key={apoyo._id}
               className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 hover:shadow-md transition"
             >
               <div className="flex items-start justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900 flex-1">
-                  {apoyo.nombre}
+                  {apoyo.Titulo}
                 </h3>
-                <div className="bg-green-100 px-3 py-1 rounded-full">
-                  <span className="font-semibold text-green-700 text-sm">
-                    ${apoyo.monto.toLocaleString()}
-                  </span>
-                </div>
+                
               </div>
 
               <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                {apoyo.descripcion}
+                {apoyo.Descripcion}
               </p>
 
               <div className="space-y-2 mb-4 text-sm text-gray-500">
                 <p>
-                  Vigencia: {apoyo.vigencia_inicio} a {apoyo.vigencia_fin}
+                  Creado: {apoyo.Creado} 
                 </p>
-                <p>Beneficiarios: {apoyo.beneficiarios}</p>
+                
               </div>
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => setEditingId(apoyo.id)}
+                  onClick={() => setEditingId(apoyo._id)}
                   className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
                   Editar
                 </button>
                 <button
-                  onClick={() => handleDelete(apoyo.id)}
+                  onClick={() => handleDelete(apoyo._id)}
                   className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
