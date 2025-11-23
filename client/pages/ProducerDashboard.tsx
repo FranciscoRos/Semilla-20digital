@@ -47,13 +47,13 @@ export default function ProducerDashboard() {
 
   const navigate = useNavigate();
   const [usuarioA] = useState({
-    name: user.Nombre,
+    name: user.Nombre ??'',
     lastName: `${user.Apellido1} ${user.Apellido2}`,
-    initials: user.nombre[0] ??'',
-    status: user.Estatus,
+    initials: user.Nombre[0] ??'',
+    status: user.Estatus ??'',
   });
 
-  const services = [
+ const services = [
     {
       id: "support",
       title: "Solicitar Apoyos",
@@ -90,7 +90,7 @@ export default function ProducerDashboard() {
       id: "cal",
       title: "Calendario Agricola",
       icon: "🗓️",
-      path: "/calendario",
+      path: "/calendario-agricola",
       color: "bg-yellow-50 hover:bg-yellow-100",
       iconBg: "bg-yellow-500",
     },
@@ -98,7 +98,7 @@ export default function ProducerDashboard() {
       id: "foro",
       title: "Foro Comunitario",
       icon: "🗣️",
-      path: "/foro",
+      path: "/foros-discusion",
       color: "bg-yellow-50 hover:bg-yellow-100",
       iconBg: "bg-yellow-500",
     },

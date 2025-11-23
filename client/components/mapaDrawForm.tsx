@@ -27,11 +27,7 @@ interface Parcela {
   }[];
 }
 
-const COLOR_MAP = {
-  Verde: "bg-[#16a34a]",
-  Cafe: "bg-[#dc2626]",
-  Azul: "bg-[#0284c7]",
-};
+
 const USOS_PARCELA = {
   agricultura: {
     label: "Agricultura",
@@ -73,6 +69,16 @@ const USOS_PARCELA = {
       { value: "bagre", label: "Cría de Bagre" },
     ],
   },
+  apicultura: {
+    label: "Apicultura",
+    icon: "🐝",
+    actividades: [
+      { value: "produccion_miel", label: "Producción de Miel" },
+      { value: "cria_reinas", label: "Cría de Abejas Reina" },
+      { value: "meliponicultura", label: "Meliponicultura (Abeja nativa)" },
+      { value: "subproductos", label: "Cera, Propóleo y Jalea Real" },
+    ],
+},
 };
 
 // Componente principal: Registro de Parcelas

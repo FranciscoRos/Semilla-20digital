@@ -115,6 +115,90 @@ export interface Curso {
   url: string;
 }
 
+export type Question = {
+  id: string;
+  fieldName: string;
+  question: string;
+  type: string;
+  required: boolean;
+  placeholder?: string;
+  validations: {
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    pattern?: string;
+    patternMessage?: string;
+    minSelected?: number;
+    minSelectedMessage?: string;
+    matchField?: string;
+    matchMessage?: string;
+    minMessage?: string;
+    maxMessage?: string;
+  };
+  // step
+  section: string;
+  options: Array<{ value: string; label: string }>;
+  // defaultValue?: number;
+};
+///////Ubicaciones 
+export interface IParcela {
+  id: string;
+  ciudad: string;
+  municipio: string;
+  direccionAdicional: string;
+  area: number;
+  nombre: string;
+  usos: {
+    area: string;
+    actividadesEspecificas: string[];
+  }[];
+  coordenadas: { lat: number; lng: number }[];
+  productor?: string;
+  fechaRegistro?: string;
+}
+
+export interface IUbicacionEspecial {
+  id: string;
+  nombre: string;
+  municipio: string;
+  tipo: 'sede_gobierno' | 'centro_acopio' | 'mercado_local';
+  descripcion: string;
+  coordenadas: { lat: number; lng: number };
+  telefono: string;
+  direccion?: string;
+  horario?: string;
+  institucion?: string; // Para mostrar siglas (ej. SEDARPE)
+}
+
+////Productores
+
+export interface Productor{
+    Nombre: string;
+    Apellido1: string;
+    Apellido2: string;
+    Curp: string;
+    Correo: string;
+    Contrasena: string;
+    Telefono: string;
+    FechaNacimiento: string;
+    Ine: string;
+    Rfc: string;
+    Domicilio: DomicilioProductor
+    Parcela: any[];
+}
+
+export interface DomicilioProductor{
+        Calle: string;
+        Colonia: string;
+        Municipio: string;
+        Ciudad: string;
+        Estado: string;
+        CodigoPostal: string;
+        Referencia: string;
+}
+
+
 // Demo data
 export const demoCursos: Curso[] = [
   {

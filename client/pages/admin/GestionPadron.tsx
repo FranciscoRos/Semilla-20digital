@@ -3,7 +3,8 @@ import { Plus, Edit2, Trash2, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Toaster } from "@/components/ui/toaster";
 import SDloading from "@/assets/SDloading.svg"
 import { usePreguntas } from "@/hooks/usePreguntas";
-import { set } from "date-fns";
+import { usePreguntasDetalles } from "@/hooks/usePreguntasDetalles";
+import { Question } from "@/services/api";
 
 // Tipos de pregunta disponibles
 const QUESTION_TYPES = [
@@ -18,111 +19,10 @@ const QUESTION_TYPES = [
   { value: "textarea", label: "Área de texto" }
 ];
 
-// Preguntas iniciales de ejemplo
-const INITIAL_QUESTIONS:Question[] = [
-  {
-    id: "q1",
-    fieldName: "fullName",
-    question: "Nombre Completo",
-    type: "text",
-    required: true,
-    placeholder: "Ingresa tu nombre completo",
-    validations: {
-      minLength: 3,
-      maxLength: 100,
-      pattern: "^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$",
-      patternMessage: "Solo se permiten letras y espacios"
-    },
-    section: "Información Personal",
-    options: []
-  },
-  {
-            fieldName: "form_registro",
-            question: "¿Cuál es tu nombre completo?",
-            type: "text",
-            required: true,
-            placeholder: "Ingresa tu nombre",
-            validations: {
-                minLength: 3,
-                maxLength: 50,
-                min: 3.5,
-                max: 3.5,
-                pattern: "^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$",
-                patternMessage: "Solo se permiten letras y espacios",
-                minSelected: 4,
-                minSelectedMessage: "asd",
-                matchField: "asd2",
-                matchMessage: "asd3",
-                minMessage: "Debe contener al menos 3 caracteres",
-                maxMessage: "No puede superar los 50 caracteres"
-            },
-            section: "datos_personales",
-            step: "1",
-            defaultValue: 0.5,
-            options: [
-                { value: "chetumal", label: "Chetumal" },
-      { value: "cancun", label: "Cancún" }
-            ],
-            id: "69165bf0691272c5c504164b"
-        },
-  {
-    id: "q2",
-    fieldName: "email",
-    question: "Correo Electrónico",
-    type: "email",
-    required: true,
-    placeholder: "correo@ejemplo.com",
-    validations: {
-      pattern: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-      patternMessage: "Correo electrónico inválido"
-    },
-    section: "Información Personal",
-    options: []
-  },
-  {
-    id: "q3",
-    fieldName: "municipality",
-    question: "Municipio",
-    type: "select",
-    required: true,
-    options: [
-      { value: "chetumal", label: "Chetumal" },
-      { value: "cancun", label: "Cancún" }
-    ],
-    section: "Ubicación de Parcela",
-    validations: {}
-  }
-];
-
-type Question = {
-  id: string;
-  fieldName: string;
-  question: string;
-  type: string;
-  required: boolean;
-  placeholder?: string;
-  validations: {
-    minLength?: number;
-    maxLength?: number;
-    min?: number;
-    max?: number;
-    pattern?: string;
-    patternMessage?: string;
-    minSelected?: number;
-    minSelectedMessage?: string;
-    matchField?: string;
-    matchMessage?: string;
-    minMessage?: string;
-    maxMessage?: string;
-  };
-  section: string;
-  options: Array<{ value: string; label: string }>;
-  step?: string;
-  defaultValue?: number;
-};
 
 export default function GestionPadron() {
-  const {dataPreguntas,loadingPreguntas}=usePreguntas()
+  const {dataPreguntas,loadingPreguntas,refetch}=usePreguntas()
+  const {handlePostPregunta,handlePutPregunta,HandleDeletePregunta, loadingAcciones} = usePreguntasDetalles(()=>refetch());
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -141,26 +41,22 @@ export default function GestionPadron() {
     placeholder: "",
     validations: {},
     section: "",
-    options: []
+    options: [],
   };
 
   const [formData, setFormData] = useState<Question>(emptyQuestion);
   const [newOption, setNewOption] = useState({ value: "", label: "" });
+  const [changeSelect,setChangeSelect]=useState(true)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async(e: React.FormEvent) => {
     e.preventDefault();
     
     if (editingId) {
       // Editar pregunta existente
-      setQuestions(questions.map(q => 
-        q.id === editingId ? { ...formData, id: editingId } : q
-      ));
+      handlePutPregunta({id:editingId, data:formData});
     } else {
-      // Crear nueva pregunta
-      const newId = `q${questions.length + 1}`;
-      setQuestions([...questions, { ...formData, id: newId }]);
+      handlePostPregunta(formData);
     }
-
     resetForm();
   };
 
@@ -171,9 +67,9 @@ export default function GestionPadron() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async(id: string) => {
     if (confirm("¿Estás seguro de eliminar esta pregunta?")) {
-      setQuestions(questions.filter(q => q.id !== id));
+      HandleDeletePregunta(id)
     }
   };
 
@@ -310,7 +206,18 @@ export default function GestionPadron() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Sección *
                   </label>
-                  <input
+                  {Object.keys(groupedQuestions).length>0 && changeSelect?(
+                    <select
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    value={formData.section}
+                    onChange={(e)=>setFormData({...formData,section:e.target.value})}>
+                      {Object.keys(groupedQuestions).map(type => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                    </select>
+                 ):( <input
                     type="text"
                     value={formData.section}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
@@ -318,9 +225,23 @@ export default function GestionPadron() {
                     placeholder="Ej: Información Personal"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
+    )}
                 </div>
 
-                <div className="flex items-end">
+                <div className="flex items-end space-x-3">
+                  {Object.keys(groupedQuestions).length>0 &&
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={changeSelect}
+                      onChange={(e) => {setFormData({...formData,section:''});setChangeSelect(e.target.checked)}}
+                      className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Usar Seccion existente
+                    </span>
+                  </label>
+                  }
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -339,7 +260,7 @@ export default function GestionPadron() {
               {!needsOptions && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Placeholder
+                    Ejemplo del Dato
                   </label>
                   <input
                     type="text"
@@ -653,8 +574,11 @@ export default function GestionPadron() {
           </div>
         )}
       </div>
-      
-            <Toaster/>
+{loadingAcciones && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-[9999]">
+              <img src={SDloading} alt="Cargando..." width="100" height="100"/>
+        </div>
+      )}            <Toaster/>
     </div>
   );
 }

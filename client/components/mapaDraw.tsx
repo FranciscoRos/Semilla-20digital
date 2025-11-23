@@ -30,7 +30,7 @@ interface Parcela {
   direccionAdicional: string;
   coordenadas: { lat: number; lng: number }[];
   area: number;
-  nombre: string;
+  nombre?: string;
   usos: {
     area: string;
     actividadesEspecificas: string[];
@@ -75,6 +75,16 @@ const USOS_PARCELA = {
       { value: "camaron", label: "Cría de Camarón" },
     ],
   },
+  apicultura: {
+    label: "Apicultura",
+    icon: "🐝",
+    actividades: [
+      { value: "produccion_miel", label: "Producción de Miel" },
+      { value: "cria_reinas", label: "Cría de Abejas Reina" },
+      { value: "meliponicultura", label: "Meliponicultura (Abeja nativa)" },
+      { value: "subproductos", label: "Cera, Propóleo y Jalea Real" },
+    ],
+},
 };
 
 // ============================================================================

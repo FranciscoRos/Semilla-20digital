@@ -49,7 +49,7 @@ const {user}=useAuth()
 
               {/* Logo */}
               <button
-                onClick={() => navigate("/")}
+                onClick={() => rolado?navigate("/"): navigate("/admin-panel")}
                 className="flex items-center gap-2 font-bold text-lg text-gray-900 hover:opacity-80 transition group"
               >
                 <div className="w-10 h-10 rounded-lg overflow-hidden">

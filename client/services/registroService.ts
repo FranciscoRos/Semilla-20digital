@@ -19,6 +19,16 @@ export const postRegistro=async(data)=>{
     }
 }
 
+export const getRegistros=async()=>{
+    try {
+        await authHeader(registerApi)
+        const res=await registerApi.get('')
+        return res.data
+    } catch (error) {
+        console.error('Error Peticion Registro: ',error)
+       throw new Error(error.message || 'Error desconocido');
+    }
+}
 
 export const getRegistro=async(id:string)=>{
     try {

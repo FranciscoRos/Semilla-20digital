@@ -4,192 +4,14 @@ import MapaDibujo from '@/components/mapaDrawForm';
 import { useRegisterProducer } from '@/hooks/useRegisterPro';
 import { Toaster } from '@/components/ui/toaster';
 import SDloading from "@/assets/SDloading.svg"
-// Estructura de preguntas dinámicas
-const QUESTION_SCHEMA = [
-  {
-    id: "q1",
-    fieldName: "tipoProduccion",
-    question: "¿Qué tipo de producción realiza?",
-    type: "select",
-    required: true,
-    options: [
-      { value: "agricola", label: "Agrícola" },
-      { value: "ganadera", label: "Ganadera" },
-      { value: "mixta", label: "Mixta" },
-      { value: "forestal", label: "Forestal" },
-    ],
-    section: "Producción",
-  },
-  {
-    id: "q2",
-    fieldName: "anosExperiencia",
-    question: "¿Cuántos años de experiencia tiene?",
-    type: "number",
-    required: true,
-    validations: {
-      min: 0,
-      max: 80,
-      minMessage: "La experiencia no puede ser negativa",
-      maxMessage: "Por favor verifica los años de experiencia",
-    },
-    section: "Producción",
-  },
-  {
-    id: "q3",
-    fieldName: "cultivos",
-    question: "¿Qué cultivos produce? (Seleccione todos los que apliquen)",
-    type: "checkbox",
-    required: true,
-    options: [
-      { value: "maiz", label: "Maíz" },
-      { value: "frijol", label: "Frijol" },
-      { value: "trigo", label: "Trigo" },
-      { value: "sorgo", label: "Sorgo" },
-      { value: "hortalizas", label: "Hortalizas" },
-      { value: "frutales", label: "Frutales" },
-    ],
-    validations: {
-      minSelected: 1,
-      minSelectedMessage: "Selecciona al menos un cultivo",
-    },
-    section: "Producción",
-  },
-  {
-    id: "q4",
-    fieldName: "tieneRiego",
-    question: "¿Cuenta con sistema de riego?",
-    type: "radio",
-    required: true,
-    options: [
-      { value: "si", label: "Sí" },
-      { value: "no", label: "No" },
-    ],
-    section: "Infraestructura",
-  },
-  {
-    id: "q5",
-    fieldName: "fuenteAgua",
-    question: "¿Cuál es la fuente de agua?",
-    type: "text",
-    required: false,
-    placeholder: "Ej: Pozo, río, presa...",
-    conditionalDisplay: {
-      dependsOn: "tieneRiego",
-      value: "si",
-    },
-    section: "Infraestructura",
-  },
-  {
-    id: "q6",
-    fieldName: "usaPesticidas",
-    question: "¿Utiliza pesticidas o agroquímicos?",
-    type: "radio",
-    required: false,
-    options: [
-      { value: "si", label: "Sí" },
-      { value: "no", label: "No" },
-    ],
-    section: "Prácticas Agrícolas",
-  },
-  {
-    id: "q7",
-    fieldName: "certificacionOrganica",
-    question: "¿Tiene certificación orgánica?",
-    type: "radio",
-    required: false,
-    options: [
-      { value: "si", label: "Sí" },
-      { value: "no", label: "No" },
-      { value: "en_proceso", label: "En proceso" },
-    ],
-    section: "Prácticas Agrícolas",
-  },
-  {
-    id: "q8",
-    fieldName: "tipoMaquinaria",
-    question: "¿Qué tipo de maquinaria utiliza?",
-    type: "checkbox",
-    required: false,
-    options: [
-      { value: "tractor", label: "Tractor" },
-      { value: "cosechadora", label: "Cosechadora" },
-      { value: "sembradora", label: "Sembradora" },
-      { value: "aspersora", label: "Aspersora" },
-      { value: "ninguna", label: "Ninguna" },
-    ],
-    section: "Infraestructura",
-  },
-  {
-    id: "q9",
-    fieldName: "trabajadores",
-    question: "¿Cuántos trabajadores emplea?",
-    type: "number",
-    required: false,
-    validations: {
-      min: 0,
-      max: 500,
-    },
-    section: "Recursos Humanos",
-  },
-  {
-    id: "q10",
-    fieldName: "ventaProductos",
-    question: "¿Dónde vende sus productos?",
-    type: "select",
-    required: false,
-    options: [
-      { value: "local", label: "Mercado local" },
-      { value: "intermediario", label: "Intermediarios" },
-      { value: "exportacion", label: "Exportación" },
-      { value: "consumo_propio", label: "Consumo propio" },
-    ],
-    section: "Comercialización",
-  },
-  {
-    id: "q11",
-    fieldName: "apoyosGubernamentales",
-    question: "¿Ha recibido apoyos gubernamentales?",
-    type: "radio",
-    required: false,
-    options: [
-      { value: "si", label: "Sí" },
-      { value: "no", label: "No" },
-    ],
-    section: "Apoyos",
-  },
-  {
-    id: "q12",
-    fieldName: "experienciaRiego",
-    question: "Años de experiencia con sistema de riego",
-    type: "range",
-    required: false,
-    validations: {
-      min: 0,
-      max: 30,
-    },
-    defaultValue: 0,
-    conditionalDisplay: {
-      dependsOn: "tieneRiego",
-      value: "si",
-    },
-    section: "Infraestructura",
-  },
-  {
-    id: "q13",
-    fieldName: "comentariosAdicionales",
-    question: "Comentarios adicionales",
-    type: "textarea",
-    required: false,
-    placeholder: "Escriba cualquier información adicional que considere relevante...",
-    validations: {
-      maxLength: 500,
-    },
-    section: "Información Adicional",
-  },
-];
+import { usePreguntas } from '@/hooks/usePreguntas';
+import validateStaticForm from '@/helper/validacionRegis';
+import { Question } from '@/services/api';
+
 
 const FormularioUsuarioParcelas = () => {
   const [seccionAbierta, setSeccionAbierta] = useState('basica');
+  const {dataPreguntas,loadingPreguntas}=usePreguntas()
   const {handleRegister,loadingRegister}=useRegisterProducer()
   const [usuario, setDatosusuario] = useState({
     Nombre: '',
@@ -215,9 +37,10 @@ const FormularioUsuarioParcelas = () => {
 });
 
   const [errors, setErrors] = useState({});
+  const [erroreStatic, setErroreStatic] = useState({});
 
-  // Agrupar preguntas por sección
-  const groupedQuestions = QUESTION_SCHEMA.reduce((acc, question) => {
+
+  const groupedQuestions = (dataPreguntas || []).reduce((acc, question) => {
     if (!acc[question.section]) {
       acc[question.section] = [];
     }
@@ -226,8 +49,8 @@ const FormularioUsuarioParcelas = () => {
   }, {});
 
   // Validar una pregunta específica
-  const validateQuestion = (question, value) => {
-    const val = question.validations;
+  const validateQuestion = (question:Question, value) => {
+    const val = question.validations || {};
     
     if (!val) {
       if (question.required && (!value || value === "" || (Array.isArray(value) && value.length === 0))) {
@@ -325,32 +148,36 @@ const FormularioUsuarioParcelas = () => {
     setSeccionAbierta(seccionAbierta === seccion ? null : seccion);
   };
 
-  const handleSubmit = () => {
+    const handleSubmit = () => {
     const newErrors = {};
     let hasErrors = false;
 
-    // Validar todas las preguntas dinámicas
-    QUESTION_SCHEMA.forEach((question) => {
-      // Verificar si la pregunta debe mostrarse (condicionales)
-      if (question.conditionalDisplay) {
+    setErroreStatic(validateStaticForm(usuario));
+    if(usuario.Parcela.length===0){
+      setErroreStatic(prev=>({...prev,Parcela:"Debe registrar al menos una parcela"}))
+    }
+
+    // Validar preguntas dinámicas
+    if (dataPreguntas) {
+      dataPreguntas.forEach((question:Question) => {
+/* if (question.conditionalDisplay) {
         const dependValue = usuario[question.conditionalDisplay.dependsOn];
         if (dependValue !== question.conditionalDisplay.value) {
           return; // No validar si no se muestra
+        }} */
+       const error = validateQuestion(question, usuario[question.fieldName]);
+        if (error) {
+          newErrors[question.fieldName] = error;
+          hasErrors = true;
         }
-      }
-
-      const error = validateQuestion(question, usuario[question.fieldName]);
-      if (error) {
-        newErrors[question.fieldName] = error;
-        hasErrors = true;
-      }
-    });
-
+      });
+    }
     setErrors(newErrors);
 
-    if (hasErrors) {
+    if (!!Object.keys(erroreStatic).length || hasErrors) {
       // Scroll al primer error
-      const firstErrorField = Object.keys(newErrors)[0];
+
+      const firstErrorField = hasErrors?Object.keys(newErrors)[0]:Object.keys(erroreStatic)[0];
       const element = document.querySelector(`[name="${firstErrorField}"]`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -572,14 +399,14 @@ const FormularioUsuarioParcelas = () => {
               <input
                 type="range"
                 name={question.fieldName}
-                value={value || question.defaultValue || 0}
+                value={value || 0}
                 onChange={handleDynamicChange}
                 min={question.validations?.min || 0}
                 max={question.validations?.max || 100}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
               <span className="text-xl font-bold text-blue-600 w-12 text-center">
-                {value || question.defaultValue || 0}
+                {value || 0}
               </span>
             </div>
             {error && (
@@ -669,6 +496,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                    {erroreStatic['Nombre'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Nombre']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -681,6 +514,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Apellido1'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Apellido1']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -693,6 +532,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Apellido2'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Apellido2']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -706,6 +551,12 @@ const FormularioUsuarioParcelas = () => {
                         maxLength={18}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                       />
+                      {erroreStatic['Curp'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Curp']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -718,6 +569,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Correo'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Correo']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -730,6 +587,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Contrasena'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Contrasena']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -742,6 +605,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Telefono'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Telefono']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -754,6 +623,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['FechaNacimiento'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['FechaNacimiento']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -766,6 +641,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Ine'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Ine']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -779,6 +660,12 @@ const FormularioUsuarioParcelas = () => {
                         maxLength={13}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase"
                       />
+                      {erroreStatic['Rfc'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Rfc']}
+                      </div>
+                    }
                     </div>
                   </div>
                 </div>
@@ -802,6 +689,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleDomicilioChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Calle'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Calle']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -814,6 +707,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleDomicilioChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Colonia'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Colonia']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -826,6 +725,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleDomicilioChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Municipio'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Municipio']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -838,6 +743,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleDomicilioChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Ciudad'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Ciudad']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -850,6 +761,12 @@ const FormularioUsuarioParcelas = () => {
                         onChange={handleDomicilioChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['Estado'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Estado']}
+                      </div>
+                    }
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -863,6 +780,12 @@ const FormularioUsuarioParcelas = () => {
                         maxLength={5}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
+                      {erroreStatic['CodigoPostal'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['CodigoPostal']}
+                      </div>
+                    }
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -887,6 +810,12 @@ const FormularioUsuarioParcelas = () => {
               <SeccionHeader id="parcelas" titulo="Parcelas" icono={MapPin} />
               {seccionAbierta === 'parcelas' && (
                 <div className="mt-4 p-6 bg-gray-50 rounded-lg">
+                  {erroreStatic['Parcela'] && 
+                      <div className="flex items-center gap-2 mt-2 text-sm text-red-600">
+                        <AlertCircle className="w-4 h-4" />
+                        {erroreStatic['Parcela']}
+                      </div>
+                    }
                   <MapaDibujo 
                     onParcelasChange={(parcelas) => setDatosusuario(prev => ({...prev,Parcela:parcelas}))}
                   />
@@ -897,7 +826,7 @@ const FormularioUsuarioParcelas = () => {
             {/* Sección: Preguntas Dinámicas */}
             <div>
               <SeccionHeader id="dinamicas" titulo="Información Adicional" icono={FileText} />
-              {seccionAbierta === 'dinamicas' && (
+              {seccionAbierta === 'dinamicas' && !loadingPreguntas && (
                 <div className="mt-4 p-6 bg-gray-50 rounded-lg space-y-8">
                   {Object.keys(groupedQuestions).map((sectionName) => (
                     <div key={sectionName} className="border-b-2 border-gray-200 pb-6 last:border-b-0">
@@ -916,6 +845,7 @@ const FormularioUsuarioParcelas = () => {
             {/* Botón Submit */}
             <button
               onClick={handleSubmit}
+              disabled={loadingPreguntas || loadingRegister}
               className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg hover:from-green-700 hover:to-green-800 transition-all flex items-center justify-center gap-2 text-lg font-semibold shadow-lg hover:shadow-xl"
             >
               <Save size={24} />

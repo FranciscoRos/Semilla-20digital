@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, ChevronRight } from "lucide-react";
+import { useAuth } from "@/providers/authProvider";
 
 interface Notification {
   id: string;
@@ -35,14 +36,15 @@ const notifications: Notification[] = [
 ];
 
 export default function Index() {
-  const navigate = useNavigate();
-  const [user] = useState({
-    name: "Jorge",
-    lastName: "García",
-    initials: "J",
-    status: "Verificado",
-  });
-
+  const {user}=useAuth()
+  
+    const navigate = useNavigate();
+    const [usuarioA] = useState({
+      name: user.Nombre ??'',
+      lastName: `${user.Apellido1} ${user.Apellido2}`,
+      initials: user.Nombre[0] ??'',
+      status: user.Estatus ??'',
+    });
   const services = [
     {
       id: "support",
@@ -100,15 +102,15 @@ export default function Index() {
         <div className="mb-8">
           <div className="flex items-start gap-4 bg-white rounded-lg p-6 shadow-sm">
             <div className="w-16 h-16 rounded-full bg-green-500 text-white flex items-center justify-center text-2xl font-bold flex-shrink-0">
-              {user.initials}
+              {usuarioA.initials}
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900">
-                {user.name} {user.lastName}
+                {usuarioA.name} {usuarioA.lastName}
               </h1>
               <div className="flex items-center gap-2 mt-1 text-sm">
                 <span className="inline-block w-2 h-2 bg-green-500 rounded-full"></span>
-                <span className="text-gray-600">Estatus: {user.status}</span>
+                <span className="text-gray-600">Estatus: {user.Estatus}</span>
               </div>
             </div>
           </div>

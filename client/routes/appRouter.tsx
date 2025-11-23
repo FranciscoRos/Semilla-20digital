@@ -56,8 +56,8 @@ export const AppRoutes = () => {
       <Route element={<LayoutGeneral />}>
         {/* ------ PRODUCTOR ------ */}
         <Route
-          path="producer-dashboard"
-          element={
+        index
+        element={
             <ProtectedRoute role="Usuario">
               <ProducerDashboard />
             </ProtectedRoute>
@@ -124,10 +124,12 @@ export const AppRoutes = () => {
         <Route path="admin/validacion-geomapa"
           element={
             <ProtectedRoute role="Administracion">
-          <ValidacionGeomapa />
+          <Geomapa />
             </ProtectedRoute>
           }
-/>
+        />
+
+
         <Route
           path="admin/validacion-productores"
           element={
@@ -188,14 +190,14 @@ export const AppRoutes = () => {
         />
 
         {/* ------- Legacy ------- */}
-        <Route
+        {/* <Route
           index
           element={
             <ProtectedRoute role="Usuario">
               <Index />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="apoyos"
           element={

@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { replace, useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 
 const NotFound = () => {
@@ -13,7 +13,7 @@ const NotFound = () => {
             Lo sentimos, la página que buscas no existe o ha sido movida.
           </p>
           <button
-            onClick={() => navigate("/")}
+            onClick={() => navigate(-1)}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition"
           >
             Volver al Inicio
