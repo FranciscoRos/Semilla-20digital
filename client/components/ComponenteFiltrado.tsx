@@ -78,7 +78,7 @@ export default function ComponenteFiltrados({
 
   // --- EFECTO DE CARGA INICIAL (EDICIÓN) ---
   useEffect(() => {
-    if (requerimientos && requerimientos.length > 0) {
+    if (requerimientos && requerimientos.length > 0 && dataPreguntas) {
       // A. Recuperar Parcela
       const pRule = requerimientos.find((r: any) => r.type === "regla_parcela");
       if (pRule && pRule.config) {
