@@ -9,55 +9,88 @@ const apoyosApi = axios.create({
   },
 });
 
+// Debe coincidir con ApoyoResource.php
 export interface Apoyo {
-  _id: number;
-  Titulo: string;
-  Descripcion: string;
-  Requisitos: string;
-  Estatus: string;
-  Creado: string;
-  Actualizado: string;
+  id: string;
+
+  nombre_programa: string;
+  descripcion: string;
+  objetivo: string;
+  tipo_objetivo: string;
+
+  institucion_encargada: string;
+  institucion_acronimo: string;
+  direccion: string;
+  horarios_atencion: string;
+
+  telefono_contacto: string;
+  correo_contacto: string;
+  redes_sociales: string;
+
+  latitud_institucion: number;
+  longitud_institucion: number;
+
+  fechaInicio: string; // Y-m-d
+  fechaFin: string;    // Y-m-d
+
+  numero_beneficiados_actual: number;
+
+  // El backend también manda esto, pero el admin no lo usa aún
+  Requerimientos?: any[];
+  Beneficiados?: any[];
 }
 
+// Payload para crear/editar (sin id)
+export type ApoyoPayload = Omit<Apoyo, "id">;
+
+// ======================
+// CRUD
+// ======================
+
+// GET /apoyo
 export const getApoyos = async (): Promise<Apoyo[]> => {
   await authHeader(apoyosApi);
   const res = await apoyosApi.get("apoyo");
 
-  // res.data = { data: [...] }
   const raw = res.data;
+  // Laravel Resource::collection suele devolver { data: [...] }
+  const items = Array.isArray(raw?.data) ? raw.data : raw;
 
-  // Nos quedamos con el arreglo interno
-  if (Array.isArray(raw)) {
-    return raw;
-  }
-
-  if (Array.isArray(raw.data)) {
-    return raw.data;
-  }
-
-  console.error("Formato inesperado en GET /apoyo:", raw);
-  return [];
+  return items as Apoyo[];
 };
 
-
+// POST /apoyo
+// El backend solo regresa { message }, así que no usamos el retorno
 export const createApoyo = async (
-  data: Omit<Apoyo, "_id">
-): Promise<Apoyo> => {
+  data: ApoyoPayload
+): Promise<void> => {
   await authHeader(apoyosApi);
-  const res = await apoyosApi.post("apoyo", data);
-  return res.data;
+  await apoyosApi.post("apoyo", data);
 };
 
+// PUT /apoyo/{id}
 export const updateApoyo = async (
-  id: number,
-  data: Omit<Apoyo, "_id">
-): Promise<Apoyo> => {
+  id: string,
+  data: Partial<ApoyoPayload>
+): Promise<Apoyo | null> => {
   await authHeader(apoyosApi);
   const res = await apoyosApi.put(`apoyo/${id}`, data);
-  return res.data;
+
+  // En tu controlador: ['message' => ..., 'apoyo' => new ApoyoResource($apoyo)]
+  if (res.data && res.data.apoyo) {
+    return res.data.apoyo as Apoyo;
+  }
+
+  if (res.data && res.data.data) {
+    return res.data.data as Apoyo;
+  }
+
+  console.warn("Respuesta inesperada en PUT /apoyo/{id}:", res.data);
+  return null;
 };
 
-export const deleteApoyo = async (id: number): Promise<void> => {
+// DELETE /apoyo/{id}
+export const deleteApoyo = async (id: string): Promise<void> => {
   await authHeader(apoyosApi);
   await apoyosApi.delete(`apoyo/${id}`);
 };

@@ -14,6 +14,9 @@ import {
   User,
   Home,
   FileText,
+  MapPin,
+  CalendarClock,
+  Edit2,
 } from "lucide-react";
 
 export default function UsuariosRevision() {
@@ -27,6 +30,8 @@ export default function UsuariosRevision() {
   const [loadingList, setLoadingList] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
+  const [showAgendarModal, setShowAgendarModal] = useState(false);
+  const [showModificarModal, setShowModificarModal] = useState(false);
 
   // Cargar lista de pendientes al entrar
   useEffect(() => {
@@ -275,6 +280,48 @@ export default function UsuariosRevision() {
                 </div>
               </section>
 
+              {/* Parcelas */}
+              {selectedPerfil.Usuario.Parcela &&
+                selectedPerfil.Usuario.Parcela.length > 0 && (
+                  <section className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPin className="w-5 h-5 text-emerald-600" />
+                      <h2 className="text-lg font-semibold text-gray-800">
+                        Parcelas registradas
+                      </h2>
+                    </div>
+
+                    <div className="space-y-3 text-sm">
+                      {selectedPerfil.Usuario.Parcela.map((parcela, idx) => (
+                        <div
+                          key={parcela.idParcela ?? idx}
+                          className="border rounded-lg p-3 bg-gray-50"
+                        >
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-semibold text-gray-800">
+                              {parcela.nombre || `Parcela ${idx + 1}`}
+                            </span>
+                            {parcela.area && (
+                              <span className="text-xs text-gray-600">
+                                Área: {parcela.area}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-600">
+                            {[
+                              parcela.localidad,
+                              parcela.municipio,
+                              parcela.ciudad,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
               {/* Revisión admin */}
               <section className="border-t pt-4 mt-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -297,6 +344,27 @@ export default function UsuariosRevision() {
                 />
 
                 <div className="flex flex-wrap gap-3 justify-end">
+                  {/* Botón Modificar */}
+                  <button
+                    type="button"
+                    onClick={() => setShowModificarModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Modificar
+                  </button>
+
+                  {/* Botón Agendar cita */}
+                  <button
+                    type="button"
+                    onClick={() => setShowAgendarModal(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50"
+                  >
+                    <CalendarClock className="w-4 h-4" />
+                    Agendar cita
+                  </button>
+
+                  {/* Botón Rechazar */}
                   <button
                     type="button"
                     onClick={handleReject}
@@ -306,6 +374,7 @@ export default function UsuariosRevision() {
                     Rechazar
                   </button>
 
+                  {/* Botón Aprobar */}
                   <button
                     type="button"
                     onClick={handleApprove}
@@ -320,6 +389,82 @@ export default function UsuariosRevision() {
           )}
         </main>
       </div>
+
+      {/* Modal Agendar cita (vacío por ahora) */}
+      {showAgendarModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+            <div className="flex items-center gap-2 mb-4">
+              <CalendarClock className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-semibold text-gray-800">
+                Agendar cita
+              </h2>
+            </div>
+
+           {/* Campo Fecha */}
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Fecha
+  </label>
+  <input
+    type="date"
+    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
+               focus:ring-blue-500 focus:border-transparent text-sm"
+  />
+</div>
+
+{/* Textarea */}
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Descripción / Detalles
+  </label>
+  <textarea
+    rows={4}
+    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
+               focus:ring-blue-500 focus:border-transparent text-sm"
+    placeholder="Escribe los detalles aquí…"
+  ></textarea>
+</div>
+
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              >
+                Aceptar
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAgendarModal(false)}
+                className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Modificar (vacío por ahora) */}
+      {showModificarModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+           
+            hazlo cris
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowModificarModal(false)}
+                className="px-4 py-2 text-sm rounded-lg border hover:bg-gray-50"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
