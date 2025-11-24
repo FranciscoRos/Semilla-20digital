@@ -9,6 +9,12 @@ const apoyosApi = axios.create({
   },
 });
 
+export interface Requisito {
+  descripcion: string;
+  // si en un futuro le agregas más campos, se pueden añadir aquí
+  [key: string]: any;
+}
+
 // Debe coincidir con ApoyoResource.php
 export interface Apoyo {
   id: string;
@@ -35,8 +41,7 @@ export interface Apoyo {
 
   numero_beneficiados_actual: number;
 
-  // El backend también manda esto, pero el admin no lo usa aún
-  Requerimientos?: any[];
+  Requerimientos?: Requisito[];
   Beneficiados?: any[];
 }
 
@@ -60,7 +65,6 @@ export const getApoyos = async (): Promise<Apoyo[]> => {
 };
 
 // POST /apoyo
-// El backend solo regresa { message }, así que no usamos el retorno
 export const createApoyo = async (
   data: ApoyoPayload
 ): Promise<void> => {
@@ -76,7 +80,6 @@ export const updateApoyo = async (
   await authHeader(apoyosApi);
   const res = await apoyosApi.put(`apoyo/${id}`, data);
 
-  // En tu controlador: ['message' => ..., 'apoyo' => new ApoyoResource($apoyo)]
   if (res.data && res.data.apoyo) {
     return res.data.apoyo as Apoyo;
   }

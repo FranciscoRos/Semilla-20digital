@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronLeft, Plus, Edit2, Trash2 } from "lucide-react";
+import { ChevronLeft, Plus, Edit2, Trash2, X } from "lucide-react";
 import {
   Apoyo,
   ApoyoPayload,
@@ -7,6 +7,7 @@ import {
   createApoyo,
   updateApoyo,
   deleteApoyo,
+  Requisito,
 } from "@/services/ApoyoService";
 
 export default function GestionApoyos() {
@@ -32,6 +33,9 @@ export default function GestionApoyos() {
     fechaFin: "",
     numero_beneficiados_actual: "0",
   });
+
+  // NUEVO: estado para requerimientos
+  const [requerimientos, setRequerimientos] = useState<string[]>([""]);
 
   // Cargar apoyos al entrar
   useEffect(() => {
@@ -66,6 +70,7 @@ export default function GestionApoyos() {
       fechaFin: "",
       numero_beneficiados_actual: "0",
     });
+    setRequerimientos([""]);
     setEditingId(null);
   };
 
@@ -82,6 +87,11 @@ export default function GestionApoyos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const reqLimpios: Requisito[] = requerimientos
+      .map((r) => r.trim())
+      .filter(Boolean)
+      .map((r) => ({ descripcion: r }));
 
     const payload: ApoyoPayload = {
       nombre_programa: formData.nombre_programa,
@@ -102,25 +112,20 @@ export default function GestionApoyos() {
       numero_beneficiados_actual: Number(
         formData.numero_beneficiados_actual || "0"
       ),
-      // Requerimientos / Beneficiados no se manejan desde el admin por ahora
-      Requerimientos: [],
-      Beneficiados: [],
+      Requerimientos: reqLimpios,
+      Beneficiados: [], // no se gestionan aquí por ahora
     };
 
     try {
       if (editingId === null) {
-        // Crear nuevo apoyo
         await createApoyo(payload);
       } else {
-        // Actualizar apoyo existente
         await updateApoyo(editingId, payload);
       }
 
-      // Recargar lista desde el backend
       const data = await getApoyos();
       setApoyos(data);
 
-      // Limpiar formulario y cerrar
       setShowForm(false);
       resetForm();
     } catch (error: any) {
@@ -152,7 +157,37 @@ export default function GestionApoyos() {
       numero_beneficiados_actual:
         apoyo.numero_beneficiados_actual?.toString() ?? "0",
     });
+
+    const req = (apoyo.Requerimientos ?? []) as Requisito[];
+    if (req.length > 0) {
+      setRequerimientos(
+        req.map((r) => (r && typeof r.descripcion === "string" ? r.descripcion : ""))
+      );
+    } else {
+      setRequerimientos([""]);
+    }
+
     setShowForm(true);
+  };
+
+  const handleChangeRequisito = (index: number, value: string) => {
+    setRequerimientos((prev) => {
+      const copy = [...prev];
+      copy[index] = value;
+      return copy;
+    });
+  };
+
+  const handleAddRequisito = () => {
+    setRequerimientos((prev) => [...prev, ""]);
+  };
+
+  const handleRemoveRequisito = (index: number) => {
+    setRequerimientos((prev) => {
+      const copy = [...prev];
+      copy.splice(index, 1);
+      return copy.length > 0 ? copy : [""];
+    });
   };
 
   return (
@@ -414,6 +449,51 @@ export default function GestionApoyos() {
               </div>
             </div>
 
+            {/* Requerimientos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Requerimientos para acceder al apoyo
+              </label>
+
+              <div className="space-y-2">
+                {requerimientos.map((req, index) => (
+                  <div
+                    key={index}
+                    className="flex gap-2 items-center"
+                  >
+                    <input
+                      type="text"
+                      value={req}
+                      onChange={(e) =>
+                        handleChangeRequisito(index, e.target.value)
+                      }
+                      placeholder={`Requerimiento #${index + 1}`}
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                    {requerimientos.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRequisito(index)}
+                        className="p-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50"
+                        title="Eliminar requerimiento"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddRequisito}
+                className="mt-2 text-xs text-green-700 font-medium flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                Agregar otro requerimiento
+              </button>
+            </div>
+
             {/* Coordenadas y fechas */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
@@ -588,6 +668,22 @@ export default function GestionApoyos() {
                   {apoyo.redes_sociales}
                 </p>
               </div>
+
+              {/* Mostrar requerimientos en la tarjeta */}
+             {apoyo.Requerimientos && apoyo.Requerimientos.length > 0 && (
+  <div className="mt-3 text-xs text-gray-500">
+    <p className="font-semibold mb-1">Requerimientos:</p>
+    <ul className="list-disc list-inside space-y-0.5">
+      {apoyo.Requerimientos.map((r: any, idx: number) => (
+        <li key={idx}>
+          {r?.nombre && r?.valor
+            ? `${r.nombre}: ${r.valor}`              
+            : r?.descripcion ?? JSON.stringify(r)}  
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
             </div>
 
             <div className="flex gap-2 mt-4">
