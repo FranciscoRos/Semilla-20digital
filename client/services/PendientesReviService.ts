@@ -49,7 +49,32 @@ export interface UsuarioRegistro {
   Rfc: string | null;
   Domicilio: Domicilio;
   Parcela: Parcela[];
+  Revision:       Revision;
+  agendacionCita: AgendacionCita;
 }
+
+
+export interface Revision {
+  Administrador:       Administrador;
+  FechaRevision:       string;
+  ComentariosRevision: string;
+}
+
+export interface Administrador {
+  idAdministrador: string;
+  Nombre:          string;
+  Apellido1:       string;
+  Apellido2:       string;
+  Correo:          string;
+}
+
+export interface AgendacionCita {
+  Administrador: Administrador;
+  FechaCita:     string;
+  HoraCita:      string;
+  PropositoCita: string;
+}
+
 
 export interface PerfilRegistro {
   id: string;
@@ -133,6 +158,23 @@ export const rechazarPerfilRegistro = async (
     await pendientesApi.put(`/${id}`, {
       Estado: "Rechazado",
       MotivoRechazo: motivo, // se guardará como campo dinámico
+    });
+  } catch (error) {
+    console.error("Error al rechazar perfil de registro:", error);
+    throw error;
+  }
+};
+
+export const agregarComentario = async (
+  id: string,
+  idAdministrador: string,
+  motivo: string
+): Promise<void> => {
+  try {
+    await authHeader(pendientesApi);
+    await pendientesApi.put(`/${id}`, {
+      idAdministrador: idAdministrador,
+      MotivoRechazo: motivo, 
     });
   } catch (error) {
     console.error("Error al rechazar perfil de registro:", error);

@@ -5,6 +5,7 @@ import SDloading from "@/assets/SDloading.svg"
 import { usePreguntas } from "@/hooks/usePreguntas";
 import { usePreguntasDetalles } from "@/hooks/usePreguntasDetalles";
 import { Question } from "@/services/api";
+import GoBack from "@/components/goBack";
 
 // Tipos de pregunta disponibles
 const QUESTION_TYPES = [
@@ -118,6 +119,7 @@ export default function GestionPadron() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <GoBack/>
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>

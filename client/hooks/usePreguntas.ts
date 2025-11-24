@@ -2,15 +2,16 @@ import { getPreguntas } from "@/services/preguntaService"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect } from "react"
 import { toast } from "./use-toast"
+import { useAuth } from "@/providers/authProvider"
 
 
 
 
 export const usePreguntas = () => {
-
+    const {user}=useAuth()
     const {data:dataPreguntas, isLoading:loadingPreguntas,error,isError,refetch}=useQuery({
         queryKey: ['preguntas'],
-        queryFn:()=>getPreguntas()
+        queryFn:()=>getPreguntas(user?.id),
     })
 useEffect(()=>{
     if(isError){

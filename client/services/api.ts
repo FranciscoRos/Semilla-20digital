@@ -243,15 +243,78 @@ export const demoCursos: Curso[] = [
 // ============================================
 
 export interface Apoyo {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  monto: number;
-  requisitos: string[];   
-  estatus: string;
-  creado: string;       // fecha 
-  actualizado: string;  // fecha 
+  id:                         string;
+  nombre_programa:            string;
+  descripcion:                string;
+  objetivo:                   string;
+  tipo_objetivo:              string;
+  institucion_encargada:      string;
+  institucion_acronimo:       string;
+  direccion:                  string;
+  horarios_atencion:          string;
+  telefono_contacto:          string;
+  correo_contacto:            string;
+  redes_sociales:             string;
+  latitud_institucion:        number;
+  longitud_institucion:       number;
+  fechaInicio:                Date;
+  fechaFin:                   Date;
+  numero_beneficiados_actual: number;
+  Requerimientos:             any[];
+  Beneficiados:               Beneficiado[];
 }
+
+export interface Beneficiado {
+  Usuario:        Usuario;
+  parcela:        Parcela;
+  fechaRegistro:  string;
+  agendacionCita: AgendacionCita;
+}
+
+export interface Usuario {
+  idUsuario: string;
+  Nombre:    string;
+  Apellido1: string;
+  Apellido2: string;
+  Curp:      string;
+  Correo:    string;
+  Telefono:  string;
+  Ine:       string;
+  Rfc:       string;
+}
+
+export interface AgendacionCita {
+  Administrador: null;
+  FechaCita:     string;
+  HoraCita:      string;
+  PropositoCita: string;
+}
+
+export interface Parcela {
+  idParcela:          string;
+  ciudad:             string;
+  municipio:          string;
+  localidad:          string;
+  direccionAdicional: string;
+  coordenadas:        Coordenada[];
+  area:               number;
+  nombre:             string;
+  usos:               Uso[];
+  fechaRegistro:      string;
+}
+
+export interface Coordenada {
+  lat: number;
+  lng: number;
+}
+
+export interface Uso {
+  area:                   string;
+  actividadesEspecificas: string[];
+}
+
+
+
 
 // Demo data
 export const demoApoyos: Apoyo[] = [

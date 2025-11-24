@@ -46,7 +46,7 @@ export interface Apoyo {
 }
 
 // Payload para crear/editar (sin id)
-export type ApoyoPayload = Omit<Apoyo, "id">;
+export type ApoyoPayload = Omit<Partial<Apoyo>, "id">;
 
 // ======================
 // CRUD

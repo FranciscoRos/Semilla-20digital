@@ -19,6 +19,7 @@ import GeoMapa from "@/components/GeoMapa";
 import { IParcela, IUbicacionEspecial } from "@/services/api";
 import AddLocationModal from "@/components/modalAddLocation";
 import { useAuth } from "@/providers/authProvider";
+import { useNavigate } from "react-router-dom";
 
 // ============================================
 // 1. DATOS
@@ -102,8 +103,8 @@ const ubicacionesEspeciales: IUbicacionEspecial[] = [
     tipo: "sede_gobierno",
     descripcion: "Oficinas centrales para trámites de pesca y agricultura.",
     coordenadas: { lat: 18.5069468, lng: -88.2960919 },
-    telefono: "983 832 1255",
-    direccion: "Av. Venustiano Carranza 201, Centro, Chetumal",
+    telefono: "983 835 1630",
+    direccion: "Av. Belice #201 entre San Salvador y Venustiano Carranza. Colonia Centro, C.P. 77000., Chetumal, Mexico",
     institucion: "SEDARPE",
   },
   {
@@ -233,6 +234,7 @@ const CheckboxItem = ({
 );
 
 export default function DashboardGeomapa() {
+  const Navigate = useNavigate();
   const {user}=useAuth()
   const [apiKey] = useState(
     () => import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
@@ -427,16 +429,16 @@ export default function DashboardGeomapa() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-          <div className="w-full md:w-auto">
-            <button
+       <button
               onClick={() => window.history.back()}
               className="flex items-center gap-2 text-green-600 font-medium mb-2 hover:underline"
             >
               <ChevronLeft className="w-5 h-5" /> Volver
-            </button>
+        </button>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <div className="w-full md:w-auto">
             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
               <MapIcon className="w-8 h-8 text-green-600" /> Geomapa
               Agropecuario
@@ -800,7 +802,7 @@ export default function DashboardGeomapa() {
                         <span className="text-[10px] bg-gray-100 px-2 py-1 rounded-md text-gray-600 font-medium border border-gray-100">
                           {c.institucion || "Entidad"}
                         </span>
-    { user.Tipo==='Administracion' &&
+                    { user.Tipo==='Administracion' &&
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

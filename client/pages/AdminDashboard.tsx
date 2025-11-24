@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BarChart3, Users, CheckCircle2, AlertCircle } from "lucide-react";
+import { BarChart3, Users, CheckCircle2, AlertCircle, PlusCircle } from "lucide-react";
 import { useAuth } from "@/providers/authProvider";
 import { Input } from "postcss";
+import { Button } from "@/components/ui/button";
 
 interface AdminStats {
   label: string;
@@ -96,7 +97,8 @@ export default function AdminDashboard() {
   return (
     <div>
         {/* Title */}
-        <div className="mb-8">
+        <div className="mb-8 flex justify-between items-center">
+          <div>
           <h1 className="text-3xl font-bold text-gray-900">
             Administrativo: {user.Nombre} {user.Apellido1} {user.Apellido2}
           </h1>
@@ -104,13 +106,20 @@ export default function AdminDashboard() {
             <span className="inline-block w-2 h-2 bg-green-600 rounded-full align-middle mr-2"></span>
             Sistema SEDARPE · {user.Tipo}
           </p>
+          </div>
+          <div>
+            <Button onClick={() => navigate("/admin/agregar-usuarios")} className="bg-green-600 text-white hover:bg-green-700">
+              <PlusCircle className="w-5 h-5 mr-2" />
+              Agregar Productor
+            </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {adminStats.map((stat, i) => {
-  const isPendientes = stat.label === "Pendientes de Revisión";
-  const isProductores = stat.label === "Productores Registrados";
+        const isPendientes = stat.label === "Pendientes de Revisión";
+        const isProductores = stat.label === "Productores Registrados";
 
   // --- BOTÓN: Productores Registrados ---
   if (isProductores) {
@@ -175,7 +184,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <button
-            onClick={() => navigate("/auditoria")}
+            onClick={() => navigate("/admin/revision-usuarios")}
             className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
           >
             <h3 className="font-bold text-gray-900 mb-2">Panel de Auditoría</h3>

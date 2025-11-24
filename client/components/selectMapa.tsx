@@ -20,7 +20,7 @@ const LocationPicker = ({ lat, lng, onLocationSelect }: LocationPickerProps) => 
   const markerRef = useRef<any>(null);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY || "";
+  const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY ||import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   // 1. Inicializar Mapa
   const initMap = useCallback(() => {

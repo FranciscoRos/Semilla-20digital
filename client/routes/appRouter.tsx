@@ -8,7 +8,7 @@ import LayoutGeneral from "@/layouts/generalLayout";
 import LoginProducer from "../pages/auth/LoginProducer";
 import LoginAdmin from "../pages/auth/LoginAdmin";
 import RegisterProducer from "../pages/auth/RegisterProducer";
-
+import InitialDatosUsuario from "@/pages/producer/ProducerRegistro";
 // Producer Dashboard
 import ProducerDashboard from "../pages/ProducerDashboard";
 
@@ -26,7 +26,7 @@ import AdminDashboard from "../pages/AdminDashboard";
 // Admin Modules
 import ValidacionProductores from "../pages/admin/ValidacionProductores";
 import ValidacionSolicitudes from "../pages/admin/ValidacionSolicitudes";
-import ValidacionGeomapa from "../pages/admin/ValidacionGeomapa";
+// import ValidacionGeomapa from "../pages/admin/ValidacionGeomapa";
 import GestionCursos from "../pages/admin/GestionCursos";
 import GestionApoyos from "../pages/admin/GestionApoyos";
 import ModeracionForos from "../pages/admin/ModeracionForos";
@@ -87,6 +87,16 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+          <Route
+          path="registro"
+          element={
+            <ProtectedRoute role="Usuario">
+              <InitialDatosUsuario />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="cursos-capacitacion"
           element={
@@ -189,6 +199,16 @@ export const AppRoutes = () => {
           }
         />
 
+        <Route
+          path="admin/agregar-usuarios"
+          element={
+            <ProtectedRoute role="Administracion">
+              <RegisterProducer />
+            </ProtectedRoute>
+          }
+        />
+
+
         {/* ------- Legacy ------- */}
         {/* <Route
           index
@@ -238,14 +258,14 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="registro"
           element={
             <ProtectedRoute role="Usuario">
               <Registro />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="validator-dashboard"
           element={

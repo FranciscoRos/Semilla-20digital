@@ -82,29 +82,25 @@ const USOS_PARCELA = {
 };
 
 // Componente principal: Registro de Parcelas
-export default function RegistroParcelas({onParcelasChange}) {
+export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) {
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
   const [vistaActual, setVistaActual] = useState("registro"); // 'registro' o 'lista'
+  useEffect(()=>{
+    if(initialParcelas && initialParcelas.length>0){
+      setParcelas(initialParcelas);
+    }
+  },[initialParcelas])
+
   const getEnvApiKey = () => {
-
     let envKey = "";
-
     try {
-
         // @ts-ignore
-
         if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
-
             // @ts-ignore
-
             envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-
         }
-
         else if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
-
             envKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-
         }
 
     } catch (e) { console.log("No env key detected"); }
@@ -736,16 +732,6 @@ export default function RegistroParcelas({onParcelasChange}) {
                   </div>
                 </div>
               </div>
-
-              <div className="mt-4">
-                <button
-                  onClick={() => console.log("Ver detalles:", parcela)}
-                  className="text-green-600 hover:text-green-700 font-semibold text-sm flex items-center gap-1"
-                >
-                  <Eye className="w-4 h-4" />
-                  Ver coordenadas completas en consola
-                </button>
-              </div>
               <MapaDibujo
                 onPolygonChange={handlePolygonChange}
                 initialPolygon={parcela.coordenadas}
@@ -787,21 +773,7 @@ export default function RegistroParcelas({onParcelasChange}) {
             Ver Parcelas ({parcelas.length})
           </button>
         </div>
-
-        {/* Vista actual */}
         {vistaActual === "registro" ? renderRegistro() : renderLista()}
-
-        {/* Debug: Mostrar estructura de datos */}
-        {parcelas.length > 0 && vistaActual === "lista" && (
-          <div className="mt-6 p-4 bg-gray-900 text-white rounded-lg">
-            <p className="text-sm font-mono mb-2">
-              📊 Estructura de datos (últimas 2 parcelas):
-            </p>
-            <pre className="text-xs overflow-auto max-h-96">
-              {JSON.stringify(parcelas.slice(-2), null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
     </div>
   );

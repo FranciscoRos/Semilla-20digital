@@ -8,11 +8,14 @@ import {
   updateCurso,
   deleteCurso,
 } from "@/services/CursosService";
+import { usePreguntas } from "@/hooks/usePreguntas";
 
 export default function GestionCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const { dataPreguntas, loadingPreguntas } = usePreguntas();
+
 
   const [formData, setFormData] = useState<CursoPayload>({
     Titulo: "",
