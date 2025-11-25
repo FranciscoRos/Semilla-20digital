@@ -246,10 +246,8 @@ export default function ComponenteFiltrados({
     }
   };
 
-  const dataPreguntasFilter=()=>{
-    if(!dataPreguntas)return []
-    return dataPreguntas.filter(dp=>!preguntaRules.some(pr=>pr.fieldName===dp.fieldName))
-  }
+  const dataPreguntasFilter=!dataPreguntas? []: dataPreguntas.filter(dp=>!preguntaRules.some(pr=>pr.fieldName===dp.fieldName))
+
   return (
     <>
       {loadingPreguntas ? (
@@ -382,7 +380,7 @@ export default function ComponenteFiltrados({
                 }}
               >
                 <option value="">-- Seleccionar Pregunta --</option>
-                {dataPreguntasFilter().map((q) => (
+                {dataPreguntasFilter.map((q) => (
                   <option key={q.id} value={q.id}>
                     {q.question.substring(0, 60)}...
                   </option>
@@ -392,7 +390,7 @@ export default function ComponenteFiltrados({
               {/* Input Dinámico del Valor */}
               {tempQuestionId &&
                 (() => {
-                  const q = dataPreguntasFilter().find(
+                  const q = dataPreguntasFilter.find(
                     (qp) => qp.id === tempQuestionId,
                   );
                   if (!q) return null;

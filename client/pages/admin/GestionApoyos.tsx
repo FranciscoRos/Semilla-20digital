@@ -13,9 +13,7 @@ import {
 } from "@/services/ApoyoService";
 import ComponenteFiltrados from "@/components/ComponenteFiltrado";
 import LoadingSDloading from "@/components/loadingSDloading";
-
-// --- CONSTANTES ---
-const ITEMS_PER_PAGE = 6; // Cantidad de tarjetas por página
+import PaginatorPages from "@/components/paginatorPages";
 
 const CONSTANTES_INSTITUCION = {
   institucion_encargada: "Secretaría de Desarrollo Agropecuario Agriculturo, Rural y Pesca",
@@ -37,12 +35,10 @@ export default function GestionApoyos() {
 
   // --- NUEVOS ESTADOS PARA FILTROS Y PAGINACIÓN ---
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  
+  const [dateFilter, setDateFilter] = useState("");  
   // Referencia para el scroll automático
   const formTopRef = useRef<HTMLDivElement>(null);
-
+  const [paginatedData,setPaginateData]=useState(apoyos)
   const [formData, setFormData] = useState({
     nombre_programa: "",
     descripcion: "",
@@ -75,9 +71,7 @@ export default function GestionApoyos() {
     setFormData(prev => ({ ...prev, Requerimientos: req }));
   };
 
-  // --- LÓGICA DE FILTRADO Y PAGINACIÓN ---
-  
-
+  //Filtrado
   const filteredApoyos = useMemo(() => {
     return apoyos.filter(apoyo => {
       const matchSearch = apoyo.nombre_programa.toLowerCase().includes(searchTerm.toLowerCase());
@@ -86,17 +80,7 @@ export default function GestionApoyos() {
     });
   }, [apoyos, searchTerm, dateFilter]);
 
-  const totalPages = Math.ceil(filteredApoyos.length / ITEMS_PER_PAGE);
-  const paginatedApoyos = filteredApoyos.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
-
-  // Resetear página si cambia el filtro
-  useEffect(() => { setCurrentPage(1); }, [searchTerm, dateFilter]);
-
   // --- HANDLERS ---
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload: ApoyoPayload = {
@@ -158,7 +142,7 @@ export default function GestionApoyos() {
       </div>
 
       {/* --- FORMULARIO (MODAL/EXPANDIBLE) --- */}
-      <div ref={formTopRef}> {/* <-- Referencia para el Scroll */}
+      <div ref={formTopRef}> 
         {showForm && (
             <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl border border-gray-200 mb-10 overflow-hidden animate-fadeIn">
                 <div className="p-6 border-b bg-gray-50 flex justify-between items-center">
@@ -277,7 +261,7 @@ export default function GestionApoyos() {
       ) : (
         <>
             <div className="grid grid-cols-1 gap-4 mb-6">
-                {paginatedApoyos.map(a => (
+                {paginatedData.map(a => (
                     <div key={a.id} className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-1">
@@ -307,31 +291,10 @@ export default function GestionApoyos() {
                     </div>
                 ))}
             </div>
-
-            {/* --- COMPONENTE DE PAGINACIÓN --- */}
-            {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
-                    <button 
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                    >
-                        <ChevronLeft className="w-5 h-5 text-gray-600"/>
-                    </button>
-                    
-                    <span className="text-sm font-medium text-gray-700">
-                        Página {currentPage} de {totalPages}
-                    </span>
-
-                    <button 
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                    >
-                        <ChevronRight className="w-5 h-5 text-gray-600"/>
-                    </button>
-                </div>
-            )}
+              <PaginatorPages 
+              dataxFiltrar={filteredApoyos}
+              changeDatos={(dt)=>setPaginateData(dt)}
+              />
         </>
       )}
     </div>

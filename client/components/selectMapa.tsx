@@ -42,7 +42,6 @@ const LocationPicker = ({ lat, lng, onLocationSelect }: LocationPickerProps) => 
         fullscreenControl: false,
       });
 
-      // Listener de Click
       mapInstanceRef.current.addListener("click", (e: any) => {
         const newLat = e.latLng.lat().toFixed(6);
         const newLng = e.latLng.lng().toFixed(6);
@@ -71,7 +70,7 @@ const LocationPicker = ({ lat, lng, onLocationSelect }: LocationPickerProps) => 
       });
     }
     // Opcional: Centrar mapa al mover (descomentar si te gusta ese efecto)
-    // mapInstanceRef.current.panTo(position);
+    mapInstanceRef.current.panTo(position);
   };
 
   // 3. Efecto: Cargar Script (Vanilla style)

@@ -10,23 +10,24 @@ const cursosApi = axios.create({
 });
 
 export interface Curso {
-  _id: string;
+  id: string;
   Titulo: string;
   Descripcion: string;
   Detalles: string;
   Tema: string;
   Modalidad: "online" | "presencial";
-  FechaCurso: string;
+  FechaCurso: string[];
   DireccionUbicacion: string;
   Latitud: string;
   Longitud: string;
   Url: string;
+  Requerimientos:[]
   Creado: string;
   Actualizado: string;
 }
 
 // Para crear/editar no mandamos el _id
-export type CursoPayload = Omit<Curso, "_id">;
+export type CursoPayload = Omit<Curso, "id">;
 
 // ======================
 // CRUD
