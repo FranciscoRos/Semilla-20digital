@@ -32,6 +32,7 @@ import GestionApoyos from "../pages/admin/GestionApoyos";
 import ModeracionForos from "../pages/admin/ModeracionForos";
 import GestionPadron from "@/pages/admin/GestionPadron";
 import UsuariosRevision from "../pages/admin/UsuariosRevision";
+import GestionProductores from "../pages/admin/GestionProductores";
 
 // Legacy
 import Index from "../pages/Index";
@@ -148,6 +149,17 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+            <Route
+          path="admin/registrados-productores"
+          element={
+            <ProtectedRoute role="Administracion">
+              <GestionProductores />
+            </ProtectedRoute>
+          }
+        />
+
+
         <Route
           path="admin/validacion-solicitudes"
           element={

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart3, Users, CheckCircle2, AlertCircle, PlusCircle } from "lucide-react";
 import { useAuth } from "@/providers/authProvider";
-import { Input } from "postcss";
 import { Button } from "@/components/ui/button";
+import { getPerfilesPendientes, getPerfilesRegistro } from "@/services/PendientesReviService";
+
 
 interface AdminStats {
   label: string;
@@ -16,8 +17,8 @@ interface AdminStats {
 const adminStats: AdminStats[] = [
   {
     label: "Productores Registrados",
-    value: "1,247",
-    subtext: "+45 esta semana",
+    value: "0",
+    subtext: "0 esta semana",
     color: "bg-blue-50",
     icon: <Users className="w-6 h-6 text-blue-600" />,
   },
@@ -38,8 +39,8 @@ const adminStats: AdminStats[] = [
   {
     
     label: "Pendientes de Revisión",
-    value: "47",
-    subtext: "-15 desde ayer",
+    value: "0",
+    subtext: "",
     color: "bg-amber-50",
     icon: <AlertCircle className="w-6 h-6 text-amber-600" />,
     
@@ -94,6 +95,52 @@ export default function AdminDashboard() {
   const {user}=useAuth()
   const navigate = useNavigate();
 
+  // Estado local para las tarjetas del dashboard
+  const [stats, setStats] = useState<AdminStats[]>(adminStats);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // Pedimos en paralelo:
+        // - Perfiles pendientes
+        // - Todos los registros
+        const [pendientes, registros] = await Promise.all([
+          getPerfilesPendientes(),
+          getPerfilesRegistro(),
+        ]);
+
+        setStats((prev) =>
+          prev.map((stat) => {
+            // Actualizar card "Pendientes de Revisión"
+            if (stat.label === "Pendientes de Revisión") {
+              return {
+                ...stat,
+                value: pendientes.length.toString(),
+                subtext: `${pendientes.length} perfiles pendientes`,
+              };
+            }
+
+            // Actualizar card "Productores Registrados"
+            if (stat.label === "Productores Registrados") {
+              return {
+                ...stat,
+                value: registros.length.toString(),
+                subtext: `${registros.length} productores registrados`,
+              };
+            }
+
+            return stat;
+          })
+        );
+      } catch (error) {
+        console.error("Error cargando estadísticas del dashboard:", error);
+        // Si falla, se quedan los valores estáticos por defecto
+      }
+    };
+
+    loadStats();
+  }, []);
+
   return (
     <div>
         {/* Title */}
@@ -117,7 +164,7 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {adminStats.map((stat, i) => {
+          {stats.map((stat, i) => {
         const isPendientes = stat.label === "Pendientes de Revisión";
         const isProductores = stat.label === "Productores Registrados";
 
@@ -126,7 +173,7 @@ export default function AdminDashboard() {
     return (
       <button
         key={i}
-        onClick={() => navigate("/admin/productores")}
+        onClick={() => navigate("/admin/registrados-productores")}
         className={`
           p-4 rounded-xl border shadow-sm ${stat.color}
           text-left w-full cursor-pointer hover:shadow-md transition
