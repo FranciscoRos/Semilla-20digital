@@ -29,7 +29,7 @@ const InitialDatosUsuario = () => {
     if (isError) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-                <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md">
+                <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md space-y-3">
                     <div className="bg-red-100 p-3 rounded-full w-fit mx-auto mb-4 text-red-600">
                         <AlertCircle size={32} />
                     </div>

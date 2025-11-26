@@ -141,7 +141,7 @@ export const aprobarPerfilRegistro = async (id: string): Promise<void> => {
   try {
     await authHeader(pendientesApi);
     await pendientesApi.put(`/${id}`, {
-      Estado: "Aprobado",
+      Estado: "Verificado",
     });
   } catch (error) {
     console.error("Error al aprobar perfil de registro:", error);

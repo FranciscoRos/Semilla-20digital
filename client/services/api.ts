@@ -102,7 +102,7 @@ export interface Curso {
   enlace_plataforma?: string;
   inscritos: number;
   calificacion: number;*/
-  id: number;
+  id: string;
   titulo: string;
   tema: string;
   descripcion: string;
@@ -157,6 +157,30 @@ export interface IParcela {
   productor?: string;
   fechaRegistro?: string;
 }
+
+export interface ParcelaBack {
+  id:                 string;
+  Usuario:            {
+      idUsuario: string;
+  };
+  ciudad:             string;
+  municipio:          string;
+  localidad:          string;
+  direccionAdicional: string;
+  coordenadas:        {
+    lat: number;
+    lng: number;
+  }[];
+  area:               number;
+  nombre:             string;
+  usos:               {
+    area:                   string;
+  actividadesEspecificas: string[];
+  }[];
+  fechaRegistro:      string;
+}
+
+
 
 export interface IUbicacionEspecial {
   id: string;
@@ -257,8 +281,8 @@ export interface Apoyo {
   redes_sociales:             string;
   latitud_institucion:        number;
   longitud_institucion:       number;
-  fechaInicio:                Date;
-  fechaFin:                   Date;
+  fechaInicio:                string;
+  fechaFin:                   string;
   numero_beneficiados_actual: number;
   Requerimientos:             any[];
   Beneficiados:               Beneficiado[];
@@ -319,7 +343,6 @@ export interface Uso {
 // Demo data
 export const demoApoyos: Apoyo[] = [
   {
-    id: 1,
     nombre: "Apoyo para Siembra de Maíz",
     descripcion: "Subsidio para compra de semillas",
     monto: 15000,
@@ -424,6 +447,26 @@ export const demoForoPublicaciones: PublicacionForo[] = [
     tema_id: 1,
   },
 ];
+
+
+///NOTIFICACIONES
+export interface Notification {
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  color: string;
+  FechaCreacion:string
+}
+
+////////////Para ti
+export interface ParaTIAnswer {
+  Cursos: Partial<Curso>[];
+  Apoyos: Partial<Apoyo>[];
+}
+
+
+
 
 // TODO: Descomentar cuando Laravel esté listo
 // export const getPublicacionesForo = async (temaId: number) => {

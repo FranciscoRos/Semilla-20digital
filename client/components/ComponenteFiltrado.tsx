@@ -105,7 +105,7 @@ export default function ComponenteFiltrados({
           );
           return {
             ...r,
-            id: Math.random().toString(), // ID UI
+            id: Math.random().toString(), 
             questionLabel: originalQ
               ? originalQ.question
               : `Campo: ${r.fieldName}`,
@@ -121,7 +121,6 @@ export default function ComponenteFiltrados({
     nuevaParcelaRule: any,
     nuevasPreguntaRules: any[],
   ) => {
-    // 1. Construir objeto parcela estructurado
     const parcelaReqObject = {
       type: "regla_parcela",
       config: {
@@ -137,12 +136,11 @@ export default function ComponenteFiltrados({
       },
     };
 
-    // 2. Limpiar reglas de preguntas (quitar datos visuales)
     const preguntasLimpias = nuevasPreguntaRules.map(
       ({ id, questionLabel, inputType, ...rest }) => rest,
     );
 
-    // 3. Enviar ARRAY al padre
+    // Enviar ARRAY al padre
     changeRequerimientos([parcelaReqObject, ...preguntasLimpias]);
   };
 

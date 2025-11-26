@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   ChevronLeft, Plus, Edit2, Trash2, Save, X, 
   BookOpen, MapPin, Globe, Calendar, Layers, 
-  Box, Search, CalendarRange, ArrowRight 
+  Box, Search, CalendarRange, ArrowRight, 
+  RefreshCcw
 } from "lucide-react";
 import {
   Curso,
@@ -16,6 +17,16 @@ import ComponenteFiltrados from "@/components/ComponenteFiltrado";
 import LocationPicker from "@/components/selectMapa";
 import LoadingSDloading from "@/components/loadingSDloading";
 import PaginatorPages from "@/components/paginatorPages";
+import { Select } from "@radix-ui/react-select";
+
+const selectionsTema=[
+  {value:'general',label: "General"},
+  {value:'agricultura',label: "Agricultura"},
+  {value:'pesca',label: "Pesca/Acuacultura"},
+  {value:'ganaderia',label: "Ganadería"},
+  {value:'apicultura',label: "Apicultura"},
+]
+
 
 export default function GestionCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
@@ -38,21 +49,17 @@ export default function GestionCursos() {
     Titulo: "",
     Descripcion: "",
     Detalles: "",
-    Tema: "",
+    Tema: "general",
     Modalidad: "online",
-    FechaCurso: [], // Inicializado como array vacío
-    DireccionUbicacion: "",
-    Latitud: "",
-    Longitud: "",
+    FechaCurso: [],
+    DireccionUbicacion: "Av Insurgentes 330, 17 de Octubre, 77013 Chetumal, Q.R.",
+    Latitud: 18.5205762,
+    Longitud: -88.3015629,
     Url: "",
-    Requerimientos: [],
-    Creado: "",
-    Actualizado: "",
   });
 
-  useEffect(() => {
-    const loadCursos = async () => {
-      setLoadingCursos(true);
+  const loadCursos = async () => {
+      setLoadingCursos(cursos.length!==0?false:true);
       try {
         const data = await getCursos();
         setCursos(data);
@@ -62,6 +69,8 @@ export default function GestionCursos() {
         setLoadingCursos(false);
       }
     };
+
+  useEffect(() => {
     loadCursos();
   }, []);
 
@@ -129,12 +138,9 @@ export default function GestionCursos() {
         Modalidad: curso.Modalidad,
         FechaCurso: fechas.length > 0 ? fechas : [""], // Asegurar al menos un string vacío
         DireccionUbicacion: curso.DireccionUbicacion || "",
-        Latitud: curso.Latitud || "",
-        Longitud: curso.Longitud || "",
+        Latitud: curso.Latitud || 18.5205762,
+        Longitud: curso.Longitud || -88.3015629,
         Url: curso.Url || "",
-        Requerimientos: curso.Requerimientos || [],
-        Creado: curso.Creado,
-        Actualizado: curso.Actualizado
     });
     setShowForm(true);
   };
@@ -148,8 +154,7 @@ export default function GestionCursos() {
     const payload: CursoPayload = {
       ...formData,
       FechaCurso: fechasLimpias,
-      Creado: formData.Creado || new Date().toISOString(),
-      Actualizado: new Date().toISOString(),
+
     };
 
     try {
@@ -162,6 +167,7 @@ export default function GestionCursos() {
           prev.map((c) => (c.id === editingId ? actualizado : c))
         );
       }
+      loadCursos()
       resetForm();
     } catch (error: any) {
       console.error("Error guardando curso", error);
@@ -180,22 +186,18 @@ export default function GestionCursos() {
       Modalidad: "online",
       FechaCurso: [],
       DireccionUbicacion: "",
-      Latitud: "",
-      Longitud: "",
+      Latitud: 18.5205762,
+      Longitud: -88.3015629,
       Url: "",
-      Requerimientos: [],
-      Creado: "",
-      Actualizado: "",
     });
   };
 
-  const nuevosRequerimientos = (req: any) => {
-    setFormData((prev) => ({ ...prev, Requerimientos: req }));
-  };
-
   const handleLocationSelect = (lat: string, lng: string) => {
-    setFormData(prev => ({ ...prev, Latitud: lat, Longitud: lng }));
-  };
+      setFormData(prev => ({ 
+              ...prev, 
+              Latitud: parseFloat(lat), 
+              Longitud: parseFloat(lng) 
+    }));  };
 
   // --- FILTROS ---
   const cursosFilter = useMemo(() => {
@@ -282,16 +284,14 @@ export default function GestionCursos() {
                 />
               </div>
 
-              <div>
+              <div className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tema / Categoría</label>
-                <input
-                  type="text"
-                  value={formData.Tema}
-                  onChange={(e) => setFormData({ ...formData, Tema: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  placeholder="Ej. Agricultura Sustentable"
-                />
+                <select value={formData.Tema} onChange={(e)=>setFormData({...formData,Tema:e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                  {selectionsTema.map(tems=>(
+                    <option key={tems.value} value={tems.value}>{tems.label}</option>
+                  ))}
+                </select>
               </div>
 
               {/* --- SECCIÓN DE FECHAS (CON TOGGLE) --- */}
@@ -370,11 +370,11 @@ export default function GestionCursos() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Detalles Completos</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Detalles</label>
                 <textarea
                   value={formData.Detalles}
                   onChange={(e) => setFormData({ ...formData, Detalles: e.target.value })}
-                  rows={4}
+                  rows={3}
                   required
                   className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
                 />
@@ -453,7 +453,6 @@ export default function GestionCursos() {
                                         />
                                     </div>
                                 </div>
-                                
                                 <div>
                                     <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Ubicación en Mapa</label>
                                     <LocationPicker 
@@ -466,23 +465,7 @@ export default function GestionCursos() {
                         )}
                     </div>
                 </div>
-
-                {/* 1. REGLAS DE FILTRADO */}
-                <div className="border-b border-slate-200 pb-6">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Box className="text-green-600" />
-                        <h3 className="font-bold text-lg text-gray-800">Reglas de Filtrado</h3>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-4">Define quién puede ver este curso en su app.</p>
-                    <ComponenteFiltrados
-                        requerimientos={formData.Requerimientos}
-                        changeRequerimientos={nuevosRequerimientos}
-                    />
-                </div>
-            </div>
-          </div>
-
-          {/* Footer Formulario */}
+                {/* Footer Formulario */}
           <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
             <button
               type="button"
@@ -500,6 +483,8 @@ export default function GestionCursos() {
               {editingId ? "Guardar Cambios" : "Crear Curso"}
             </button>
           </div>
+            </div>
+          </div>
         </form>
       )}
       </div>
@@ -516,6 +501,14 @@ export default function GestionCursos() {
                 onChange={(e) => setSearchTerm(e.target.value)}
             />
         </div>
+        <button 
+            onClick={loadCursos}
+            className="w-full md:w-auto p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-600 transition duration-150 flex items-center justify-center flex-shrink-0 hover:scale-105"
+            title="Recargar Cursos"
+        >
+          <RefreshCcw className="w-5 h-5"/>
+        </button>
+        
         <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
             <input 
@@ -578,11 +571,6 @@ export default function GestionCursos() {
                                     : curso.FechaCurso[0])
                                 : curso.FechaCurso}
                         </div>
-                        {curso.Requerimientos && curso.Requerimientos.length > 0 && (
-                            <div className="pt-1 border-t border-slate-200 mt-1 text-orange-600 font-medium">
-                                {curso.Requerimientos.length} Reglas de acceso
-                            </div>
-                        )}
                     </div>
 
                     <div className="flex gap-3 mt-auto">

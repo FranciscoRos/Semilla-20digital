@@ -91,6 +91,7 @@ function getMoonPhase(date) {
   e = 30.6 * month;
   jd = c + e + day - 694039.09;
   jd /= 29.5305882;
+  // @ts-ignore
   b = parseInt(jd);
   jd -= b;
   b = Math.round(jd * 8);

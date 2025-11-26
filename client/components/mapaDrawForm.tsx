@@ -84,7 +84,7 @@ const USOS_PARCELA = {
 // Componente principal: Registro de Parcelas
 export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) {
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
-  const [vistaActual, setVistaActual] = useState("registro"); // 'registro' o 'lista'
+  const [vistaActual, setVistaActual] = useState("registro"); 
   useEffect(()=>{
     if(initialParcelas && initialParcelas.length>0){
       setParcelas(initialParcelas);

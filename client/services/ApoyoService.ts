@@ -17,8 +17,7 @@ export interface Requisito {
 
 // Debe coincidir con ApoyoResource.php
 export interface Apoyo {
-  id: string;
-
+  id:string;
   nombre_programa: string;
   descripcion: string;
   objetivo: string;
@@ -40,7 +39,7 @@ export interface Apoyo {
   fechaFin: string;    // Y-m-d
 
   numero_beneficiados_actual: number;
-
+  duracion:number
   Requerimientos?: Requisito[];
   Beneficiados?: any[];
 }

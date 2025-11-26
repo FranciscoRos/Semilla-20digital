@@ -11,6 +11,7 @@ import {
   X,
   User,
   MapPin,
+  RefreshCcw,
 } from "lucide-react";
 import {
   Apoyo,
@@ -46,14 +47,16 @@ export default function GestionApoyos() {
 
   // --- NUEVOS ESTADOS PARA FILTROS Y PAGINACIÓN ---
   const [searchTerm, setSearchTerm] = useState("");
-  const [dateFilter, setDateFilter] = useState("");  
+  const [dateFilter, setDateFilter] = useState("");
+  
   // Referencia para el scroll automático
   const formTopRef = useRef<HTMLDivElement>(null);
-  const [paginatedData,setPaginateData]=useState(apoyos)
+  const [paginatedData, setPaginateData] = useState(apoyos);
   const [formData, setFormData] = useState({
     nombre_programa: "",
     descripcion: "",
     objetivo: "",
+    duracion: 0,
     tipo_objetivo: "",
     fechaInicio: "",
     fechaFin: "",
@@ -63,10 +66,11 @@ export default function GestionApoyos() {
   // --- ESTADO PARA MODAL DE INSCRITOS ---
   const [showInscritos, setShowInscritos] = useState(false);
   const [apoyoSeleccionado, setApoyoSeleccionado] = useState<Apoyo | null>(
-    null
+    null,
   );
   const [inscritos, setInscritos] = useState<any[]>([]);
-
+  const [ano,setAno]=useState(0)
+  const [mes,setMes]=useState(0)
   useEffect(() => {
     loadApoyos();
   }, []);
@@ -113,6 +117,7 @@ export default function GestionApoyos() {
     e.preventDefault();
     const payload: ApoyoPayload = {
       ...formData,
+      duracion:(ano*12)+mes,
       ...CONSTANTES_INSTITUCION,
       Beneficiados: [],
     };
@@ -133,6 +138,7 @@ export default function GestionApoyos() {
     setFormData({
       nombre_programa: "",
       descripcion: "",
+      duracion: 0,
       objetivo: "",
       tipo_objetivo: "",
       fechaInicio: "",
@@ -148,6 +154,7 @@ export default function GestionApoyos() {
       nombre_programa: apoyo.nombre_programa,
       descripcion: apoyo.descripcion,
       objetivo: apoyo.objetivo,
+      duracion: apoyo.duracion,
       tipo_objetivo: apoyo.tipo_objetivo,
       fechaInicio: apoyo.fechaInicio,
       fechaFin: apoyo.fechaFin,
@@ -155,6 +162,12 @@ export default function GestionApoyos() {
     });
     setShowForm(true);
   };
+
+
+  useEffect(()=>{
+    setAno(Math.floor(formData.duracion/12))
+    setMes(mes%12)
+  },[formData.duracion])
 
   // --- HANDLERS INSCRITOS / MODAL ---
 
@@ -210,7 +223,7 @@ export default function GestionApoyos() {
       </div>
 
       {/* --- FORMULARIO (MODAL/EXPANDIBLE) --- */}
-      <div ref={formTopRef}> 
+      <div ref={formTopRef}>
         {showForm && (
           <form
             onSubmit={handleSubmit}
@@ -270,39 +283,75 @@ export default function GestionApoyos() {
                     }
                   />
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600">
+                    Objetivo
+                  </label>
+                  <input
+                    required
+                    className="w-full border border-gray-300 rounded-lg p-2.5"
+                    value={formData.objetivo}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        objetivo: e.target.value,
+                      })
+                    }
+                  />
+                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-600">
-                      Tipo (Económico...)
-                    </label>
-                    <input
-                      required
-                      className="w-full border border-gray-300 rounded-lg p-2.5"
-                      value={formData.tipo_objetivo}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          tipo_objetivo: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-semibold text-gray-600">
-                      Objetivo Corto
-                    </label>
-                    <input
-                      required
-                      className="w-full border border-gray-300 rounded-lg p-2.5"
-                      value={formData.objetivo}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          objetivo: e.target.value,
-                        })
-                      }
-                    />
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600">
+                    Tipo (Económico...)
+                  </label>
+                  <input
+                    required
+                    className="w-full border border-gray-300 rounded-lg p-2.5"
+                    value={formData.tipo_objetivo}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        tipo_objetivo: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-600">
+                    Duración del Programa
+                  </label>
+
+                  <div className="flex gap-2">
+                    {/* INPUT AÑOS */}
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 pr-12 focus:ring-2 focus:ring-green-500 outline-none"
+                        value={ano}
+                        onChange={(e) =>setAno(parseInt(e.target.value)) }
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium pointer-events-none">
+                        Años
+                      </span>
+                    </div>
+
+                    {/* INPUT MESES */}
+                    <div className="relative flex-1">
+                      <input
+                        type="number"
+                        min="0"
+                        max="11"
+                        placeholder="0"
+                        className="w-full border border-gray-300 rounded-lg p-2.5 pr-14 focus:ring-2 focus:ring-green-500 outline-none"
+                        value={mes}
+                        onChange={(e) =>setMes(parseInt(e.target.value)) }
+                      />
+                      <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium pointer-events-none">
+                        Meses
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -392,6 +441,13 @@ export default function GestionApoyos() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <button 
+              onClick={loadApoyos}
+              className="w-full md:w-auto p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-600 transition duration-150 flex items-center justify-center flex-shrink-0 hover:scale-105"
+              title="Recargar Cursos"
+          >
+            <RefreshCcw className="w-5 h-5"/>
+          </button>
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -425,7 +481,7 @@ export default function GestionApoyos() {
         </div>
       ) : (
         <>
-            <div className="grid grid-cols-1 gap-4 mb-6">
+          <div className="grid grid-cols-1 gap-4 mb-6">
             {paginatedData.map((a) => (
               <div
                 key={a.id}
@@ -463,33 +519,37 @@ export default function GestionApoyos() {
                     <span>Fin: {a.fechaFin}</span>
                   </div>
                 </div>
-                      <div className="flex gap-2 w-full md:w-auto">
-                        <button
-                          onClick={() => handleVerInscritos(a)}
-                          className="flex-1 md:flex-none text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-xs font-medium transition"
-                        >
-                          </button>
-                            <button onClick={() => handleEdit(a)} className="flex-1 md:flex-none text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-medium transition">
-                                Editar
-                            </button>
-                            <button onClick={() => deleteApoyo(a.id).then(loadApoyos)} className="flex-1 md:flex-none text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-medium transition">
-                                Eliminar
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-              <PaginatorPages 
-              dataxFiltrar={filteredApoyos}
-              changeDatos={(dt)=>setPaginateData(dt)}
-              />
+                <div className="flex gap-2 w-full md:w-auto">
+                  <button
+                    onClick={() => handleVerInscritos(a)}
+                    className="flex-1 md:flex-none text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  ></button>
+                  <button
+                    onClick={() => handleEdit(a)}
+                    className="flex-1 md:flex-none text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => deleteApoyo(a.id).then(loadApoyos)}
+                    className="flex-1 md:flex-none text-red-700 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-medium transition"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <PaginatorPages
+            dataxFiltrar={filteredApoyos}
+            changeDatos={(dt) => setPaginateData(dt)}
+          />
         </>
       )}
-  
+
       {showInscritos && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative">
-        
             <button
               onClick={handleCerrarInscritos}
               className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-gray-100 text-gray-500"
@@ -584,9 +644,7 @@ export default function GestionApoyos() {
                               Detalles de la cita
                             </p>
                             <p className="text-[11px] text-green-900">
-                              <span className="font-semibold">
-                                Fecha:
-                              </span>{" "}
+                              <span className="font-semibold">Fecha:</span>{" "}
                               {cita.FechaCita}
                             </p>
                             <p className="text-[11px] text-green-900">
@@ -603,9 +661,7 @@ export default function GestionApoyos() {
                             )}
                             {cita.Administrador && (
                               <p className="text-[11px] text-green-900">
-                                <span className="font-semibold">
-                                  Atenderá:
-                                </span>{" "}
+                                <span className="font-semibold">Atenderá:</span>{" "}
                                 {cita.Administrador}
                               </p>
                             )}

@@ -18,12 +18,9 @@ export interface Curso {
   Modalidad: "online" | "presencial";
   FechaCurso: string[];
   DireccionUbicacion: string;
-  Latitud: string;
-  Longitud: string;
+  Latitud: number;
+  Longitud: number;
   Url: string;
-  Requerimientos:[]
-  Creado: string;
-  Actualizado: string;
 }
 
 // Para crear/editar no mandamos el _id
