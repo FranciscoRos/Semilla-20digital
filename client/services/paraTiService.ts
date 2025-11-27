@@ -16,7 +16,6 @@ const paraTiApi=axios.create({
 
 export const getParaTi=async(usos):Promise<Notification[]>=>{
     try {
-        console.log(usos)
         await authHeader(paraTiApi)
         const res=await paraTiApi.post('',usos)
         return resourceNotificaciones(res.data)

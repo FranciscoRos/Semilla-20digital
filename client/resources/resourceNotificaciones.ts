@@ -4,7 +4,6 @@ import { Notification, ParaTIAnswer } from "@/services/api";
 const time=(fecha:string)=>{
     const timeFactor=calcularTiempoTranscurrido(fecha)
     if(typeof timeFactor==='string')return timeFactor
-    console.log(timeFactor)
     return timeFactor.dias?`${timeFactor.dias} dias`:timeFactor.horas?`${timeFactor.horas} horas`:`${timeFactor.minutos} minutos`
 }
 
@@ -22,7 +21,7 @@ export const resourceNotificaciones=(data):Notification[]=>{
         title:cu.Titulo,
         description:cu.Descripcion,
         time:cu.Actualizado?time(cu.Actualizado):time(cu.creado),
-        color:'blue',
+        color:'rose',
         FechaCreacion:cu.Actualizado?cu.Actualizado:cu.creado
     }))].sort((a, b) => {
   return new Date(b.FechaCreacion).getTime() - new Date(a.FechaCreacion).getTime();

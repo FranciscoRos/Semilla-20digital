@@ -4,12 +4,14 @@ import {
   MapPin, Calendar, ExternalLink, Search, Filter, X, 
   BookOpen, GraduationCap, Clock, Building2, AlertTriangle, AlertCircle
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 
 // Hooks
 import { useAuth } from "@/providers/authProvider";
 import { useCursos } from "@/hooks/useCursos";
+import { useInscripciones } from "@/hooks/useInscripciones";
+import LoadingSDloading from "@/components/loadingSDloading";
 
 // --- UTILS ---
 const formatDate = (fechaArray) => {
@@ -85,8 +87,8 @@ const CursoModal = ({ isOpen, onClose, curso, user, onSubmit }) => {
   const isExternal = !!curso.Url;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e)=>e.stopPropagation()}>
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-rose-50/50">
@@ -179,8 +181,18 @@ const CursoModal = ({ isOpen, onClose, curso, user, onSubmit }) => {
           >
             Cerrar
           </button>
-          
-          {isExternal ? (
+           <button
+              onClick={() =>onSubmit(curso.id)}
+              disabled={!eligibilityAnalysis.eligible}
+              className={`px-6 py-2.5 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 transition-all
+                ${eligibilityAnalysis.eligible 
+                  ? 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-500/30 hover:-translate-y-0.5' 
+                  : 'bg-gray-300 cursor-not-allowed shadow-none'
+                }`}
+            >
+              {isExternal?"Guardar en Historial":"Inscribirme Ahora"} <ArrowRight className="w-4 h-4" />
+            </button>
+          {isExternal && (
              <a 
                href={curso.Url} 
                target="_blank" 
@@ -189,19 +201,7 @@ const CursoModal = ({ isOpen, onClose, curso, user, onSubmit }) => {
              >
                Ir al sitio web <ExternalLink className="w-4 h-4" />
              </a>
-          ) : (
-            <button
-              onClick={() => onSubmit(curso.id)}
-              disabled={!eligibilityAnalysis.eligible}
-              className={`px-6 py-2.5 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 transition-all
-                ${eligibilityAnalysis.eligible 
-                  ? 'bg-rose-600 hover:bg-rose-700 hover:shadow-rose-500/30 hover:-translate-y-0.5' 
-                  : 'bg-gray-300 cursor-not-allowed shadow-none'
-                }`}
-            >
-              Inscribirme Ahora <ArrowRight className="w-4 h-4" />
-            </button>
-          )}
+          )} 
         </div>
       </div>
     </div>
@@ -211,8 +211,10 @@ const CursoModal = ({ isOpen, onClose, curso, user, onSubmit }) => {
 // --- COMPONENTE PRINCIPAL ---
 
 export default function SolicitarCursos() {
+  const {handleInscripcionCurso,loading}=useInscripciones(()=>handleCloseModal())
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location=useLocation()
   const { dataCursos, loadingCursos } = useCursos();
 
   // Estados del Modal
@@ -222,18 +224,25 @@ export default function SolicitarCursos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
 
+  useEffect(() => {
+    if (dataCursos && location.state?.cursoId) {
+      const idRecibido = location.state.cursoId;
+      const cursoEncontrado = dataCursos.find(dc => dc.id === idRecibido);
+      if (cursoEncontrado) {
+        handleOpenModal(cursoEncontrado);
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location, dataCursos, navigate]);
+
   const handleOpenModal = (curso) => {
     setSelectedCurso(curso);
     setModalOpen(true);
   };
-
-  const handleRegister = (cursoId) => {
-    console.log(`Inscribiendo usuario ${user.uid} al curso ${cursoId}`);
-    // Aquí iría tu lógica de inscripción (backend)
-    setModalOpen(false);
-    // navigate('/mis-cursos'); // Opcional
-  };
-
+  const handleCloseModal=()=>{
+    setModalOpen(false)
+    setSelectedCurso(null)
+  }
   // --- MOTOR DE REGLAS (Lógica de filtrado para la lista) ---
   const checkListEligibility = (usuarioUsos, tema) => {
     if (!tema || tema === "General") return true;
@@ -294,14 +303,16 @@ export default function SolicitarCursos() {
 
   return (
     <div className="min-h-screen bg-rose-50/30 pb-20 font-sans">
-      
+      {loading &&
+      <LoadingSDloading></LoadingSDloading>
+      } 
       {/* MODAL INTEGRADO */}
       <CursoModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         curso={selectedCurso}
         user={user}
-        onSubmit={handleRegister}
+        onSubmit={handleInscripcionCurso}
       />
 
       {/* Header */}

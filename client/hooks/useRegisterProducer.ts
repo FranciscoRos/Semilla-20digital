@@ -1,5 +1,7 @@
 import { getRegistro } from "@/services/registroService";
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react";
+import { toast } from "./use-toast";
 
 
 
@@ -13,10 +15,21 @@ export const useProducerRegister=(user)=>{
         queryFn: () => getRegistro(user?.idRegistro),
         enabled: !!user?.idRegistro,
         refetchOnWindowFocus: false,
-        initialData:()=>{
-            return queryClient.getQueryData(['registroProducer', user?.idRegistro])
-        }
+        initialData: queryClient.getQueryData(['registroProducer', user?.idRegistro])
+
     });
+
+    useEffect(()=>{
+        if(isErrorRegister){
+            toast({
+            title:"Fallo al Cargar las Preguntas. " +errorRegister.message,
+            description: "Intentelo de nuevo o si el problema persiste trata de contactar con un administrador.",
+            variant: "default", 
+            className: "bg-red-50 border-red-200 text-red-900" 
+      })
+            console.error('Error al cargar las preguntas:',errorRegister)
+        }
+    },[isErrorRegister,errorRegister])
 
     return{
         dataRegistro,

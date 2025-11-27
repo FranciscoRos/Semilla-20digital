@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import MapaDibujo from "./mapaDraw";
+import { toast } from "@/hooks/use-toast";
 
 interface Parcela {
   id: string | undefined;
@@ -241,12 +242,14 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
     }
 
     handleLimpiar();
-    // Mostrar mensaje de éxito
-    alert(
-      parcelaActual.id
+    toast({
+        title: parcelaActual.id
         ? "Parcela actualizada exitosamente"
         : "Parcela registrada exitosamente",
-    );
+        variant: "default",
+        className: "bg-green-50 border-green-200 text-green-900",
+      })
+
   };
 
   // Limpiar formulario
@@ -667,7 +670,11 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
                         setParcelas((prev) =>
                           prev.filter((p) => p.id !== parcela.id),
                         );
-                        alert("Parcela eliminada exitosamente");
+                        toast({
+                          title: "Parcela Eliminada",
+                          variant: "default",
+                          className: "bg-green-50 border-green-200 text-green-900",
+                        })
                       }
                     }}
                     className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"

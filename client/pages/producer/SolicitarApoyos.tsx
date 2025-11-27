@@ -4,13 +4,15 @@ import {
   MapPin, Calendar, ExternalLink, Building2, Search, Filter, 
   X, Sprout, Leaf, AlertTriangle, Map as MapIcon
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
 
 // Asumiendo rutas de tus hooks
 import { useAuth } from "@/providers/authProvider";
 import { useProducerRegister } from "@/hooks/useRegisterProducer";
 import { useApoyos } from "@/hooks/useApoyos";
+import { useInscripciones } from "@/hooks/useInscripciones";
+import LoadingSDloading from "@/components/loadingSDloading";
 
 // --- UTILS & HELPERS ---
 
@@ -335,7 +337,9 @@ const ApoyoModal = ({ isOpen, onClose, apoyo, usuario, onSubmit }) => {
             Cancelar
           </button>
           <button
-            onClick={() => onSubmit(selectedParcelId)}
+            onClick={() => onSubmit({id:apoyo.id,body:{
+            parcelaId:selectedParcelId
+            }})}
             disabled={!canSubmit}
             className={`px-6 py-2.5 rounded-xl font-bold text-white shadow-lg flex items-center gap-2 transition-all
               ${canSubmit 
@@ -352,7 +356,9 @@ const ApoyoModal = ({ isOpen, onClose, apoyo, usuario, onSubmit }) => {
 };
 
 export default function SolicitarApoyos() {
+  const {handleInscripcionApoyo,loading}=useInscripciones(()=>handleCloseModal())
   const { user } = useAuth();
+  const location=useLocation()
   const navigate = useNavigate();
   
   // Estado para el Modal
@@ -364,6 +370,16 @@ export default function SolicitarApoyos() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
+  useEffect(() => {
+      if (dataApoyos && location.state?.apoyoId) {
+        const idRecibido = location.state.apoyoId;
+        const apoyoEncontrado = dataApoyos.find(dc => dc.id === idRecibido);
+        if (apoyoEncontrado) {
+          handleOpenDetails(apoyoEncontrado);
+          navigate(location.pathname, { replace: true, state: {} });
+        }
+      }
+    }, [location, dataApoyos, navigate]);
 
   // Handler para abrir modal
   const handleOpenDetails = (apoyo) => {
@@ -371,17 +387,10 @@ export default function SolicitarApoyos() {
     setModalOpen(true);
   };
 
-  // Handler para enviar solicitud (Aquí conectarías con tu backend)
-  const handleSubmitSolicitud = (idParcela) => {
-    console.log("Enviando solicitud...", {
-      idApoyo: selectedApoyo.id,
-      idParcela: idParcela,
-      idUsuario: user.uid
-    });
-    // Simulación de éxito
-    setModalOpen(false);
-    navigate("/mis-solicitudes"); // O donde quieras redirigir
-  };
+  const handleCloseModal=()=>{
+    setModalOpen(false)
+    setSelectedApoyo(null)
+  }
 
   const { apoyosParaTi, todosLosApoyos } = useMemo(() => {
     if (!dataApoyos) return { apoyosParaTi: [], todosLosApoyos: [] };
@@ -433,14 +442,16 @@ export default function SolicitarApoyos() {
 
   return (
     <div className="min-h-screen bg-green-50/30 pb-20 font-sans">
-      
+      {loading &&
+        <LoadingSDloading></LoadingSDloading>
+      } 
       {/* MODAL */}
       <ApoyoModal 
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         apoyo={selectedApoyo}
         usuario={dataRegistro}
-        onSubmit={handleSubmitSolicitud}
+        onSubmit={handleInscripcionApoyo}
       />
 
       {/* Header */}
