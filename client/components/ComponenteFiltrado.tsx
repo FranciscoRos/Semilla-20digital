@@ -147,7 +147,6 @@ export default function ComponenteFiltrados({
   // --- HANDLERS PARCELA ---
 
   const toggleArea = (areaKey: string) => {
-    // Calculamos el nuevo estado pero NO lo seteamos directamente para enviarlo al helper
     let nuevaParcela = { ...parcelaRule };
     const exists = nuevaParcela.areas.includes(areaKey);
 

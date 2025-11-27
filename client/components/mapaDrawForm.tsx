@@ -102,7 +102,6 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
         else if (typeof process !== 'undefined' && process.env && process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
             envKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
         }
-
     } catch (e) { console.log("No env key detected"); }
 
     return envKey;
@@ -167,6 +166,9 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
     if (parcelaActual.coordenadas.length < 3) {
       newErrors["coordenadas"] = "Debes dibujar el polígono de la parcela";
     }
+    if (!parcelaActual.direccionAdicional.trim()) {
+      newErrors["direccionAdicional"] = "Debe proporcionar una direccion adicional";
+    }
     if (parcelaActual.usos.length === 0) {
       newErrors["usos"] = "Selecciona minimo un área de uso";
     } else {
@@ -194,7 +196,7 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
         area: parcelaActual.area,
         nombre: parcelaActual.nombre
           ? parcelaActual.nombre
-          : `Parcela ${parcelas.length + 1}`,
+          : `Parcela ${parcelas.length + 1}-${parcelaActual.usos[0].area}-${parcelaActual.localidad}`,
         usos: parcelaActual.usos.map((uso) => ({
           area: uso.area,
           actividadesEspecificas: uso.actividadesEspecificas,
@@ -222,7 +224,7 @@ export default function RegistroParcelas({onParcelasChange,initialParcelas=[]}) 
                 area: parcelaActual.area,
                 nombre: parcelaActual.nombre
                   ? parcelaActual.nombre
-                  : `Parcela ${parcelas.length + 1}`,
+                : `Parcela ${parcelas.length + 1}-${parcelaActual.usos[0].area}-${parcelaActual.localidad}`,
                 usos: parcelaActual.usos.map((uso) => ({
                   area: uso.area,
                   actividadesEspecificas: uso.actividadesEspecificas,

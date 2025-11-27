@@ -25,7 +25,6 @@ export function useAuthUser() {
     onSuccess: async(data) => {
         toast({
                 title: "Inicio de Sesion Exitoso!",
-                // description: data.message || "Tu cuenta ha sido creada correctamente.",
                 variant: "default", 
                 className: "bg-green-50 border-green-200 text-green-900" 
             });

@@ -222,7 +222,7 @@ export const AppRoutes = () => {
           path="apoyos"
           element={
             <ProtectedRoute role="Usuario">
-              <Apoyos />
+              <SolicitarApoyos />
             </ProtectedRoute>
           }
         />
@@ -238,7 +238,7 @@ export const AppRoutes = () => {
           path="cursos"
           element={
             <ProtectedRoute role="Usuario">
-              <Cursos />
+              <CursosCapacitacion />
             </ProtectedRoute>
           }
         />

@@ -72,8 +72,8 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
     if (val.maxLength && value && value.length > val.maxLength) return `Máximo ${val.maxLength} caracteres`;
     // @ts-ignore
     if (val.pattern && value && !val.pattern.test(value)) return val.patternMessage || "Formato inválido";
-    if (val.min !== undefined && value !== undefined && value !== "" && parseFloat(value) < val.min) return val.minMessage || `El valor mínimo es ${val.min}`;
-    if (val.max !== undefined && value !== undefined && value !== "" && parseFloat(value) > val.max) return val.maxMessage || `El valor máximo es ${val.max}`;
+    if (val.min != null && value != null && value !== "" && parseFloat(value) < val.min)return val.minMessage || `El valor mínimo es ${val.min}`;
+    if (val.max != null && value != null && value !== "" && parseFloat(value) > val.max)return val.maxMessage || `El valor máximo es ${val.max}`;
     if (val.minSelected && Array.isArray(value) && value.length < val.minSelected) return val.minSelectedMessage || `Selecciona al menos ${val.minSelected}`;
     return null;
   };
@@ -122,7 +122,7 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
     setErroreStatic(staticErrors);
 
     // Validar parcelas
-    if (usuario.Parcela.length === 0) {
+    if (usuario.Parcela.length === 0 || !usuario.Parcela) {
       setErroreStatic(prev => ({ ...prev, Parcela: "Debe registrar al menos una parcela" }));
     }
 
@@ -142,12 +142,9 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
     const isParcelaError = staticErrors['Parcela'] || (usuario.Parcela.length === 0);
 
     if (hasStaticErrors || hasErrors) {
-      // Lógica de cambio de pestaña automática según el error
       if (isParcelaError && !hasErrors && Object.keys(staticErrors).length === 1 && staticErrors.Parcela) {
-        // Si el ÚNICO error es parcelas, ir allá
         setActiveTab('parcelas');
       } else {
-        // Si hay errores de datos, ir a general
         setActiveTab('general');
         // Scroll al error después de un breve timeout para permitir renderizado
         setTimeout(() => {
@@ -169,9 +166,7 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
 
     if (!confirm('¿Esta seguro de la informacion proporcionada?')) return;
     
-    console.log('Datos completos:', JSON.stringify(usuario));
     handleRegister(usuario);
-    // Opcional: Resetear o redirigir
   };
 
   // Renderizador de campos dinámicos (Mismo que original)

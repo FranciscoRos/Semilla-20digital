@@ -44,6 +44,7 @@ export interface Apoyo {
   Beneficiados?: any[];
 }
 
+
 // Payload para crear/editar (sin id)
 export type ApoyoPayload = Omit<Partial<Apoyo>, "id">;
 

@@ -6,27 +6,21 @@ import { AlertCircle, ChevronLeft, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button"; 
 import { useNavigate } from "react-router-dom";
 import LoadingSDloading from "@/components/loadingSDloading";
+import { useProducerRegister } from "@/hooks/useRegisterProducer";
 
 const InitialDatosUsuario = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    const { data, isLoading, isError, error, refetch } = useQuery({
-        queryKey: ['registroProducer', user?.idRegistro], 
-        queryFn: () => getRegistro(user?.idRegistro),
-        enabled: !!user?.idRegistro,
-        refetchOnWindowFocus: false,
-    });
+    const { dataRegistro, loadingRegistro, isErrorRegister, errorRegister, refetchRegister } = useProducerRegister(user)
 
-    // 1. Estado de Carga
-    if (isLoading) {
+    if (loadingRegistro) {
         return (
            <LoadingSDloading/>
         );
     }
 
-    // 2. Estado de Error
-    if (isError) {
+    if (isErrorRegister) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
                 <div className="bg-white p-8 rounded-xl shadow-lg text-center max-w-md space-y-3">
@@ -35,7 +29,7 @@ const InitialDatosUsuario = () => {
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">Error al cargar datos</h3>
                     <p className="text-gray-500 mb-6">
-                        {error?.message || "No pudimos obtener la información del registro. Por favor intenta nuevamente."}
+                        {errorRegister?.message || "No pudimos obtener la información del registro. Por favor intenta nuevamente."}
                     </p>
                     <div className="flex justify-center">
                         <Button
@@ -45,7 +39,7 @@ const InitialDatosUsuario = () => {
                         <ChevronLeft className="w-5 h-5" />
                         Volver
                         </Button>
-                        <Button onClick={() => refetch()} variant="outline" className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-900">
+                        <Button onClick={() => refetchRegister()} variant="outline" className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-900">
                         Intentar de nuevo
                     </Button>
                     </div>
@@ -54,7 +48,7 @@ const InitialDatosUsuario = () => {
         );
     }
 
-    if (!data) {
+    if (!dataRegistro) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
             
@@ -88,8 +82,8 @@ const InitialDatosUsuario = () => {
           Volver
         </button>
         <FormularioUsuarioParcelas 
-            key={data.id || 'producer-form'} 
-            user={data} 
+            key={dataRegistro.id || 'producer-form'} 
+            user={dataRegistro} 
         />
         </>
     );

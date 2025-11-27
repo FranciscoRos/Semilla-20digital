@@ -19,9 +19,9 @@ export const resourceNotificaciones=(data):Notification[]=>{
         FechaCreacion:ap.Actualizado?ap.Actualizado:ap.creado
     })),...data.Cursos.map(cu=>({
         id:cu.id,
-        title:cu.titulo,
-        description:cu.descripcion,
-        time:time(cu.fechacurso[0]),
+        title:cu.Titulo,
+        description:cu.Descripcion,
+        time:cu.Actualizado?time(cu.Actualizado):time(cu.creado),
         color:'blue',
         FechaCreacion:cu.Actualizado?cu.Actualizado:cu.creado
     }))].sort((a, b) => {
