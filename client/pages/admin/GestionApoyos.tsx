@@ -11,7 +11,6 @@ import {
   X,
   User,
   MapPin,
-  RefreshCcw,
 } from "lucide-react";
 import {
   Apoyo,
@@ -23,7 +22,9 @@ import {
 } from "@/services/ApoyoService";
 import ComponenteFiltrados from "@/components/ComponenteFiltrado";
 import LoadingSDloading from "@/components/loadingSDloading";
-import PaginatorPages from "@/components/paginatorPages";
+
+// --- CONSTANTES ---
+const ITEMS_PER_PAGE = 6; // Cantidad de tarjetas por página
 
 const CONSTANTES_INSTITUCION = {
   institucion_encargada:
@@ -39,43 +40,57 @@ const CONSTANTES_INSTITUCION = {
   longitud_institucion: -88.2960919,
 };
 
+// Beneficiados de prueba (solo front, para probar mientras no hay registro)
+
+
 export default function GestionApoyos() {
   const [apoyos, setApoyos] = useState<Apoyo[]>([]);
   const [loadingApoyos, setLoadingApoyos] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // --- NUEVOS ESTADOS PARA FILTROS Y PAGINACIÓN ---
+  // --- FILTROS Y PAGINACIÓN ---
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  
-  // Referencia para el scroll automático
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Scroll al formulario
   const formTopRef = useRef<HTMLDivElement>(null);
-  const [paginatedData, setPaginateData] = useState(apoyos);
+
   const [formData, setFormData] = useState({
     nombre_programa: "",
     descripcion: "",
     objetivo: "",
-    duracion: 0,
     tipo_objetivo: "",
     fechaInicio: "",
     fechaFin: "",
     Requerimientos: [] as any[],
   });
 
-  // --- ESTADO PARA MODAL DE INSCRITOS ---
+  // --- MODAL DE INSCRITOS ---
   const [showInscritos, setShowInscritos] = useState(false);
   const [apoyoSeleccionado, setApoyoSeleccionado] = useState<Apoyo | null>(
-    null,
+    null
   );
   const [inscritos, setInscritos] = useState<any[]>([]);
-  const [ano,setAno]=useState(0)
-  const [mes,setMes]=useState(0)
+
+  // --- MODAL DE CITA POR PERSONA ---
+  const [showCitaModal, setShowCitaModal] = useState(false);
+  const [inscritoSeleccionado, setInscritoSeleccionado] = useState<any | null>(
+    null
+  );
+  const [citaForm, setCitaForm] = useState({
+    FechaCita: "",
+    HoraCita: "",
+    PropositoCita: "",
+    Administrador: "",
+  });
+
   useEffect(() => {
     loadApoyos();
   }, []);
 
-  // Efecto para hacer scroll al formulario cuando se abre
+  // Scroll cuando se abre el form
   useEffect(() => {
     if (showForm && formTopRef.current) {
       formTopRef.current.scrollIntoView({
@@ -85,23 +100,25 @@ export default function GestionApoyos() {
     }
   }, [showForm]);
 
-  const loadApoyos = async () => {
-    setLoadingApoyos(true);
-    try {
-      const data = await getApoyos();
-      setApoyos(data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoadingApoyos(false);
-    }
-  };
+
+
+const loadApoyos = async () => {
+  setLoadingApoyos(true);
+  try {
+    const data = await getApoyos();
+    setApoyos(data);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setLoadingApoyos(false);
+  }
+};
 
   const nuevosRequerimientos = (req: any) => {
     setFormData((prev) => ({ ...prev, Requerimientos: req }));
   };
 
-  // --- LÓGICA DE FILTRADO Y PAGINACIÓN ---
+  // --- FILTRADO Y PAGINACIÓN ---
   const filteredApoyos = useMemo(() => {
     return apoyos.filter((apoyo) => {
       const matchSearch = apoyo.nombre_programa
@@ -112,14 +129,24 @@ export default function GestionApoyos() {
     });
   }, [apoyos, searchTerm, dateFilter]);
 
-  // --- HANDLERS ---
+  const totalPages = Math.ceil(filteredApoyos.length / ITEMS_PER_PAGE);
+  const paginatedApoyos = filteredApoyos.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateFilter]);
+
+  // --- FORM HANDLERS ---
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload: ApoyoPayload = {
       ...formData,
-      duracion:(ano*12)+mes,
       ...CONSTANTES_INSTITUCION,
-      Beneficiados: [],
+      Beneficiados: [], // al crear, vacío
     };
 
     try {
@@ -138,7 +165,6 @@ export default function GestionApoyos() {
     setFormData({
       nombre_programa: "",
       descripcion: "",
-      duracion: 0,
       objetivo: "",
       tipo_objetivo: "",
       fechaInicio: "",
@@ -154,7 +180,6 @@ export default function GestionApoyos() {
       nombre_programa: apoyo.nombre_programa,
       descripcion: apoyo.descripcion,
       objetivo: apoyo.objetivo,
-      duracion: apoyo.duracion,
       tipo_objetivo: apoyo.tipo_objetivo,
       fechaInicio: apoyo.fechaInicio,
       fechaFin: apoyo.fechaFin,
@@ -163,13 +188,7 @@ export default function GestionApoyos() {
     setShowForm(true);
   };
 
-
-  useEffect(()=>{
-    setAno(Math.floor(formData.duracion/12))
-    setMes(mes%12)
-  },[formData.duracion])
-
-  // --- HANDLERS INSCRITOS / MODAL ---
+  // --- INSCRITOS / MODAL INSCRITOS ---
 
   const handleVerInscritos = (apoyo: Apoyo) => {
     setApoyoSeleccionado(apoyo);
@@ -186,6 +205,64 @@ export default function GestionApoyos() {
   const totalInscritos = inscritos.length;
   const totalConCita = inscritos.filter((i: any) => i?.agendacionCita).length;
   const totalSinCita = totalInscritos - totalConCita;
+
+  // --- MODAL DE CITA POR PERSONA ---
+
+  const handleAbrirCita = (persona: any) => {
+    setInscritoSeleccionado(persona);
+
+    const cita = persona.agendacionCita || {};
+    setCitaForm({
+      FechaCita: cita.FechaCita || "",
+      HoraCita: cita.HoraCita || "",
+      PropositoCita: cita.PropositoCita || "",
+      Administrador: cita.Administrador || "",
+    });
+
+    setShowCitaModal(true);
+  };
+
+  const handleCerrarCita = () => {
+    setShowCitaModal(false);
+    setInscritoSeleccionado(null);
+    setCitaForm({
+      FechaCita: "",
+      HoraCita: "",
+      PropositoCita: "",
+      Administrador: "",
+    });
+  };
+
+  const handleGuardarCita = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inscritoSeleccionado || !apoyoSeleccionado) return;
+
+    const nuevaCita = { ...citaForm };
+
+    // 1) Actualizar lista de inscritos del modal
+    const nuevosInscritos = inscritos.map((p) =>
+      p === inscritoSeleccionado ? { ...p, agendacionCita: nuevaCita } : p
+    );
+    setInscritos(nuevosInscritos);
+
+    // 2) Actualizar el apoyo en la lista general
+    const nuevosApoyos = apoyos.map((ap) => {
+      if (ap.id !== apoyoSeleccionado.id) return ap;
+
+      const nuevosBenef = (ap.Beneficiados || []).map((p: any) =>
+        p === inscritoSeleccionado ? { ...p, agendacionCita: nuevaCita } : p
+      );
+
+      const actualizado = { ...ap, Beneficiados: nuevosBenef };
+      if (apoyoSeleccionado.id === ap.id) {
+        setApoyoSeleccionado(actualizado);
+      }
+      return actualizado;
+    });
+
+    setApoyos(nuevosApoyos);
+    setShowCitaModal(false);
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto min-h-screen">
@@ -222,7 +299,7 @@ export default function GestionApoyos() {
         </button>
       </div>
 
-      {/* --- FORMULARIO (MODAL/EXPANDIBLE) --- */}
+      {/* FORMULARIO */}
       <div ref={formTopRef}>
         {showForm && (
           <form
@@ -243,7 +320,7 @@ export default function GestionApoyos() {
             </div>
 
             <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-              {/* IZQUIERDA: DATOS GENERALES */}
+              {/* IZQUIERDA */}
               <div className="lg:col-span-4 space-y-5 border-r pr-6">
                 <h3 className="font-bold text-gray-400 uppercase text-xs tracking-wider">
                   Información Básica
@@ -283,75 +360,39 @@ export default function GestionApoyos() {
                     }
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600">
-                    Objetivo
-                  </label>
-                  <input
-                    required
-                    className="w-full border border-gray-300 rounded-lg p-2.5"
-                    value={formData.objetivo}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        objetivo: e.target.value,
-                      })
-                    }
-                  />
-                </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600">
-                    Tipo (Económico...)
-                  </label>
-                  <input
-                    required
-                    className="w-full border border-gray-300 rounded-lg p-2.5"
-                    value={formData.tipo_objetivo}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        tipo_objetivo: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600">
-                    Duración del Programa
-                  </label>
-
-                  <div className="flex gap-2">
-                    {/* INPUT AÑOS */}
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        className="w-full border border-gray-300 rounded-lg p-2.5 pr-12 focus:ring-2 focus:ring-green-500 outline-none"
-                        value={ano}
-                        onChange={(e) =>setAno(parseInt(e.target.value)) }
-                      />
-                      <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium pointer-events-none">
-                        Años
-                      </span>
-                    </div>
-
-                    {/* INPUT MESES */}
-                    <div className="relative flex-1">
-                      <input
-                        type="number"
-                        min="0"
-                        max="11"
-                        placeholder="0"
-                        className="w-full border border-gray-300 rounded-lg p-2.5 pr-14 focus:ring-2 focus:ring-green-500 outline-none"
-                        value={mes}
-                        onChange={(e) =>setMes(parseInt(e.target.value)) }
-                      />
-                      <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium pointer-events-none">
-                        Meses
-                      </span>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-600">
+                      Tipo (Económico...)
+                    </label>
+                    <input
+                      required
+                      className="w-full border border-gray-300 rounded-lg p-2.5"
+                      value={formData.tipo_objetivo}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          tipo_objetivo: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-600">
+                      Objetivo Corto
+                    </label>
+                    <input
+                      required
+                      className="w-full border border-gray-300 rounded-lg p-2.5"
+                      value={formData.objetivo}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          objetivo: e.target.value,
+                        })
+                      }
+                    />
                   </div>
                 </div>
 
@@ -429,7 +470,7 @@ export default function GestionApoyos() {
         )}
       </div>
 
-      {/* --- BARRA DE BÚSQUEDA Y FILTROS --- */}
+      {/* BARRA DE BÚSQUEDA/FILTROS */}
       <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -441,13 +482,6 @@ export default function GestionApoyos() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button 
-              onClick={loadApoyos}
-              className="w-full md:w-auto p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-600 transition duration-150 flex items-center justify-center flex-shrink-0 hover:scale-105"
-              title="Recargar Cursos"
-          >
-            <RefreshCcw className="w-5 h-5"/>
-          </button>
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
@@ -470,7 +504,7 @@ export default function GestionApoyos() {
         )}
       </div>
 
-      {/* --- LISTA DE APOYOS --- */}
+      {/* LISTA DE APOYOS */}
       {loadingApoyos ? (
         <LoadingSDloading />
       ) : filteredApoyos.length === 0 ? (
@@ -482,7 +516,7 @@ export default function GestionApoyos() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 mb-6">
-            {paginatedData.map((a) => (
+            {paginatedApoyos.map((a) => (
               <div
                 key={a.id}
                 className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
@@ -519,11 +553,14 @@ export default function GestionApoyos() {
                     <span>Fin: {a.fechaFin}</span>
                   </div>
                 </div>
+
                 <div className="flex gap-2 w-full md:w-auto">
                   <button
                     onClick={() => handleVerInscritos(a)}
                     className="flex-1 md:flex-none text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-xs font-medium transition"
-                  ></button>
+                  >
+                    Ver Inscritos
+                  </button>
                   <button
                     onClick={() => handleEdit(a)}
                     className="flex-1 md:flex-none text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-medium transition"
@@ -540,13 +577,35 @@ export default function GestionApoyos() {
               </div>
             ))}
           </div>
-          <PaginatorPages
-            dataxFiltrar={filteredApoyos}
-            changeDatos={(dt) => setPaginateData(dt)}
-          />
+
+          {/* PAGINACIÓN */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-8">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+
+              <span className="text-sm font-medium text-gray-700">
+                Página {currentPage} de {totalPages}
+              </span>
+
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="p-2 rounded-full hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+          )}
         </>
       )}
 
+      {/* MODAL DE INSCRITOS */}
       {showInscritos && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 relative">
@@ -560,7 +619,11 @@ export default function GestionApoyos() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2 pr-10">
               Inscritos en {apoyoSeleccionado?.nombre_programa}
             </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Consulta a detalle las personas que han aplicado a este programa.
+            </p>
 
+            {/* Resumen */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-3">
                 <p className="text-xs text-gray-500">Total inscritos</p>
@@ -661,12 +724,24 @@ export default function GestionApoyos() {
                             )}
                             {cita.Administrador && (
                               <p className="text-[11px] text-green-900">
-                                <span className="font-semibold">Atenderá:</span>{" "}
+                                <span className="font-semibold">
+                                  Atenderá:
+                                </span>{" "}
                                 {cita.Administrador}
                               </p>
                             )}
                           </div>
                         )}
+                      </div>
+
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleAbrirCita(persona)}
+                          className="px-3 py-1.5 text-[11px] rounded-lg font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                        >
+                          {tieneCita ? "Editar cita" : "Agendar cita"}
+                        </button>
                       </div>
                     </div>
                   );
@@ -683,6 +758,118 @@ export default function GestionApoyos() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODAL DE CITA */}
+      {showCitaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <form
+            onSubmit={handleGuardarCita}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative"
+          >
+            <button
+              type="button"
+              onClick={handleCerrarCita}
+              className="absolute right-4 top-4 p-1.5 rounded-full hover:bg-gray-100 text-gray-500"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-gray-900 mb-1 pr-8">
+              {inscritoSeleccionado?.Usuario
+                ? `Cita para ${inscritoSeleccionado.Usuario}`
+                : "Agendar cita"}
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Define la fecha, hora y propósito de la cita para este productor.
+            </p>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Fecha de cita
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    value={citaForm.FechaCita}
+                    onChange={(e) =>
+                      setCitaForm({ ...citaForm, FechaCita: e.target.value })
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Hora
+                  </label>
+                  <input
+                    type="time"
+                    required
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    value={citaForm.HoraCita}
+                    onChange={(e) =>
+                      setCitaForm({ ...citaForm, HoraCita: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Propósito de la cita
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none"
+                  placeholder="Ej. Entrega de documentos, validación de requisitos, seguimiento de apoyo..."
+                  value={citaForm.PropositoCita}
+                  onChange={(e) =>
+                    setCitaForm({
+                      ...citaForm,
+                      PropositoCita: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  Nombre del administrador que atenderá
+                </label>
+                <input
+                  type="text"
+                  className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  placeholder="Ej. Ing. Martínez"
+                  value={citaForm.Administrador}
+                  onChange={(e) =>
+                    setCitaForm({
+                      ...citaForm,
+                      Administrador: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                type="button"
+                onClick={handleCerrarCita}
+                className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg"
+              >
+                Guardar cita
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

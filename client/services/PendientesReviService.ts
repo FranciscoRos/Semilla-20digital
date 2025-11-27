@@ -123,6 +123,20 @@ export const getPerfilesPendientes = async (): Promise<PerfilRegistro[]> => {
   }
 };
 
+// Lista de todos los perfiles de registro (cualquier estado)
+export const getPerfilesRegistro = async (): Promise<PerfilRegistro[]> => {
+  try {
+    await authHeader(pendientesApi);
+    const res = await pendientesApi.get(""); // GET /api/registro
+    const lista = unwrapCollection<PerfilRegistro>(res.data);
+    return lista; // si quieres solo aprobados: lista.filter(p => p.Estado === "Aprobado")
+  } catch (error) {
+    console.error("Error al obtener perfiles de registro:", error);
+    throw error;
+  }
+};
+
+
 export const getPerfilRegistro = async (
   id: string
 ): Promise<PerfilRegistro> => {
