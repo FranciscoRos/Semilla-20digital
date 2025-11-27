@@ -31,10 +31,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
       <AuthProvider>
-      <AppRoutes/>
+        <AppRoutes/>
 
-        {/* Global ChatBot - Disponible en todas las vistas */}
-        <ChatBot />
+          {/* Global ChatBot */}
+          <ChatBot />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
