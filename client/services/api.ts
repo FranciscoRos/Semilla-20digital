@@ -337,7 +337,54 @@ export interface Uso {
   actividadesEspecificas: string[];
 }
 
+// 1. CATEGORIAS (Para la pantalla Home)
 
+export interface Categoria {
+  idCategoria: string;
+  Nombre: string; // Ej: "Agricultura"
+  Icono: string;  // Ej: "sprout"
+  Descripcion: string;
+  SubCategorias: {
+    idSub: string;
+    Nombre: string;
+    CantidadTemas: number; 
+  }[];
+
+}
+// 2. TEMAS (Para la lista de hilos)
+export interface Tema {
+  idTema: string;
+  Titulo: string;
+  idCategoria: string;    // Ej: ID de "Agricultura"
+  idSubCategoria: string; // Ej: ID de "Cultivos"
+  Tags: string[]; // ["Maíz", "Plagas"]
+  Autor: {
+    idUsuario: string; 
+    Nombre: string;
+    Generacion: string;
+    Ubicacion: string;
+  };
+  Comentarios: number; 
+  Vistas: number;
+  LastUpdate: string;  // ISO Date "2024-11-27T10:00:00Z"
+  Verificado: boolean; 
+
+}
+// 3. COMENTARIOS (Para la conversación)
+export interface Comentario {
+  idComentario: string;
+  idTema: string; 
+  Contenido: string;
+  Autor: {
+    idUsuario: string;
+    Nombre: string;
+    Generacion: string;
+    Ubicacion: string;
+  };
+  FechaPublicacion: string;
+  EsAporteOriginal: boolean; 
+  Utilidad: number; //likes
+}
 
 
 // Demo data

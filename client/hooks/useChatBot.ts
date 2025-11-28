@@ -11,8 +11,6 @@ interface Message {
   time: string;
 }
 
-
-
 export const useChatBot=()=>{
     const {user}=useAuth()
     const location=useLocation()
@@ -40,12 +38,12 @@ export const useChatBot=()=>{
     const contextualizacion=(prompt:string)=>{
         if(user.Tipo==='Administracion'){
             return `Yo soy ${user.Nombre} ${user.Apellido1}, soy un Administrador de la plataforma de Semilla Digital que cuenta con informacion de la SEDARPE,
-            me encuentro dentro de la plataforma en la seccion ${location.pathname}, y mi pregunta o comentario es: ${prompt}`
+            me encuentro dentro de la plataforma en la seccion ${location.pathname}, utiliza este contexto para mi pregunta o comentario: ${prompt}`
         }
-        
+
         return `Yo soy ${user.Nombre} ${user.Apellido1}, soy un usuario productor que esta utilizando la plataforma de Semilla Digital que cuenta con informacion de la SEDARPE,
         mis areas de produccion son ${user.Usos.map(us=>us.UsoGeneral).join(',')}, en mis parcelas practico las siguientes actividades ${user.Usos.flatMap(us=>us.UsosEspecificos).join(',')};
-        me encuentro dentro de la plataforma en la seccion ${location.pathname}, y mi pregunta o comentario es: ${prompt}`
+        me encuentro dentro de la plataforma en la seccion ${location.pathname},  utiliza este contexto para mi pregunta o comentario: ${prompt}`
          
     }
 

@@ -15,7 +15,6 @@ const preguntasApi=axios.create({
 
 export const getPreguntas=async(id?:string)=>{
     try {
-        if(id)await authHeader(preguntasApi)
         const res=await preguntasApi.get('')
         return res.data.data
     }catch (error) {

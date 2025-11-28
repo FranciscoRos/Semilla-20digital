@@ -360,11 +360,11 @@ export default function UsuariosRevision() {
                         </div>
                         
                         <div className="flex-1 bg-gray-50 rounded-xl p-4 space-y-3">
-                             {selectedPerfil.Usuario.Revision ? (
+                             {selectedPerfil.Usuario.Revision.Administrador ? (
                                     <div key={selectedPerfil.id} className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-orange-500">
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="font-semibold text-sm text-gray-800">
-                                              Revisado por:  {selectedPerfil.Usuario.Revision.Administrador.Nombre} {selectedPerfil.Usuario.Revision.Administrador.Apellido1}
+                                              Revisado por:  {selectedPerfil.Usuario.Revision.Administrador}
                                             </span>
                                             <span className="text-xs text-gray-400">{formatDate(selectedPerfil.Usuario.Revision.FechaRevision)}</span>
                                         </div>
@@ -396,7 +396,7 @@ export default function UsuariosRevision() {
                         </div>
 
                         <div className="flex-1 bg-gray-50 rounded-xl p-4 space-y-3">
-                            {selectedPerfil.Usuario.agendacionCita ? (
+                            {selectedPerfil.Usuario.agendacionCita.Administrador ? (
                                     <div key={selectedPerfil.id} className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-purple-500">
                                         <div className="flex justify-between items-start mb-1">
                                             <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
@@ -407,7 +407,7 @@ export default function UsuariosRevision() {
                                                 <Clock size={12}/> {selectedPerfil.Usuario.agendacionCita.HoraCita}
                                             </div>
                                         </div>
-                                        <p className="text-xs text-gray-500 mb-2">Agendado por: {selectedPerfil.Usuario.agendacionCita.Administrador.Nombre} {selectedPerfil.Usuario.agendacionCita.Administrador.Apellido1}</p>
+                                        <p className="text-xs text-gray-500 mb-2">Agendado por: {selectedPerfil.Usuario.agendacionCita.Administrador}</p>
                                         <p className="text-sm text-gray-700 border-t pt-2 mt-1">
                                             {selectedPerfil.Usuario.agendacionCita.PropositoCita}
                                         </p>
