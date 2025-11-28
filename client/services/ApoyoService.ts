@@ -97,3 +97,9 @@ export const deleteApoyo = async (id: string): Promise<void> => {
   await authHeader(apoyosApi);
   await apoyosApi.delete(`apoyo/${id}`);
 };
+
+
+export async function getApoyoById(id: string): Promise<Apoyo> {
+  const res = await axios.get(`apoyo/${id}`);
+  return res.data;
+}

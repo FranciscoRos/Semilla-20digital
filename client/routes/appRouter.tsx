@@ -33,6 +33,7 @@ import ModeracionForos from "../pages/admin/ModeracionForos";
 import GestionPadron from "@/pages/admin/GestionPadron";
 import UsuariosRevision from "../pages/admin/UsuariosRevision";
 import GestionProductores from "../pages/admin/GestionProductores";
+import InscritosApoyos from "../pages/admin/InscritosApoyos";
 
 // Legacy
 import Index from "../pages/Index";
@@ -158,8 +159,6 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
-
         <Route
           path="admin/validacion-solicitudes"
           element={
@@ -200,6 +199,18 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+
+     <Route
+  path="/admin/inscritos-apoyos/:idApoyo"
+  element={
+    <ProtectedRoute role="Administracion">
+      <InscritosApoyos />
+    </ProtectedRoute>
+  }
+/>
+
+
+
                 {/* resision ususario */}
 
         <Route

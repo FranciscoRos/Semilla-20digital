@@ -22,6 +22,9 @@ import {
 } from "@/services/ApoyoService";
 import ComponenteFiltrados from "@/components/ComponenteFiltrado";
 import LoadingSDloading from "@/components/loadingSDloading";
+import { useNavigate } from "react-router-dom";
+
+
 
 // --- CONSTANTES ---
 const ITEMS_PER_PAGE = 6; // Cantidad de tarjetas por página
@@ -39,9 +42,6 @@ const CONSTANTES_INSTITUCION = {
   latitud_institucion: 18.5069468,
   longitud_institucion: -88.2960919,
 };
-
-// Beneficiados de prueba (solo front, para probar mientras no hay registro)
-
 
 export default function GestionApoyos() {
   const [apoyos, setApoyos] = useState<Apoyo[]>([]);
@@ -66,6 +66,8 @@ export default function GestionApoyos() {
     fechaFin: "",
     Requerimientos: [] as any[],
   });
+
+  const navigate = useNavigate();
 
   // --- MODAL DE INSCRITOS ---
   const [showInscritos, setShowInscritos] = useState(false);
@@ -100,22 +102,37 @@ export default function GestionApoyos() {
     }
   }, [showForm]);
 
-
-
-const loadApoyos = async () => {
-  setLoadingApoyos(true);
-  try {
-    const data = await getApoyos();
-    setApoyos(data);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    setLoadingApoyos(false);
-  }
-};
+  const loadApoyos = async () => {
+    setLoadingApoyos(true);
+    try {
+      const data = await getApoyos();
+      setApoyos(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingApoyos(false);
+    }
+  };
 
   const nuevosRequerimientos = (req: any) => {
     setFormData((prev) => ({ ...prev, Requerimientos: req }));
+  };
+
+  // --- helper para mostrar nombre del usuario aunque Usuario sea objeto ---
+  const getNombreUsuario = (persona: any): string => {
+    const u = persona?.Usuario;
+    if (!u) return "Nombre no disponible";
+
+    if (typeof u === "string") return u;
+
+    // Caso objeto: { Nombre, Apellido1, Apellido2, ... }
+    const { Nombre, Apellido1, Apellido2 } = u;
+    const nombreCompleto = [Nombre, Apellido1, Apellido2]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    return nombreCompleto || "Nombre no disponible";
   };
 
   // --- FILTRADO Y PAGINACIÓN ---
@@ -555,12 +572,13 @@ const loadApoyos = async () => {
                 </div>
 
                 <div className="flex gap-2 w-full md:w-auto">
-                  <button
-                    onClick={() => handleVerInscritos(a)}
-                    className="flex-1 md:flex-none text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-xs font-medium transition"
-                  >
-                    Ver Inscritos
-                  </button>
+                <button
+                  onClick={() => navigate(`/admin/inscritos-apoyos/${a.id}`)}
+                  className="flex-1 md:flex-none text-white bg-gray-800 hover:bg-gray-900 px-4 py-2 rounded-lg text-xs font-medium transition"
+                >
+                  Ver Inscritos
+                </button>
+
                   <button
                     onClick={() => handleEdit(a)}
                     className="flex-1 md:flex-none text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg text-xs font-medium transition"
@@ -667,10 +685,13 @@ const loadApoyos = async () => {
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900 text-sm">
-                              {persona.Usuario || "Nombre no disponible"}
+                              {getNombreUsuario(persona)}
                             </p>
                             <p className="text-xs text-gray-500">
-                              Parcela: {persona.parcela || "N/D"}
+                              Parcela:{" "}
+                              {typeof persona.parcela === "string"
+                                ? persona.parcela
+                                : persona.parcela?.NombreParcela || "N/D"}
                             </p>
                           </div>
                         </div>
@@ -777,8 +798,8 @@ const loadApoyos = async () => {
             </button>
 
             <h3 className="text-lg font-bold text-gray-900 mb-1 pr-8">
-              {inscritoSeleccionado?.Usuario
-                ? `Cita para ${inscritoSeleccionado.Usuario}`
+              {inscritoSeleccionado
+                ? `Cita para ${getNombreUsuario(inscritoSeleccionado)}`
                 : "Agendar cita"}
             </h3>
             <p className="text-xs text-gray-500 mb-4">
