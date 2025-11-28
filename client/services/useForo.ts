@@ -11,7 +11,7 @@ const foroApi=axios.create({
 })
 
 
-export const getCategorias=async():Promise<Categoria[]>=>{
+export const getCategorias=async():Promise<any[]>=>{
     await authHeader(foroApi)
     const res=await foroApi.get('categorias')
     return res.data.data

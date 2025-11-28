@@ -116,7 +116,6 @@ export const getPerfilesPendientes = async (): Promise<PerfilRegistro[]> => {
     await authHeader(pendientesApi);
     const res = await pendientesApi.get(""); // GET /api/registro
     const lista = unwrapCollection<PerfilRegistro>(res.data);
-    console.log(lista)
     return lista.filter((p) => p.Estado === "Pendiente");
   } catch (error) {
     console.error("Error al obtener perfiles pendientes:", error);

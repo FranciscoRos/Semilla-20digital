@@ -338,6 +338,42 @@ export interface Uso {
 }
 
 // 1. CATEGORIAS (Para la pantalla Home)
+export interface CategoriaPreliminar {
+  id:            string;
+  Nombre:        string;
+  Icono:         string;
+  Descripcion:   string;
+  SubCategorias: SubCategoria[];
+}
+
+export interface SubCategoria {
+  idSub:         string;
+  Nombre:        string;
+  CantidadTemas: number;
+  Temas:         TemaPre[];
+}
+
+export interface TemaPre {
+  idTema:      string;
+  Titulo:      string;
+  Tags:        string[];
+  Autor:       AutorPre;
+  Comentarios: number;
+  Verificado:  boolean;
+  Creado:      string;
+  Actualizado: string;
+}
+
+export interface AutorPre {
+  idUsuario:  string;
+  Nombre:     string;
+  Apellido1:  string;
+  Apellido2:  string;
+  Generacion: string;
+  Ubicacion:  string;
+}
+
+
 
 export interface Categoria {
   idCategoria: string;

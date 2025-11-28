@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { MessageSquare, Users, Eye, ChevronRight, Plus, Search, Home, Sprout, Beef, Fish, TreePine, House } from 'lucide-react';
+import { useCategoria } from '@/hooks/useCategoria';
+import { useTemas } from '@/hooks/useTemas';
 
 const ForoAgricola = () => {
+  const {data,isLoading}=useCategoria()
+  const {getTemasId}=useTemas()
+
   const [currentView, setCurrentView] = useState('home'); // 'home', 'category', 'thread'
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedThread, setSelectedThread] = useState(null);
