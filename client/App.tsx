@@ -16,7 +16,8 @@ import ChatBot from "./components/ChatBot";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      gcTime: 1000 * 60 * 1,     // 1 minuto
+      staleTime: 1000 * 60 * 3, // <--- frescura
+      gcTime: 1000 * 60 * 5, // El gcTime suele ser mayor al staleTime      
       retry: 2,                  // número de reintentos
       retryDelay: 1000,          // 1 segundo entre intentos
       refetchOnReconnect: "always", // siempre que vuelva Internet

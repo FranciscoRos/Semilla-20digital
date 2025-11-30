@@ -6,56 +6,30 @@ import {
   CheckCircle2,
   AlertCircle,
   PlusCircle,
+  FileText,
+  Map,
+  CalendarDays,
+  MessageSquare,
+  LayoutDashboard,
+  ArrowUpRight,
+  TrendingUp
 } from "lucide-react";
 import { useAuth } from "@/providers/authProvider";
 import { Button } from "@/components/ui/button";
-import {
-  getPerfilesPendientes,
-  getPerfilesRegistro,
-} from "@/services/PendientesReviService";
 import { getApoyos } from "@/services/ApoyoService";
 import { getCursos } from "@/services/CursosService";
+import { useRegistros } from "@/hooks/useRegistros";
 
+// --- Interfaces ---
 interface AdminStats {
   label: string;
   value: string;
   subtext: string;
-  color: string;
+  color: string; 
+  textColor: string; 
   icon: React.ReactNode;
+  action?: () => void;
 }
-
-const adminStats: AdminStats[] = [
-  {
-    label: "Productores Registrados",
-    value: "0",
-    subtext: "0 esta semana",
-    color: "bg-blue-50",
-    icon: <Users className="w-6 h-6 text-blue-600" />,
-  },
-  {
-    label: "Solicitudes Validadas",
-    value: "856",
-    subtext: "+120 esta semana",
-    color: "bg-green-50",
-    icon: <CheckCircle2 className="w-6 h-6 text-green-600" />,
-  },
-  {
-    // 🔁 ANTES: "Apoyos Desembolsados"
-    // AHORA:
-    label: "Apoyos y Cursos Registrados",
-    value: "0",
-    subtext: "0 apoyos · 0 cursos",
-    color: "bg-emerald-50",
-    icon: <BarChart3 className="w-6 h-6 text-emerald-600" />,
-  },
-  {
-    label: "Pendientes de Revisión",
-    value: "0",
-    subtext: "",
-    color: "bg-amber-50",
-    icon: <AlertCircle className="w-6 h-6 text-amber-600" />,
-  },
-];
 
 interface RecentActivity {
   id: string;
@@ -66,6 +40,7 @@ interface RecentActivity {
   user: string;
 }
 
+// --- Mock Data (Activity) ---
 const recentActivities: RecentActivity[] = [
   {
     id: "1",
@@ -104,270 +79,263 @@ const recentActivities: RecentActivity[] = [
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  const { pendientesLenght, productores, revisados, loadingRegistros } = useRegistros();
 
-  // Estado local para las tarjetas del dashboard
-  const [stats, setStats] = useState<AdminStats[]>(adminStats);
+  const [counts, setCounts] = useState({
+    apoyos: "...",
+    cursos: "...",
+    total: "..."
+  });
 
+  // --- Lógica del LocalStorage y Data Fetching ---
   useEffect(() => {
-    const loadStats = async () => {
+    const fetchAndCacheData = async () => {
       try {
-        // Pedimos en paralelo:
-        // - Perfiles pendientes
-        // - Todos los registros
-        // - Apoyos
-        // - Cursos
-        const [pendientes, registros, apoyos, cursos] = await Promise.all([
-          getPerfilesPendientes(),
-          getPerfilesRegistro(),
+        const cached = localStorage.getItem("admin_dashboard_counts");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setCounts(prev => prev.apoyos === "..." ? parsed : prev);
+        }
+      } catch (e) {
+        console.warn("Error leyendo caché local:", e);
+      }
+
+      try {
+        const [apoyosData, cursosData] = await Promise.all([
           getApoyos(),
-          getCursos(),
+          getCursos()
         ]);
 
-        setStats((prev) =>
-          prev.map((stat) => {
-            // Actualizar card "Pendientes de Revisión"
-            if (stat.label === "Pendientes de Revisión") {
-              return {
-                ...stat,
-                value: pendientes.length.toString(),
-                subtext: `${pendientes.length} perfiles pendientes`,
-              };
-            }
+        const newCounts = {
+          apoyos: apoyosData.length.toString(),
+          cursos: cursosData.length.toString(),
+          total: (apoyosData.length + cursosData.length).toString()
+        };
 
-            // Actualizar card "Productores Registrados"
-            if (stat.label === "Productores Registrados") {
-              return {
-                ...stat,
-                value: registros.length.toString(),
-                subtext: `${registros.length} productores registrados`,
-              };
-            }
+        setCounts(newCounts);
+        localStorage.setItem("admin_dashboard_counts", JSON.stringify(newCounts));
 
-            // 🔁 Nueva lógica: card "Apoyos y Cursos Registrados"
-            if (stat.label === "Apoyos y Cursos Registrados") {
-              const totalApoyos = apoyos.length || 0;
-              const totalCursos = cursos.length || 0;
-              const totalGeneral = totalApoyos + totalCursos;
-
-              return {
-                ...stat,
-                value: totalGeneral.toString(),
-                subtext: `${totalApoyos} apoyos · ${totalCursos} cursos`,
-              };
-            }
-
-            return stat;
-          })
-        );
       } catch (error) {
         console.error("Error cargando estadísticas del dashboard:", error);
-        // Si falla, se quedan los valores estáticos por defecto
       }
     };
 
-    loadStats();
-  }, []);
+    fetchAndCacheData();
+  }, []); 
+
+
+  const stats: AdminStats[] = [
+    {
+      label: "Productores Registrados",
+      value: loadingRegistros ? "..." : productores.length.toString(),
+      subtext: "Base de datos activa",
+      color: "bg-blue-50 border-blue-100",
+      textColor: "text-blue-600",
+      icon: <Users className="w-6 h-6" />,
+      action: () => navigate("/admin/registrados-productores")
+    },
+    {
+      label: "Solicitudes Validadas",
+      value: loadingRegistros ? "..." : revisados,
+      subtext: "Procesadas exitosamente",
+      color: "bg-emerald-50 border-emerald-100",
+      textColor: "text-emerald-600",
+      icon: <CheckCircle2 className="w-6 h-6" />,
+    },
+    {
+      label: "Recursos Disponibles",
+      value: counts.total,
+      subtext: `${counts.apoyos} Apoyos / ${counts.cursos} Cursos`,
+      color: "bg-indigo-50 border-indigo-100",
+      textColor: "text-indigo-600",
+      icon: <BarChart3 className="w-6 h-6" />,
+    },
+    {
+      label: "Pendientes de Revisión",
+      value: loadingRegistros ? "..." : pendientesLenght,
+      subtext: "Requieren atención",
+      color: "bg-amber-50 border-amber-100",
+      textColor: "text-amber-600",
+      icon: <AlertCircle className="w-6 h-6" />,
+      action: () => navigate("/admin/revision-usuarios")
+    },
+  ];
+
+  const quickActions = [
+    {
+      title: "Auditoría de Usuarios",
+      desc: "Validar documentación y registros pendientes",
+      icon: <FileText className="w-5 h-5" />,
+      path: "/admin/revision-usuarios",
+      color: "text-blue-600 bg-blue-50"
+    },
+    {
+      title: "Gestionar Apoyos",
+      desc: "Crear, editar o cerrar programas de apoyo",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+      path: "/admin/gestion-apoyos",
+      color: "text-emerald-600 bg-emerald-50"
+    },
+    {
+      title: "Geomapa Parcelario",
+      desc: "Visualizar distribución geográfica de tierras",
+      icon: <Map className="w-5 h-5" />,
+      path: "/admin/validacion-geomapa",
+      color: "text-indigo-600 bg-indigo-50"
+    },
+    {
+      title: "Catálogo de Cursos",
+      desc: "Administrar oferta educativa vigente",
+      icon: <TrendingUp className="w-5 h-5" />,
+      path: "/admin/gestion-cursos",
+      color: "text-purple-600 bg-purple-50"
+    },
+    {
+      title: "Gestión del Padrón",
+      desc: "Administrar preguntas y formularios",
+      icon: <Users className="w-5 h-5" />,
+      path: "/admin/gestion-padron",
+      color: "text-orange-600 bg-orange-50"
+    },
+    {
+      title: "Foro Comunitario",
+      desc: "Moderación de discusiones y temas",
+      icon: <MessageSquare className="w-5 h-5" />,
+      path: "/admin/moderacion-foros",
+      color: "text-pink-600 bg-pink-50"
+    }
+  ];
 
   return (
-    <div>
-      {/* Title */}
-      <div className="mb-8 flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Administrativo: {user.Nombre} {user.Apellido1} {user.Apellido2}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            <span className="inline-block w-2 h-2 bg-green-600 rounded-full align-middle mr-2"></span>
-            Sistema SEDARPE · {user.Tipo}
-          </p>
-        </div>
-        <div>
+    <div className="min-h-screen bg-slate-50/50 p-6 md:p-10 font-sans">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* === HEADER === */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Panel Administrativo
+            </h1>
+            <div className="flex items-center gap-2 mt-2 text-slate-500">
+                <span className="flex h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                <span className="text-sm font-medium">Bienvenido, {user.Nombre} {user.Apellido1}</span>
+                <span className="text-slate-300">•</span>
+                <span className="text-sm bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">{user.Tipo}</span>
+            </div>
+          </div>
           <Button
             onClick={() => navigate("/admin/agregar-usuarios")}
-            className="bg-green-600 text-white hover:bg-green-700"
+            className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 transition-all active:scale-95"
           >
-            <PlusCircle className="w-5 h-5 mr-2" />
-            Agregar Productor
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Nuevo Productor
           </Button>
         </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, i) => {
-          const isPendientes = stat.label === "Pendientes de Revisión";
-          const isProductores = stat.label === "Productores Registrados";
-
-          // --- BOTÓN: Productores Registrados ---
-          if (isProductores) {
-            return (
-              <button
-                key={i}
-                onClick={() => navigate("/admin/registrados-productores")}
-                className={`
-                  p-4 rounded-xl border shadow-sm ${stat.color}
-                  text-left w-full cursor-pointer hover:shadow-md transition
-                `}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  {stat.icon}
-                  <span className="text-xl font-semibold">{stat.value}</span>
-                </div>
-                <p className="text-sm font-medium">{stat.label}</p>
-                <p className="text-xs text-gray-500">{stat.subtext}</p>
-              </button>
-            );
-          }
-
-          // --- BOTÓN: Pendientes de Revisión ---
-          if (isPendientes) {
-            return (
-              <button
-                key={i}
-                onClick={() => navigate("/admin/revision-usuarios")}
-                className={`
-                  p-4 rounded-xl border shadow-sm ${stat.color}
-                  text-left w-full cursor-pointer hover:shadow-md transition
-                `}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  {stat.icon}
-                  <span className="text-xl font-semibold">{stat.value}</span>
-                </div>
-                <p className="text-sm font-medium">{stat.label}</p>
-                <p className="text-xs text-gray-500">{stat.subtext}</p>
-              </button>
-            );
-          }
-
-          // --- LOS DEMÁS QUEDAN COMO CARDS ---
-          return (
+        {/* === STATS GRID === */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+          {stats.map((stat, i) => (
             <div
               key={i}
-              className={`p-4 rounded-xl border shadow-sm ${stat.color}`}
+              onClick={stat.action ? stat.action : undefined}
+              className={`
+                group relative bg-white p-6 rounded-2xl border border-slate-100 shadow-sm 
+                transition-all duration-300 hover:shadow-md hover:-translate-y-1
+                ${stat.action ? 'cursor-pointer' : ''}
+              `}
             >
-              <div className="flex items-center justify-between mb-2">
-                {stat.icon}
-                <span className="text-xl font-semibold">{stat.value}</span>
-              </div>
-              <p className="text-sm font-medium">{stat.label}</p>
-              <p className="text-xs text-gray-500">{stat.subtext}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <button
-          onClick={() => navigate("/admin/revision-usuarios")}
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Panel de Auditoría</h3>
-          <p className="text-sm text-gray-600">
-            Revisar y validar registros de productores
-          </p>
-        </button>
-        <button
-          onClick={() => navigate("/admin/gestion-apoyos")}
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Gestionar Apoyos</h3>
-          <p className="text-sm text-gray-600">
-            Crear y editar programas de apoyo
-          </p>
-        </button>
-        <button className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left">
-          <h3 className="font-bold text-gray-900 mb-2">Reportes</h3>
-          <p className="text-sm text-gray-600">
-            Descargar reportes y estadísticas
-          </p>
-        </button>
-        <button
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-          onClick={() => navigate("/admin/gestion-padron")}
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Gestion Padron</h3>
-          <p className="text-sm text-gray-600">
-            Gestion de Preguntas del Formulario
-          </p>
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <button
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-          onClick={() => navigate("/admin/gestion-cursos")}
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Gestion de Cursos</h3>
-          <p className="text-sm text-gray-600">
-            Crear y editar programas de cursos
-          </p>
-        </button>
-        <button
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-          onClick={() => navigate("/admin/gestion-padron")}
-        >
-          <h3 className="font-bold text-gray-900 mb-2">
-            Gestion de Calendario
-          </h3>
-          <p className="text-sm text-gray-600">Gestion del calendario</p>
-        </button>
-
-        <button
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-          onClick={() => navigate("/admin/validacion-geomapa")}
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Gestion de Geomapa</h3>
-          <p className="text-sm text-gray-600">Geomapa de las parcelas</p>
-        </button>
-        <button
-          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition text-left"
-          onClick={() => navigate("/admin/moderacion-foros")}
-        >
-          <h3 className="font-bold text-gray-900 mb-2">Gestion de Foro</h3>
-          <p className="text-sm text-gray-600">
-            Gestion del foro comunitario
-          </p>
-        </button>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <h2 className="text-lg font-bold text-gray-900 mb-6">
-          Actividad Reciente
-        </h2>
-
-        <div className="space-y-4">
-          {recentActivities.map((activity) => (
-            <div
-              key={activity.id}
-              className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                {activity.type === "approval" && (
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                )}
-                {activity.type === "submission" && (
-                  <AlertCircle className="w-5 h-5 text-blue-600" />
-                )}
-                {activity.type === "course" && (
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-xl ${stat.color} ${stat.textColor} transition-colors`}>
+                    {stat.icon}
+                </div>
+                {stat.action && (
+                    <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" />
                 )}
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-sm">
-                  {activity.title}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {activity.user} - {activity.description}
-                </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  {activity.timestamp}
-                </p>
+              <div>
+                <h3 className="text-3xl font-bold text-slate-800 mb-1">{stat.value}</h3>
+                <p className="text-sm font-semibold text-slate-600">{stat.label}</p>
+                <p className="text-xs text-slate-400 mt-1">{stat.subtext}</p>
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            
+            {/* === ACCIONES RÁPIDAS (2/3 del ancho) === */}
+            <div className="xl:col-span-2 space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <LayoutDashboard className="w-5 h-5 text-slate-400" />
+                        Accesos Directos
+                    </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {quickActions.map((action, idx) => (
+                        <button
+                            key={idx}
+                            onClick={() => navigate(action.path)}
+                            className="flex items-start gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md hover:border-slate-200 transition-all group text-left"
+                        >
+                            <div className={`p-3 rounded-xl ${action.color} bg-opacity-10 group-hover:scale-110 transition-transform`}>
+                                {action.icon}
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800 group-hover:text-green-700 transition-colors">
+                                    {action.title}
+                                </h3>
+                                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                                    {action.desc}
+                                </p>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* === ACTIVIDAD RECIENTE (1/3 del ancho) === */}
+            <div className="xl:col-span-1">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 h-full">
+                    <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                        <CalendarDays className="w-5 h-5 text-slate-400" />
+                        Actividad Reciente
+                    </h2>
+
+                    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                        {recentActivities.map((activity) => (
+                            <div key={activity.id} className="relative flex items-start group">
+                                <div className="absolute left-0 top-1 h-3 w-3 ml-[14.5px] rounded-full border border-white bg-slate-300 shadow group-hover:bg-green-500 transition-colors"></div>
+                                <div className="ml-10 w-full">
+                                    <div className="flex justify-between items-start">
+                                        <p className="text-sm font-bold text-slate-800 group-hover:text-green-700 transition-colors">
+                                            {activity.title}
+                                        </p>
+                                        <time className="text-[10px] font-medium text-slate-400 whitespace-nowrap ml-2">
+                                            {activity.timestamp}
+                                        </time>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        {activity.user}
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-1 italic">
+                                        {activity.description}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="mt-8 pt-6 border-t border-slate-50 text-center">
+                        <button className="text-xs font-semibold text-slate-400 hover:text-green-600 transition-colors uppercase tracking-wider">
+                            Ver todo el historial
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </div>
       </div>
     </div>

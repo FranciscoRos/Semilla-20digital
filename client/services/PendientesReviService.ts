@@ -51,6 +51,7 @@ export interface UsuarioRegistro {
   Parcela: Parcela[];
   Revision:       Revision;
   agendacionCita: AgendacionCita;
+  [key: string]: any;
 }
 
 
@@ -171,7 +172,7 @@ export const rechazarPerfilRegistro = async (
     await authHeader(pendientesApi);
     await pendientesApi.put(`/${id}`, {
       Estado: "Rechazado",
-      MotivoRechazo: motivo, // se guardará como campo dinámico
+      MotivoRechazo: motivo,
     });
   } catch (error) {
     console.error("Error al rechazar perfil de registro:", error);

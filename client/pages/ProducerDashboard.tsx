@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Bell, ChevronRight, ChevronDown, User, HandHeart, Bot, BookOpen, Map, Calendar, 
@@ -11,6 +11,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getParaTi } from "@/services/paraTiService"; 
 import { Notification } from "@/services/api";
 import { useProducerRegister } from "@/hooks/useRegisterProducer";
+import { getRegistro } from "@/services/registroService";
+import { getCursos } from "@/services/CursosService";
+import { getParcelasGeomapa } from "@/services/parcelasService";
+import { getUbicaciones } from "@/services/ubicacionEService";
 
 const NotificationSkeleton = () => (
   <div className="flex gap-4 p-5 rounded-xl bg-gray-50 border-l-4 border-gray-200 animate-pulse">
@@ -68,7 +72,7 @@ const ProfileButton = ({ onClick, icon: Icon, colorClass, borderClass, hoverText
 
 export default function ProducerDashboard() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user,loadData } = useAuth();
   const navigate = useNavigate();
   const notificationDiv = useRef<HTMLDivElement>(null);
   const historialDiv = useRef<HTMLDivElement>(null);
@@ -78,6 +82,8 @@ export default function ProducerDashboard() {
     queryFn: () => getParaTi({Usos:user.Usos}), 
     initialData: queryClient.getQueryData(["ParaTi"])
   });
+
+
 
   const { dataRegistro, loadingRegistro } = useProducerRegister(user);
   
@@ -134,6 +140,63 @@ export default function ProducerDashboard() {
   const usuarioDetalle = registroInfo.Usuario || {};
   const citaVerificacion = usuarioDetalle.agendacionCita || {};
   const revisionPerfil = usuarioDetalle.Revision || {};
+
+useEffect(() => {
+  if (loadingRegistro || !dataRegistro?.Estado)return 
+
+    const nuevoEstatus = dataRegistro.Estado;
+    const estatusActual = user.Estatus;
+
+    if (nuevoEstatus === estatusActual)return
+    console.log('que hace aqui')
+      try {
+        const userStored = JSON.parse(localStorage.getItem('user') || '{}');
+         loadData({ ...user, Estatus: nuevoEstatus });
+      } catch (error) {
+        console.error("Error actualizando localStorage", error);
+      }
+    
+}, [dataRegistro, loadingRegistro, user.Estatus]);
+
+const prefetchHover=(kind:string)=>{
+  const commonStaleTime = 1000 * 60 * 3;
+  switch (kind){
+    case "support":
+      return queryClient.prefetchQuery({
+        queryKey: ['registroProducer', user?.idRegistro], 
+        queryFn: () => getRegistro(user?.idRegistro),
+        staleTime:commonStaleTime       
+      })
+    case "courses":
+      return queryClient.prefetchQuery({
+       queryKey:["cursosData"],
+       queryFn:()=>getCursos(),
+        staleTime:commonStaleTime      
+      })
+
+    case "map":
+        queryClient.prefetchQuery({
+        queryKey:["parcelasGeoMapa"],
+        queryFn:()=>getParcelasGeomapa(),
+        staleTime:commonStaleTime
+      })
+
+      queryClient.prefetchQuery({
+        queryKey:["ubicacionesGeoMapa"],
+        queryFn:()=>getUbicaciones(),
+        staleTime:commonStaleTime
+      })
+      break
+    /* case "foro":
+      return queryClient.prefetchQuery({
+        queryKey: ['registroProducer', user?.idRegistro], 
+        queryFn: () => getRegistro(user?.idRegistro),
+        staleTime:commonStaleTime      
+      }) */
+    default:
+      return
+  }
+}
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 p-4 md:p-6 pb-20">
@@ -207,6 +270,7 @@ export default function ProducerDashboard() {
                   key={service.id}
                   onClick={() => navigate(service.path)}
                   className={`${service.color} rounded-2xl p-6 text-left transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-gray-300 shadow-lg hover:shadow-2xl hover:scale-[1.02] group`}
+                  onMouseEnter={()=>prefetchHover(service.id)}
                 >
                   <div className="flex items-start justify-between">
                     <div className={`${service.iconBg} w-14 h-14 rounded-xl flex items-center justify-center text-white mb-4 shadow-lg group-hover:shadow-xl transition-all`}>

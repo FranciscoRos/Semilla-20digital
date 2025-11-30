@@ -141,8 +141,8 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
     const hasStaticErrors = !!Object.keys(staticErrors).length;
     const isParcelaError = staticErrors['Parcela'] || (usuario.Parcela.length === 0);
 
-    if (hasStaticErrors || hasErrors) {
-      if (isParcelaError && !hasErrors && Object.keys(staticErrors).length === 1 && staticErrors.Parcela) {
+    if (hasStaticErrors || hasErrors || isParcelaError) {
+      if (isParcelaError && !hasErrors) {
         setActiveTab('parcelas');
       } else {
         setActiveTab('general');

@@ -30,7 +30,7 @@ export default function LayoutGeneral() {
     { label: "Geomapa", path: "/geomapa", icon: Map },
     { label: "Asistente", path: "/asistente", icon: Bot },
     { label: "Calendario", path: "/calendario-agricola", icon: Calendar },
-    { label: "Foro", path: "/foros-discusion", icon: MessageCircle },
+    { label: "Foro", path: "/foro", icon: MessageCircle },
   ];
 
   useEffect(() => {

@@ -3,31 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, User, Home, MapPin, Phone, Mail, Search, BadgeCheck } from "lucide-react";
 import { getProductoresRegistrados } from "@/services/ProductoresService";
 import type { PerfilRegistro } from "@/services/PendientesReviService";
+import { useRegistros } from "@/hooks/useRegistros";
 
 export default function GestionProductores() {
   const navigate = useNavigate();
-
-  const [productores, setProductores] = useState<PerfilRegistro[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {productores,loadingRegistros}=useRegistros()
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data = await getProductoresRegistrados();
-        setProductores(data);
-      } catch (err) {
-        console.error("Error cargando productores registrados:", err);
-        setError("No se pudieron cargar los productores registrados.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
 
   const filtrados = useMemo(() => {
     if (!searchTerm) return productores;
@@ -83,7 +66,7 @@ export default function GestionProductores() {
 
       {/* Contenido */}
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {loading && (
+        {loadingRegistros && (
           <p className="text-sm text-gray-600">Cargando productores registrados...</p>
         )}
 
@@ -93,13 +76,13 @@ export default function GestionProductores() {
           </div>
         )}
 
-        {!loading && !error && filtrados.length === 0 && (
+        {!loadingRegistros && !error && filtrados.length === 0 && (
           <p className="text-sm text-gray-600">
             No se encontraron productores registrados con el criterio de búsqueda.
           </p>
         )}
 
-        {!loading && !error && filtrados.length > 0 && (
+        {!loadingRegistros && !error && filtrados.length > 0 && (
           <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-200">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50">

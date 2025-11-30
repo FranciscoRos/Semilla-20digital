@@ -27,7 +27,7 @@ import { useNavigate } from "react-router-dom";
 
 
 // --- CONSTANTES ---
-const ITEMS_PER_PAGE = 6; // Cantidad de tarjetas por página
+const ITEMS_PER_PAGE = 6; 
 
 const CONSTANTES_INSTITUCION = {
   institucion_encargada:

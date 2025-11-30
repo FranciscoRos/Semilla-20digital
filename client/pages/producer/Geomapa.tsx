@@ -122,7 +122,6 @@ export default function DashboardGeomapa() {
     },
   ];
 
-  // ==================== LOGICA Y HANDLERS ====================
 
   const toggleLayer = (layerId: string) => {
     setActiveLayers((prev) =>

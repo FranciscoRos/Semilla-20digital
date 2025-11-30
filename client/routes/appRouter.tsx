@@ -45,6 +45,9 @@ import Registro from "../pages/Registro";
 import ApoyoDetalle from "../pages/ApoyoDetalle";
 import ValidatorDashboard from "../pages/ValidatorDashboard";
 import NotFound from "../pages/NotFound";
+import ForoHome from "@/pages/producer/foroCheck/ForoHome";
+import ForoTemas from "@/pages/producer/foroCheck/ForosTemas";
+import ForoHilo from "@/pages/producer/foroCheck/ForoHilo";
 
 export const AppRoutes = () => {
   return (
@@ -98,6 +101,20 @@ export const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/foro" element={
+          <ProtectedRoute role="Usuario">
+          <ForoHome />
+          </ProtectedRoute>} />
+       <Route path="/temas/:idSubCategoria" element={
+                  <ProtectedRoute role="Usuario">
+
+        <ForoTemas />
+                  </ProtectedRoute>} />
+
+       <Route path="/hilo/:idTema" element={
+                          <ProtectedRoute role="Usuario">
+
+        <ForoHilo />          </ProtectedRoute>} />
 
         <Route
           path="cursos-capacitacion"

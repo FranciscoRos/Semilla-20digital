@@ -23,18 +23,21 @@ import {
 } from "lucide-react";
 import FormularioUsuarioParcelas from "../auth/RegisterProducer";
 import { useAuth } from "@/providers/authProvider";
+import { toast } from "@/hooks/use-toast";
+import { useRegistros } from "@/hooks/useRegistros";
+import { useRevisionRegistro } from "@/hooks/useRevisionRegistro";
 
 export default function UsuariosRevision() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [pendientes, setPendientes] = useState([]);
+  const {pendientes,refetchRegistros,loadingRegistros}=useRegistros()
+  const {handleChangeEstado,handleCitaProductor,handleRevisionProductor}=useRevisionRegistro(()=>refetchRegistros())
   const [selectedId, setSelectedId] = useState(null);
   const [selectedPerfil, setSelectedPerfil] = useState(null);
   const [rechazar, setRechazar] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [loadingList, setLoadingList] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   const [showRechazoModal, setShowRechazoModal] = useState(false);
@@ -46,7 +49,6 @@ export default function UsuariosRevision() {
   const [showModificarModal, setShowModificarModal] = useState(false);
 
   // --- LÓGICA DE TIEMPO ---
-  // Generamos slots de tiempo cada 30 minutos entre las 9:00 AM y las 6:00 PM
   const generateTimeSlots = () => {
     const slots = [];
     const startHour = 9;
@@ -65,23 +67,11 @@ export default function UsuariosRevision() {
 
   const timeSlots = generateTimeSlots();
 
-  useEffect(() => {
-    const load = async () => {
-      setLoadingList(true);
-      try {
-        const data = await getPerfilesPendientes();
-        setPendientes(data);
-        if (data.length > 0) {
-          setSelectedId(data[0].id);
-        }
-      } catch (err) {
-        console.error("Error cargando pendientes:", err);
-      } finally {
-        setLoadingList(false);
-      }
-    };
-    load();
-  }, []);
+  const renderAdminName = (admin) => {
+    if (!admin) return "No asignado";
+    if (typeof admin === 'string') return admin;
+    return `${admin.Nombre || ''} ${admin.Apellido1 || ''} ${admin.Apellido2 || ''}`.trim();
+  };
 
   useEffect(() => {
     const loadDetail = async () => {
@@ -118,7 +108,12 @@ export default function UsuariosRevision() {
     if (!confirm("¿Estás seguro de aprobar este perfil?")) return;
     try {
       await aprobarPerfilRegistro(selectedPerfil.id);
-      removeProfileFromList(selectedPerfil.id);
+      toast({
+        title:"Productor Aceptado Exitosamente!",
+        variant: "default",
+        className: "bg-purple-50 border-purple-200 text-purple-900",
+        duration:3000
+      })
     } catch (err) {
       console.error("Error aprobando perfil:", err);
     }
@@ -126,14 +121,25 @@ export default function UsuariosRevision() {
 
   const handleConfirmReject = async () => {
     if (!selectedPerfil) return;
-    if (rechazar === false) return await agregarComentarioRevision();
     if (!comentario.trim()) {
-      alert("Escribe un motivo de rechazo.");
+      toast({
+        title:"Escriba un Comentario",
+        variant: "default",
+        className: "bg-orange-50 border-orange-200 text-orange-900",  
+        duration:3000
+      });
       return;
     }
+    if (rechazar === true)handleChangeEstado.mutate({idProc:selectedId,data:{
+      Estado:"Rechazado"
+    }
+  });
     try {
-      await rechazarPerfilRegistro(selectedPerfil.id, comentario);
-      removeProfileFromList(selectedPerfil.id);
+      handleRevisionProductor.mutate({idProc:selectedPerfil.id, data:{
+        FechaRevision:new Date(),
+        ComentariosRevision:comentario
+      }
+    });
       setShowRechazoModal(false);
       setComentario("");
       setRechazar(false);
@@ -142,34 +148,25 @@ export default function UsuariosRevision() {
     }
   };
 
-  const agregarComentarioRevision = async () => {
-    try {
-        await agregarComentario(selectedPerfil.id, user.id, comentario);
-        setShowRechazoModal(false);
-        setComentario("");
-    } catch (err) {
-        console.error("Error agregando comentario", err);
-    }
-  };
-
   const handleSaveCita = () => {
-    if (!citaForm.fecha) {
-        alert("Por favor selecciona fecha.");
+    if (!citaForm.fecha || !citaForm.proposito) {
+      toast({
+        title:"Por Favor Llene los Campos Requeridos.",
+        variant:"default",
+        className: "bg-amber-50 border-amber-200 text-amber-900",
+
+      })
         return;
     }
-    console.log("Guardando cita:", citaForm);
-    alert("Cita agendada (Simulación)");
+    handleCitaProductor.mutate({idProc:selectedId,data:{
+      FechaCita: new Date(citaForm.fecha),
+      HoraCita:citaForm.hora,
+      PropositoCita:citaForm.proposito
+    }})
     setShowAgendarModal(false);
     setCitaForm({ fecha: "", hora: "", proposito: "" });
   };
 
-  const removeProfileFromList = (id) => {
-    const newList = pendientes.filter((p) => p.id !== id);
-    setPendientes(newList);
-    if (selectedId === id) {
-        setSelectedId(newList.length > 0 ? newList[0].id : null);
-    }
-  };
   
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -218,16 +215,16 @@ export default function UsuariosRevision() {
              </div>
           </div>
 
-          {loadingList && <p className="text-xs text-gray-500 animate-pulse text-center mt-4">Cargando lista...</p>}
+          {loadingRegistros && <p className="text-xs text-gray-500 animate-pulse text-center mt-4">Cargando lista...</p>}
 
-          {!loadingList && pendientes.length === 0 && (
+          {!loadingRegistros && pendientes.length === 0 && (
             <div className="flex flex-col items-center justify-center h-40 text-center">
                 <CheckCircle2 className="w-8 h-8 text-green-100 mb-2"/>
                 <p className="text-xs text-gray-400">Todo al día.</p>
             </div>
           )}
 
-          {!loadingList && pendientes.length > 0 && filteredPendientes.length === 0 && (
+          {!loadingRegistros && pendientes.length > 0 && filteredPendientes.length === 0 && (
              <div className="flex flex-col items-center justify-center h-20 text-center mt-4">
                 <p className="text-xs text-gray-400">No se encontraron resultados para "{searchTerm}"</p>
              </div>
@@ -363,8 +360,9 @@ export default function UsuariosRevision() {
                              {selectedPerfil.Usuario.Revision.Administrador ? (
                                     <div key={selectedPerfil.id} className="bg-white p-3 rounded-lg shadow-sm border-l-4 border-orange-500">
                                         <div className="flex justify-between items-start mb-2">
+                                            {/* --- AQUÍ SE APLICA EL CAMBIO PARA EL NOMBRE DEL ADMINISTRADOR --- */}
                                             <span className="font-semibold text-sm text-gray-800">
-                                              Revisado por:  {selectedPerfil.Usuario.Revision.Administrador}
+                                                Revisado por:  {renderAdminName(selectedPerfil.Usuario.Revision.Administrador)}
                                             </span>
                                             <span className="text-xs text-gray-400">{formatDate(selectedPerfil.Usuario.Revision.FechaRevision)}</span>
                                         </div>
@@ -407,7 +405,9 @@ export default function UsuariosRevision() {
                                                 <Clock size={12}/> {selectedPerfil.Usuario.agendacionCita.HoraCita}
                                             </div>
                                         </div>
-                                        <p className="text-xs text-gray-500 mb-2">Agendado por: {selectedPerfil.Usuario.agendacionCita.Administrador}</p>
+                                        <p className="text-xs text-gray-500 mb-2">
+                                            Agendado por: {renderAdminName(selectedPerfil.Usuario.agendacionCita.Administrador)}
+                                        </p>
                                         <p className="text-sm text-gray-700 border-t pt-2 mt-1">
                                             {selectedPerfil.Usuario.agendacionCita.PropositoCita}
                                         </p>
@@ -431,6 +431,7 @@ export default function UsuariosRevision() {
               </div>
 
               <div className="bg-white border-t border-gray-200 p-4 flex flex-wrap gap-3 justify-between items-center">
+                <div>
                   <button
                     type="button"
                     onClick={() => setShowModificarModal(true)}
@@ -439,7 +440,13 @@ export default function UsuariosRevision() {
                     <Edit2 className="w-4 h-4" />
                     Modificar Datos
                   </button>
-
+                   <button 
+                      onClick={() => setShowRechazoModal(true)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 text-sm font-medium hover:bg-orange-100 transition-colors"
+                  >
+                      <PlusCircle size={14}/> Agregar comentario
+                  </button>   
+                  </div>      
                   <div className="flex gap-3">
                     <button
                         type="button"

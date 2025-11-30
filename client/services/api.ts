@@ -337,8 +337,7 @@ export interface Uso {
   actividadesEspecificas: string[];
 }
 
-// 1. CATEGORIAS (Para la pantalla Home)
-export interface CategoriaPreliminar {
+export interface Categoria {
   id:            string;
   Nombre:        string;
   Icono:         string;
@@ -350,80 +349,50 @@ export interface SubCategoria {
   idSub:         string;
   Nombre:        string;
   CantidadTemas: number;
-  Temas:         TemaPre[];
 }
 
-export interface TemaPre {
-  idTema:      string;
-  Titulo:      string;
-  Tags:        string[];
-  Autor:       AutorPre;
-  Comentarios: number;
-  Verificado:  boolean;
-  Creado:      string;
-  Actualizado: string;
+export interface Tema {
+  id:             string;
+  Titulo:         string;
+  idCategoria:    string;
+  idSubCategoria: string;
+  Tags:           string[];
+  Autor:          Autor;
+  Comentarios:    number;
+  Vistas:         number;
+  Creado:         string;
+  Actualizado:    string;
+  Verificado:     boolean;
 }
 
-export interface AutorPre {
+export interface Autor {
   idUsuario:  string;
   Nombre:     string;
-  Apellido1:  string;
-  Apellido2:  string;
   Generacion: string;
   Ubicacion:  string;
 }
 
-
-
-export interface Categoria {
-  idCategoria: string;
-  Nombre: string; // Ej: "Agricultura"
-  Icono: string;  // Ej: "sprout"
-  Descripcion: string;
-  SubCategorias: {
-    idSub: string;
-    Nombre: string;
-    CantidadTemas: number; 
-  }[];
-
+export interface ComentariosTema {
+  Tema:        TemaComentario;
+  Comentarios: Comentario[];
 }
-// 2. TEMAS (Para la lista de hilos)
-export interface Tema {
-  idTema: string;
-  Titulo: string;
-  idCategoria: string;    // Ej: ID de "Agricultura"
-  idSubCategoria: string; // Ej: ID de "Cultivos"
-  Tags: string[]; // ["Maíz", "Plagas"]
-  Autor: {
-    idUsuario: string; 
-    Nombre: string;
-    Generacion: string;
-    Ubicacion: string;
-  };
-  Comentarios: number; 
-  Vistas: number;
-  LastUpdate: string;  // ISO Date "2024-11-27T10:00:00Z"
-  Verificado: boolean; 
 
-}
-// 3. COMENTARIOS (Para la conversación)
 export interface Comentario {
-  idComentario: string;
-  idTema: string; 
-  Contenido: string;
-  Autor: {
-    idUsuario: string;
-    Nombre: string;
-    Generacion: string;
-    Ubicacion: string;
-  };
+  id:               string;
+  idTema:           string;
+  Contenido:        string;
+  Autor:            Autor;
   FechaPublicacion: string;
-  EsAporteOriginal: boolean; 
-  Utilidad: number; //likes
+  Utilidad:         number;
 }
 
+export interface TemaComentario {
+  id:                string;
+  Titulo:            string;
+  Autor:             Autor;
+  ComentarioInicial: string;
+}
 
-// Demo data
 export const demoApoyos: Apoyo[] = [
   {
     nombre: "Apoyo para Siembra de Maíz",
