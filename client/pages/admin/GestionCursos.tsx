@@ -2,8 +2,8 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { 
   ChevronLeft, Plus, Edit2, Trash2, Save, X, 
   BookOpen, MapPin, Globe, Calendar, Layers, 
-  Box, Search, CalendarRange, ArrowRight, 
-  RefreshCcw
+  Search, CalendarRange, ArrowRight, 
+  RefreshCcw, Monitor, Users
 } from "lucide-react";
 import {
   Curso,
@@ -13,20 +13,18 @@ import {
   updateCurso,
   deleteCurso,
 } from "@/services/CursosService";
-import ComponenteFiltrados from "@/components/ComponenteFiltrado";
 import LocationPicker from "@/components/selectMapa";
 import LoadingSDloading from "@/components/loadingSDloading";
 import PaginatorPages from "@/components/paginatorPages";
-import { Select } from "@radix-ui/react-select";
+import { Toaster } from "@/components/ui/toaster"; // Asumo que tienes esto disponible como en el anterior
 
-const selectionsTema=[
-  {value:'general',label: "General"},
-  {value:'agricultura',label: "Agricultura"},
-  {value:'pesca',label: "Pesca/Acuacultura"},
-  {value:'ganaderia',label: "Ganadería"},
-  {value:'apicultura',label: "Apicultura"},
-]
-
+const selectionsTema = [
+  { value: 'general', label: "General" },
+  { value: 'agricultura', label: "Agricultura" },
+  { value: 'pesca', label: "Pesca/Acuacultura" },
+  { value: 'ganaderia', label: "Ganadería" },
+  { value: 'apicultura', label: "Apicultura" },
+];
 
 export default function GestionCursos() {
   const [cursos, setCursos] = useState<Curso[]>([]);
@@ -42,7 +40,7 @@ export default function GestionCursos() {
   // Refs
   const formRef = useRef<HTMLDivElement>(null);
 
-  // --- NUEVO: ESTADO PARA MODO DE FECHA ---
+  // Modo de fecha
   const [dateMode, setDateMode] = useState<'single' | 'range'>('single');
 
   const [formData, setFormData] = useState<CursoPayload>({
@@ -59,7 +57,7 @@ export default function GestionCursos() {
   });
 
   const loadCursos = async () => {
-      setLoadingCursos(cursos.length!==0?false:true);
+      setLoadingCursos(cursos.length !== 0 ? false : true);
       try {
         const data = await getCursos();
         setCursos(data);
@@ -94,17 +92,13 @@ export default function GestionCursos() {
     let newDates = [...formData.FechaCurso];
 
     if (mode === 'single') {
-        // Si cambia a single, nos quedamos solo con la primera fecha
         newDates = newDates.length > 0 ? [newDates[0]] : [""];
     } else {
-        // Si cambia a range
         if (newDates.length === 0) {
             newDates = ["", ""];
         } else if (newDates.length === 1) {
-            // Si hay una, duplicamos o dejamos la segunda vacía
             newDates = [newDates[0], ""];
         } else if (newDates.length > 2) {
-            // Si hay muchas (ej. de una logica anterior), tomamos PRIMERA y ÚLTIMA
             newDates = [newDates[0], newDates[newDates.length - 1]];
         }
     }
@@ -136,7 +130,7 @@ export default function GestionCursos() {
         Detalles: curso.Detalles,
         Tema: curso.Tema,
         Modalidad: curso.Modalidad,
-        FechaCurso: fechas.length > 0 ? fechas : [""], // Asegurar al menos un string vacío
+        FechaCurso: fechas.length > 0 ? fechas : [""], 
         DireccionUbicacion: curso.DireccionUbicacion || "",
         Latitud: curso.Latitud || 18.5205762,
         Longitud: curso.Longitud || -88.3015629,
@@ -147,14 +141,10 @@ export default function GestionCursos() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Limpiar fechas vacías antes de enviar
     const fechasLimpias = formData.FechaCurso.filter(f => f !== "");
-
     const payload: CursoPayload = {
       ...formData,
       FechaCurso: fechasLimpias,
-
     };
 
     try {
@@ -182,7 +172,7 @@ export default function GestionCursos() {
       Titulo: "",
       Descripcion: "",
       Detalles: "",
-      Tema: "",
+      Tema: "general",
       Modalidad: "online",
       FechaCurso: [],
       DireccionUbicacion: "",
@@ -208,7 +198,6 @@ export default function GestionCursos() {
         (cr.Tema?.toLowerCase() || "").includes(search) || 
         (cr.DireccionUbicacion?.toLowerCase() || "").includes(search);
 
-      // Filtrar por fecha inicio (primer elemento del array)
       const fechaStr = Array.isArray(cr.FechaCurso) && cr.FechaCurso.length > 0 
         ? cr.FechaCurso[0] 
         : "";
@@ -220,384 +209,406 @@ export default function GestionCursos() {
   }, [cursos, searchTerm, dateFilter]);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50/50">
-      {/* Header */}
-      <button
-        onClick={() => window.history.back()}
-        className="flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 font-medium transition-colors"
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Volver al Panel
-      </button>
-
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Gestión de Cursos</h1>
-          <p className="text-slate-500 mt-1">Administra la oferta educativa y sus reglas de acceso.</p>
+    <div className="min-h-screen bg-[#F8FAFC] font-sans text-slate-900 pb-20">
+      
+      {/* Header Fijo */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+             <div className="flex items-center gap-4 mb-2">
+                 <button
+                    onClick={() => window.history.back()}
+                    className="flex items-center gap-2 text-slate-500 hover:text-green-700 font-medium transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                    <span className="hidden sm:inline">Volver al Panel</span>
+                  </button>
+             </div>
+             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 ml-1 md:ml-7">
+                <div>
+                    <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Gestión de Cursos</h1>
+                    <p className="text-slate-500 text-sm">Administra la oferta educativa y sus modalidades.</p>
+                </div>
+                {!showForm && (
+                    <button
+                        onClick={() => setShowForm(true)}
+                        className="bg-slate-900 hover:bg-green-600 text-white font-medium py-2.5 px-5 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 text-sm transform hover:-translate-y-0.5"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nuevo Curso
+                    </button>
+                )}
+             </div>
         </div>
-        <button
-          onClick={() => {
-             if(showForm) resetForm();
-             else setShowForm(true);
-          }}
-          className={`font-bold py-2.5 px-6 rounded-lg transition flex items-center gap-2 text-white shadow-sm ${showForm ? 'bg-slate-500 hover:bg-slate-600' : 'bg-green-600 hover:bg-green-700'}`}
-        >
-          {showForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          {showForm ? "Cerrar Formulario" : "Nuevo Curso"}
-        </button>
       </div>
 
-      {/* --- FORMULARIO --- */}
-      <div ref={formRef}>
-      {showForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-xl p-6 md:p-8 shadow-lg border border-slate-200 mb-12 animate-fadeIn"
-        >
-          <div className="flex items-center justify-between mb-6 border-b pb-4">
-             <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                {editingId ? <Edit2 className="text-blue-600"/> : <Plus className="text-green-600"/>}
-                {editingId ? "Editar Curso Existente" : "Registrar Nuevo Curso"}
-             </h2>
-          </div>
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* COLUMNA IZQUIERDA: INFORMACIÓN GENERAL */}
-            <div className="lg:col-span-5 space-y-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
-                    <BookOpen size={20} />
+        {/* --- FORMULARIO --- */}
+        <div ref={formRef}>
+          {showForm && (
+            <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 overflow-hidden mb-12 animate-in fade-in slide-in-from-top-4 duration-300">
+               
+               {/* Header del Formulario */}
+               <div className="bg-slate-50/80 px-8 py-5 border-b border-slate-100 flex justify-between items-center">
+                  <div>
+                      <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        {editingId ? <Edit2 className="w-5 h-5 text-blue-600"/> : <Plus className="w-5 h-5 text-green-600"/>}
+                        {editingId ? "Editar Curso Existente" : "Crear Nuevo Programa Educativo"}
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-1">Completa los detalles para publicar el curso en la plataforma.</p>
                   </div>
-                  <h3 className="font-bold text-lg text-slate-700">Información General</h3>
+                  <button onClick={resetForm} className="p-2 hover:bg-slate-200 rounded-full text-slate-400 hover:text-red-500 transition">
+                    <X className="w-5 h-5" />
+                  </button>
                </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Título del Curso</label>
-                <input
-                  type="text"
-                  value={formData.Titulo}
-                  onChange={(e) => setFormData({ ...formData, Titulo: e.target.value })}
-                  required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  placeholder="Ej. Técnicas de Riego Eficiente"
-                />
-              </div>
-
-              <div className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
->
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tema / Categoría</label>
-                <select value={formData.Tema} onChange={(e)=>setFormData({...formData,Tema:e.target.value})} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
-                  {selectionsTema.map(tems=>(
-                    <option key={tems.value} value={tems.value}>{tems.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* --- SECCIÓN DE FECHAS (CON TOGGLE) --- */}
-              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                <div className="flex justify-between items-center mb-3">
-                    <label className="block text-xs font-bold text-slate-500 uppercase">Configuración de Fechas</label>
+              <form onSubmit={handleSubmit} className="p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                  
+                  {/* COLUMNA IZQUIERDA: INFO BÁSICA & AGENDA */}
+                  <div className="lg:col-span-7 space-y-8">
                     
-                    {/* Toggle de Fechas */}
-                    <div className="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
-                        <button 
-                            type="button"
-                            onClick={() => toggleDateMode('single')}
-                            className={`px-3 py-1 text-xs rounded-md transition flex items-center gap-1 ${dateMode === 'single' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
-                        >
-                            <Calendar size={12}/> Fecha Única
-                        </button>
-                        <button 
-                            type="button"
-                            onClick={() => toggleDateMode('range')}
-                            className={`px-3 py-1 text-xs rounded-md transition flex items-center gap-1 ${dateMode === 'range' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-slate-500 hover:bg-slate-50'}`}
-                        >
-                            <CalendarRange size={12}/> Rango
-                        </button>
-                    </div>
-                </div>
-
-                <div className="space-y-3">
-                    {dateMode === 'single' ? (
-                        <div>
-                            <label className="block text-xs text-slate-500 mb-1">Fecha del Evento</label>
+                    {/* Sección 1: Detalles Generales */}
+                    <section className="space-y-5">
+                       <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                          <BookOpen className="w-4 h-4" /> Información Básica
+                       </h3>
+                       
+                       <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Título del Curso <span className="text-red-500">*</span></label>
                             <input
-                                type="date"
-                                value={formData.FechaCurso[0] || ""}
-                                onChange={(e) => handleDateChange(0, e.target.value)}
-                                required
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                              type="text"
+                              value={formData.Titulo}
+                              onChange={(e) => setFormData({ ...formData, Titulo: e.target.value })}
+                              required
+                              placeholder="Ej. Técnicas Avanzadas de Riego"
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all outline-none font-medium"
                             />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Categoría <span className="text-red-500">*</span></label>
+                                <select 
+                                   value={formData.Tema} 
+                                   onChange={(e)=>setFormData({...formData, Tema: e.target.value})} 
+                                   className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none appearance-none"
+                                >
+                                  {selectionsTema.map(tems=>(
+                                    <option key={tems.value} value={tems.value}>{tems.label}</option>
+                                  ))}
+                                </select>
+                             </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Descripción Corta <span className="text-red-500">*</span></label>
+                            <textarea
+                              value={formData.Descripcion}
+                              onChange={(e) => setFormData({ ...formData, Descripcion: e.target.value })}
+                              rows={3}
+                              required
+                              placeholder="Resumen breve que aparecerá en la tarjeta del curso..."
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none resize-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Detalles Completos <span className="text-red-500">*</span></label>
+                            <textarea
+                              value={formData.Detalles}
+                              onChange={(e) => setFormData({ ...formData, Detalles: e.target.value })}
+                              rows={5}
+                              required
+                              placeholder="Temario, requisitos, objetivos y toda la información detallada..."
+                              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none resize-none"
+                            />
+                          </div>
+                       </div>
+                    </section>
+
+                    {/* Sección 2: Agenda */}
+                    <section className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 space-y-5">
+                        <div className="flex justify-between items-center">
+                           <h3 className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+                              <Calendar className="w-4 h-4" /> Agenda del Curso
+                           </h3>
+                           
+                           {/* Toggle Selector */}
+                           <div className="flex bg-white rounded-lg p-1 shadow-sm border border-blue-100">
+                              <button 
+                                 type="button" 
+                                 onClick={() => toggleDateMode('single')} 
+                                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateMode === 'single' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                              >
+                                 Fecha Única
+                              </button>
+                              <button 
+                                 type="button" 
+                                 onClick={() => toggleDateMode('range')} 
+                                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${dateMode === 'range' ? 'bg-blue-100 text-blue-700 shadow-sm' : 'text-slate-500 hover:bg-slate-50'}`}
+                              >
+                                 Rango de Fechas
+                              </button>
+                           </div>
                         </div>
-                    ) : (
-                        <div className="flex items-end gap-2">
-                            <div className="flex-1">
-                                <label className="block text-xs text-slate-500 mb-1">Inicio</label>
-                                <input
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           {dateMode === 'single' ? (
+                              <div className="md:col-span-2">
+                                 <label className="block text-xs font-bold text-slate-500 mb-1">Fecha del Evento</label>
+                                 <input
                                     type="date"
                                     value={formData.FechaCurso[0] || ""}
                                     onChange={(e) => handleDateChange(0, e.target.value)}
                                     required
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                />
-                            </div>
-                            <div className="pb-3 text-slate-400"><ArrowRight size={16}/></div>
-                            <div className="flex-1">
-                                <label className="block text-xs text-slate-500 mb-1">Fin</label>
-                                <input
-                                    type="date"
-                                    value={formData.FechaCurso[1] || ""}
-                                    onChange={(e) => handleDateChange(1, e.target.value)}
-                                    required
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                                />
-                            </div>
-                        </div>
-                    )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Descripción Corta</label>
-                <textarea
-                  value={formData.Descripcion}
-                  onChange={(e) => setFormData({ ...formData, Descripcion: e.target.value })}
-                  rows={3}
-                  required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Detalles</label>
-                <textarea
-                  value={formData.Detalles}
-                  onChange={(e) => setFormData({ ...formData, Detalles: e.target.value })}
-                  rows={3}
-                  required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                />
-              </div>
-            </div>
-
-            {/* COLUMNA DERECHA: FILTROS + MAPA */}
-            <div className="lg:col-span-7 space-y-6 border-l border-slate-100 pl-6">
-                {/* 2. MODALIDAD Y UBICACIÓN */}
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                    <h3 className="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2">
-                        {formData.Modalidad === 'online' ? <Globe className="text-blue-500"/> : <MapPin className="text-red-500"/>}
-                        Modalidad y Ubicación
-                    </h3>
-                    
-                    {/* Selector de Modalidad */}
-                    <div className="flex gap-6 mb-6">
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.Modalidad === 'online' ? 'border-blue-500' : 'border-slate-300'}`}>
-                                {formData.Modalidad === 'online' && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"/>}
-                            </div>
-                            <input 
-                                type="radio" 
-                                className="hidden" 
-                                name="modalidad" 
-                                value="online" 
-                                checked={formData.Modalidad === 'online'}
-                                onChange={() => setFormData({...formData, Modalidad: 'online'})}
-                            />
-                            <span className={`font-medium ${formData.Modalidad === 'online' ? 'text-blue-700' : 'text-slate-600'}`}>En Línea (Remoto)</span>
-                        </label>
-
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${formData.Modalidad === 'presencial' ? 'border-blue-500' : 'border-slate-300'}`}>
-                                {formData.Modalidad === 'presencial' && <div className="w-2.5 h-2.5 bg-blue-500 rounded-full"/>}
-                            </div>
-                            <input 
-                                type="radio" 
-                                className="hidden" 
-                                name="modalidad" 
-                                value="presencial" 
-                                checked={formData.Modalidad === 'presencial'}
-                                onChange={() => setFormData({...formData, Modalidad: 'presencial'})}
-                            />
-                            <span className={`font-medium ${formData.Modalidad === 'presencial' ? 'text-blue-700' : 'text-slate-600'}`}>Presencial</span>
-                        </label>
-                    </div>
-
-                    {/* Contenido Dinámico según Modalidad */}
-                    <div className="animate-fadeIn">
-                        {formData.Modalidad === "online" ? (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Enlace de la reunión / Plataforma</label>
-                                <div className="relative">
-                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"/>
+                                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                 />
+                              </div>
+                           ) : (
+                              <>
+                                 <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">Inicio</label>
                                     <input
-                                        type="url"
-                                        value={formData.Url}
-                                        onChange={(e) => setFormData({ ...formData, Url: e.target.value })}
-                                        placeholder="https://zoom.us/..."
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                       type="date"
+                                       value={formData.FechaCurso[0] || ""}
+                                       onChange={(e) => handleDateChange(0, e.target.value)}
+                                       required
+                                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 gap-6">
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Dirección Física</label>
-                                        <input
-                                            type="text"
-                                            value={formData.DireccionUbicacion}
-                                            onChange={(e) => setFormData({ ...formData, DireccionUbicacion: e.target.value })}
-                                            placeholder="Calle, Número, Colonia..."
-                                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Ubicación en Mapa</label>
-                                    <LocationPicker 
-                                        lat={formData.Latitud}
-                                        lng={formData.Longitud}
-                                        onLocationSelect={handleLocationSelect}
+                                 </div>
+                                 <div>
+                                    <label className="block text-xs font-bold text-slate-500 mb-1">Fin</label>
+                                    <input
+                                       type="date"
+                                       value={formData.FechaCurso[1] || ""}
+                                       onChange={(e) => handleDateChange(1, e.target.value)}
+                                       required
+                                       className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                     />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                {/* Footer Formulario */}
-          <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-6 py-2.5 text-slate-600 font-medium hover:bg-slate-100 rounded-lg transition"
-            >
-              Cancelar Operación
-            </button>
-            <button
-              type="submit"
-              
-              className="px-8 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2"
-            >
-              <Save size={18} />
-              {editingId ? "Guardar Cambios" : "Crear Curso"}
-            </button>
-          </div>
-            </div>
-          </div>
-        </form>
-      )}
-      </div>
+                                 </div>
+                              </>
+                           )}
+                        </div>
+                    </section>
+                  </div>
 
-      {/* --- BARRA DE BÚSQUEDA --- */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
-            <input 
-                type="text" 
-                placeholder="Buscar por nombre del programa..." 
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            />
+                  {/* COLUMNA DERECHA: LOGÍSTICA */}
+                  <div className="lg:col-span-5 space-y-6">
+                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm sticky top-24">
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-6">
+                           <MapPin className="w-4 h-4" /> Logística
+                        </h3>
+
+                        {/* Selector Modalidad */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                           <label className={`
+                              cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center gap-2 transition-all
+                              ${formData.Modalidad === 'online' ? 'border-blue-500 bg-blue-50/50' : 'border-slate-100 hover:border-slate-300'}
+                           `}>
+                              <input type="radio" className="hidden" name="mod" checked={formData.Modalidad === 'online'} onChange={() => setFormData({...formData, Modalidad: 'online'})} />
+                              <Monitor className={`w-6 h-6 ${formData.Modalidad === 'online' ? 'text-blue-600' : 'text-slate-400'}`} />
+                              <span className={`text-sm font-bold ${formData.Modalidad === 'online' ? 'text-blue-700' : 'text-slate-600'}`}>Online</span>
+                           </label>
+                           
+                           <label className={`
+                              cursor-pointer border-2 rounded-xl p-4 flex flex-col items-center gap-2 transition-all
+                              ${formData.Modalidad === 'presencial' ? 'border-green-500 bg-green-50/50' : 'border-slate-100 hover:border-slate-300'}
+                           `}>
+                              <input type="radio" className="hidden" name="mod" checked={formData.Modalidad === 'presencial'} onChange={() => setFormData({...formData, Modalidad: 'presencial'})} />
+                              <Users className={`w-6 h-6 ${formData.Modalidad === 'presencial' ? 'text-green-600' : 'text-slate-400'}`} />
+                              <span className={`text-sm font-bold ${formData.Modalidad === 'presencial' ? 'text-green-700' : 'text-slate-600'}`}>Presencial</span>
+                           </label>
+                        </div>
+
+                        {/* Campos Dinámicos */}
+                        <div className="space-y-4 animate-in slide-in-from-right-2 duration-300">
+                           {formData.Modalidad === "online" ? (
+                              <div>
+                                 <label className="block text-sm font-bold text-slate-700 mb-2">Enlace de la Plataforma</label>
+                                 <div className="relative">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"/>
+                                    <input
+                                       type="url"
+                                       value={formData.Url}
+                                       onChange={(e) => setFormData({ ...formData, Url: e.target.value })}
+                                       placeholder="https://zoom.us/j/..."
+                                       className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                    />
+                                 </div>
+                              </div>
+                           ) : (
+                              <div className="space-y-4">
+                                 <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Dirección Física</label>
+                                    <input
+                                       type="text"
+                                       value={formData.DireccionUbicacion}
+                                       onChange={(e) => setFormData({ ...formData, DireccionUbicacion: e.target.value })}
+                                       placeholder="Calle, Número, Colonia..."
+                                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500 outline-none"
+                                    />
+                                 </div>
+                                 <div className="rounded-xl overflow-hidden border border-slate-200">
+                                    <div className="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 border-b border-slate-200">Seleccionar Ubicación</div>
+                                    <div className="h-48">
+                                       <LocationPicker 
+                                          lat={formData.Latitud}
+                                          lng={formData.Longitud}
+                                          onLocationSelect={handleLocationSelect}
+                                       />
+                                    </div>
+                                 </div>
+                              </div>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+
+                </div>
+
+                {/* Footer Actions */}
+                <div className="flex justify-end gap-4 mt-10 pt-6 border-t border-slate-100">
+                   <button
+                      type="button"
+                      onClick={resetForm}
+                      className="px-6 py-3 bg-white border border-slate-300 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
+                   >
+                      Cancelar
+                   </button>
+                   <button
+                      type="submit"
+                      className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-600/20 hover:bg-green-700 hover:shadow-green-600/30 transition-all flex items-center gap-2 transform active:scale-95"
+                   >
+                      <Save className="w-5 h-5" />
+                      {editingId ? "Guardar Cambios" : "Publicar Curso"}
+                   </button>
+                </div>
+              </form>
+            </div>
+          )}
         </div>
-        <button 
-            onClick={loadCursos}
-            className="w-full md:w-auto p-2 rounded-lg bg-blue-500 text-white shadow-md hover:bg-blue-600 transition duration-150 flex items-center justify-center flex-shrink-0 hover:scale-105"
-            title="Recargar Cursos"
-        >
-          <RefreshCcw className="w-5 h-5"/>
-        </button>
-        
-        <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5"/>
-            <input 
-                type="date" 
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-gray-600"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-            />
+
+        {/* --- BARRA DE CONTROL --- */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+           <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5"/>
+              <input 
+                 type="text" 
+                 placeholder="Buscar por título, tema o ubicación..." 
+                 className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none shadow-sm"
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+              />
+           </div>
+           
+           <div className="flex gap-3">
+              <div className="relative">
+                 <input 
+                    type="date" 
+                    className="pl-4 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none shadow-sm text-slate-600"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                 />
+              </div>
+              
+              <button 
+                 onClick={loadCursos}
+                 className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-green-600 transition-colors shadow-sm"
+                 title="Actualizar lista"
+              >
+                 <RefreshCcw className="w-5 h-5"/>
+              </button>
+              
+              {(searchTerm || dateFilter) && (
+                 <button 
+                    onClick={() => {setSearchTerm(""); setDateFilter("");}}
+                    className="px-4 py-3 bg-red-50 text-red-600 font-bold rounded-xl hover:bg-red-100 transition-colors"
+                 >
+                    Limpiar
+                 </button>
+              )}
+           </div>
         </div>
-        {(searchTerm || dateFilter) && (
-            <button 
-                onClick={() => {setSearchTerm(""); setDateFilter("");}}
-                className="text-sm text-red-500 hover:text-red-700 font-medium px-2"
-            >
-                Limpiar filtros
-            </button>
+
+        {/* --- GRID DE CURSOS --- */}
+        {loadingCursos ? (
+            <LoadingSDloading/>
+        ) : cursos.length === 0 && !showForm && !loadingCursos ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+               <div className="bg-slate-50 p-4 rounded-full mb-4">
+                  <BookOpen className="w-8 h-8 text-slate-400"/>
+               </div>
+               <h3 className="text-lg font-bold text-slate-700">No hay cursos registrados</h3>
+               <p className="text-slate-500 text-sm mt-1">Comienza creando el primer programa educativo.</p>
+            </div>
+        ) : cursosFilter.length === 0 ? (
+            <div className="text-center py-20 text-slate-400 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+               No se encontraron resultados para tu búsqueda.
+            </div>
+        ) : (
+            <div className="space-y-8">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedData.map((curso) => (
+                    <div
+                       key={curso.id}
+                       className="group bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-xl hover:border-green-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full relative overflow-hidden"
+                    >
+                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"/>
+                       
+                       <div className="flex justify-between items-start mb-4">
+                          <span className={`
+                             text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide flex items-center gap-1.5
+                             ${curso.Modalidad === 'online' ? 'bg-blue-50 text-blue-700 border border-blue-100' : 'bg-green-50 text-green-700 border border-green-100'}
+                          `}>
+                             {curso.Modalidad === 'online' ? <Globe className="w-3 h-3"/> : <MapPin className="w-3 h-3"/>}
+                             {curso.Modalidad}
+                          </span>
+                          
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <button onClick={() => handleEdit(curso)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"><Edit2 className="w-4 h-4"/></button>
+                             <button onClick={() => handleDelete(curso.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-4 h-4"/></button>
+                          </div>
+                       </div>
+                       
+                       <h3 className="font-bold text-xl text-slate-800 mb-2 leading-tight group-hover:text-green-700 transition-colors">
+                          {curso.Titulo}
+                       </h3>
+                       
+                       <p className="text-sm text-slate-500 mb-6 line-clamp-3 leading-relaxed flex-grow">
+                          {curso.Descripcion}
+                       </p>
+                       
+                       <div className="space-y-3 pt-4 border-t border-slate-50 mt-auto">
+                          <div className="flex items-center gap-2 text-xs text-slate-600">
+                             <Layers className="w-4 h-4 text-slate-400"/>
+                             <span className="font-bold">Tema:</span> {curso.Tema}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-600">
+                             <Calendar className="w-4 h-4 text-slate-400"/>
+                             <span className="font-bold">Fecha:</span> 
+                             {Array.isArray(curso.FechaCurso) 
+                                ? (curso.FechaCurso.length > 1 
+                                   ? `${curso.FechaCurso[0]} - ${curso.FechaCurso[curso.FechaCurso.length-1]}` 
+                                   : curso.FechaCurso[0])
+                                : curso.FechaCurso}
+                          </div>
+                       </div>
+                    </div>
+                  ))}
+               </div>
+               
+               <PaginatorPages 
+                  dataxFiltrar={cursosFilter}
+                  ITEMS={9}
+                  changeDatos={(dt) => setPaginateData(dt)}
+               />
+            </div>
         )}
       </div>
 
-      {/* --- LISTA DE CURSOS --- */}
-      {loadingCursos ? (
-          <LoadingSDloading/>
-        ) : cursos.length === 0 && !showForm && !loadingCursos ?(
-            <div className="col-span-full text-center py-12 bg-white rounded-xl border border-dashed border-slate-300 text-slate-400">
-                <BookOpen size={48} className="mx-auto mb-4 opacity-20"/>
-                <p>No hay cursos registrados aún.</p>
-            </div>
-        ) : cursosFilter.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-500">
-                No se encontraron coincidencias con tu búsqueda.
-            </div>
-        ) : (
-        <div className="grid grid-cols-1 gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedData.map((curso) => (
-                <div
-                    key={curso.id}
-                    className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition flex flex-col h-full"
-                >
-                    <div className="flex justify-between items-start mb-3">
-                        <h3 className="font-bold text-lg text-slate-900 leading-tight">{curso.Titulo}</h3>
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide ${curso.Modalidad === 'online' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                            {curso.Modalidad}
-                        </span>
-                    </div>
-                    
-                    <p className="text-sm text-slate-500 mb-4 line-clamp-3 flex-grow">{curso.Descripcion}</p>
-                    
-                    <div className="space-y-2 text-xs text-slate-600 mb-5 bg-slate-50 p-3 rounded-lg">
-                        <div className="flex items-center gap-2">
-                            <Layers size={14} className="text-slate-400"/>
-                            <span className="font-semibold">Tema:</span> {curso.Tema}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Calendar size={14} className="text-slate-400"/>
-                            <span className="font-semibold">Fecha:</span> 
-                            {Array.isArray(curso.FechaCurso) 
-                                ? (curso.FechaCurso.length > 1 
-                                    ? `${curso.FechaCurso[0]} al ${curso.FechaCurso[curso.FechaCurso.length-1]}` 
-                                    : curso.FechaCurso[0])
-                                : curso.FechaCurso}
-                        </div>
-                    </div>
-
-                    <div className="flex gap-3 mt-auto">
-                    <button
-                        onClick={() => handleEdit(curso)}
-                        className="flex-1 bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm"
-                    >
-                        <Edit2 size={16} /> Editar
-                    </button>
-                    <button
-                        onClick={() => handleDelete(curso.id)}
-                        className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-medium py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm"
-                    >
-                        <Trash2 size={16} /> Eliminar
-                    </button>
-                    </div>
-                </div>
-                ))}
-            </div>
-            
-            <PaginatorPages 
-                dataxFiltrar={cursosFilter}
-                ITEMS={9}
-                changeDatos={(dt) => setPaginateData(dt)}
-            />
-        </div>
-    )}
+      <Toaster />
     </div>
   );
 }

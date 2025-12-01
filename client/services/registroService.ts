@@ -39,7 +39,7 @@ export const getRegistro=async(id:string)=>{
     try {
         await authHeader(registerApi)
         const res=await registerApi.get(id)
-        return ({...res.data.data.Usuario,...res.data.data.CamposExtra,Estado:res.data.data.Estado})//Aqui
+        return res.data.data
     } catch (error) {
         console.error('Error Peticion Registro: ',error)
        throw new Error(error.message || 'Error desconocido');

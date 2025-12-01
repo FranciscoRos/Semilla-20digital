@@ -15,7 +15,7 @@ export const useProducerRegister=(user)=>{
         queryFn: () => getRegistro(user?.idRegistro),
         enabled: !!user?.idRegistro,
         refetchOnWindowFocus: false,
-        initialData: queryClient.getQueryData(['registroProducer', user?.idRegistro])
+        initialData: queryClient.getQueryData(['registroProducer', user?.idRegistro]) as any
 
     });
 

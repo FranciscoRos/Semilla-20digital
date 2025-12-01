@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { 
   ChevronLeft, CheckCircle, Sparkles, ArrowRight, Info, 
   MapPin, Calendar, ExternalLink, Search, Filter, X, 
-  BookOpen, GraduationCap, Clock, Building2, AlertTriangle, AlertCircle
+  BookOpen, GraduationCap, Clock, Building2, AlertTriangle, AlertCircle,
+  RefreshCcw
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
@@ -12,6 +13,8 @@ import { useAuth } from "@/providers/authProvider";
 import { useCursos } from "@/hooks/useCursos";
 import { useInscripciones } from "@/hooks/useInscripciones";
 import LoadingSDloading from "@/components/loadingSDloading";
+import PaginatorPages from "@/components/paginatorPages";
+import { Curso } from "@/services/CursosService";
 
 // --- UTILS ---
 const formatDate = (fechaArray) => {
@@ -215,8 +218,8 @@ export default function SolicitarCursos() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location=useLocation()
-  const { dataCursos, loadingCursos } = useCursos();
-
+  const { dataCursos, loadingCursos,refetch } = useCursos();
+  const [dataPaginate,setPaginateData]=useState<Curso[]>([])
   // Estados del Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCurso, setSelectedCurso] = useState(null);
@@ -363,7 +366,6 @@ export default function SolicitarCursos() {
                             onChange={(e) => setFilterDate(e.target.value)}
                           />
                     </div>
-                    
                     {(searchTerm || filterDate) && (
                         <button 
                             onClick={() => { setSearchTerm(""); setFilterDate(""); }}
@@ -373,6 +375,13 @@ export default function SolicitarCursos() {
                         </button>
                     )}
                 </div>
+                <button 
+                        onClick={()=>refetch()}
+                        className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-green-600 transition-colors shadow-sm"
+                        title="Actualizar lista"
+                    >
+                        <RefreshCcw className="w-4 h-4"/>
+                    </button>
             </div>
         </div>
       </div>
@@ -489,8 +498,9 @@ export default function SolicitarCursos() {
                 {[1,2,3,4].map(n => <div key={n} className="h-72 bg-gray-100 rounded-xl animate-pulse"></div>)}
              </div>
           ) : todosLosCursos.length > 0 ? (
+            <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {todosLosCursos.map((curso) => {
+              {dataPaginate.map((curso) => {
                 const isSuggested = (usuarioUsos && usuarioUsos.length > 0) 
                     ? checkListEligibility(usuarioUsos, curso.Tema) 
                     : false;
@@ -549,6 +559,12 @@ export default function SolicitarCursos() {
                   </div>
                 );
               })}
+            </div>
+            <PaginatorPages 
+                    dataxFiltrar={todosLosCursos}
+                    ITEMS={9}
+                    changeDatos={(dt) => setPaginateData(dt)}
+                  />
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl border border-gray-100">

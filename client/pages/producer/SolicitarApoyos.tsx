@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { 
   ChevronLeft, CheckCircle, AlertCircle, ArrowRight, Info, 
   MapPin, Calendar, ExternalLink, Building2, Search, Filter, 
-  X, Sprout, Leaf, AlertTriangle, Map as MapIcon
+  X, Sprout, Leaf, AlertTriangle, Map as MapIcon,
+  RefreshCcw
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleMap, useJsApiLoader, Polygon } from '@react-google-maps/api';
@@ -13,6 +14,8 @@ import { useProducerRegister } from "@/hooks/useRegisterProducer";
 import { useApoyos } from "@/hooks/useApoyos";
 import { useInscripciones } from "@/hooks/useInscripciones";
 import LoadingSDloading from "@/components/loadingSDloading";
+import { Apoyo } from "@/services/ApoyoService";
+import PaginatorPages from "@/components/paginatorPages";
 
 // --- UTILS & HELPERS ---
 
@@ -366,7 +369,8 @@ export default function SolicitarApoyos() {
   const [selectedApoyo, setSelectedApoyo] = useState(null);
 
   const { dataRegistro, loadingRegistro } = useProducerRegister(user); 
-  const { dataApoyos, loadingApoyos } = useApoyos();
+  const { dataApoyos, loadingApoyos,refetch } = useApoyos();
+  const [dataPaginate,setPaginateData]=useState<Apoyo[]>([])
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterDate, setFilterDate] = useState("");
@@ -427,7 +431,7 @@ export default function SolicitarApoyos() {
     // Usamos la nueva función de análisis solo para ver si es "elegible" visualmente en la lista
     // Nota: El análisis detallado se hace al abrir el modal
     const eligible = baseFilteredApoyos.filter(apoyo => {
-      const result = analyzeEligibility(dataRegistro, apoyo.Requerimientos);
+      const result = analyzeEligibility({...dataRegistro.Usuario,...dataRegistro.CamposExtra}, apoyo.Requerimientos);
       return result.globalValid && result.eligibleParcels.length > 0;
     });
 
@@ -450,7 +454,7 @@ export default function SolicitarApoyos() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         apoyo={selectedApoyo}
-        usuario={dataRegistro}
+        usuario={dataRegistro?{...dataRegistro.Usuario,...dataRegistro.CamposExtra}:undefined}
         onSubmit={handleInscripcionApoyo}
       />
 
@@ -512,6 +516,13 @@ export default function SolicitarApoyos() {
                         </button>
                     )}
                 </div>
+                <button 
+                  onClick={()=>refetch()}
+                  className="p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-green-600 transition-colors shadow-sm"
+                  title="Actualizar lista"
+              >
+                  <RefreshCcw className="w-4 h-4"/>
+              </button>
             </div>
         </div>
       </div>
@@ -635,8 +646,9 @@ export default function SolicitarApoyos() {
                 {[1,2,3,4].map(n => <div key={n} className="h-72 bg-gray-100 rounded-xl animate-pulse"></div>)}
              </div>
           ) : todosLosApoyos.length > 0 ? (
+            <div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {todosLosApoyos.map((apoyo) => {
+              {dataPaginate.map((apoyo) => {
                 // Cálculo rápido solo para el badge
                 const { globalValid, eligibleParcels } = dataRegistro ? analyzeEligibility(dataRegistro, apoyo.Requerimientos) : { globalValid: false, eligibleParcels: [] };
                 const isTotallyEligible = globalValid && eligibleParcels.length > 0;
@@ -694,6 +706,12 @@ export default function SolicitarApoyos() {
                   </div>
                 );
               })}
+            </div>
+               <PaginatorPages 
+                  dataxFiltrar={todosLosApoyos}
+                  ITEMS={9}
+                  changeDatos={(dt) => setPaginateData(dt)}
+                />
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-xl border border-gray-100">

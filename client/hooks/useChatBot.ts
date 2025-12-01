@@ -18,23 +18,6 @@ export const useChatBot=()=>{
     const [messages, setMessages] = useState<Message[]>([]);
 
 
-    useEffect(()=>{
-        setLoading(true)
-
-        setTimeout(() => {
-            setMessages(prev=>[...prev,{
-          id: "1",
-          type: "assistant",
-          text: "¡Hola! Soy tu asistente de Semilla Digital. ¿En qué puedo ayudarte hoy? Puedo responder preguntas sobre programas de apoyo, cursos, requisitos y más.",
-          time: new Date().toLocaleTimeString("es-MX", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        }])
-        }, 2000);
-        setLoading(false)
-    },[])
-
     const contextualizacion=(prompt:string)=>{
         if(user.Tipo==='Administracion'){
             return `Yo soy ${user.Nombre} ${user.Apellido1}, soy un Administrador de la plataforma de Semilla Digital que cuenta con informacion de la SEDARPE,

@@ -83,7 +83,7 @@ const InitialDatosUsuario = () => {
         </button>
         <FormularioUsuarioParcelas 
             key={dataRegistro.id || 'producer-form'} 
-            user={dataRegistro} 
+            user={{...dataRegistro.Usuario,...dataRegistro.CamposExtra}} 
         />
         </>
     );

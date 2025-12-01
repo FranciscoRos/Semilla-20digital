@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 export const useCursos=()=>{
 
 
-    const {data:dataCursos,isLoading:loadingCursos}=useQuery({
+    const {data:dataCursos,isLoading:loadingCursos,refetch}=useQuery({
         queryKey:["cursosData"],
         queryFn:()=>getCursos()
     })
@@ -15,6 +15,7 @@ export const useCursos=()=>{
 
     return{
         dataCursos,
-        loadingCursos
+        loadingCursos,
+        refetch
     }
 }

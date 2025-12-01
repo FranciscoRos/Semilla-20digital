@@ -15,6 +15,7 @@ import { getRegistro } from "@/services/registroService";
 import { getCursos } from "@/services/CursosService";
 import { getParcelasGeomapa } from "@/services/parcelasService";
 import { getUbicaciones } from "@/services/ubicacionEService";
+import PaginatorPages from "@/components/paginatorPages";
 
 const NotificationSkeleton = () => (
   <div className="flex gap-4 p-5 rounded-xl bg-gray-50 border-l-4 border-gray-200 animate-pulse">
@@ -76,6 +77,8 @@ export default function ProducerDashboard() {
   const navigate = useNavigate();
   const notificationDiv = useRef<HTMLDivElement>(null);
   const historialDiv = useRef<HTMLDivElement>(null);
+  const [paginateApoyo,setPaginateDataApoyo]=useState([])
+  const [paginateCurso,setPaginateDataCurso]=useState([])
 
   const { data: paraTiData, isLoading: loadingParaTi } = useQuery<Notification[]>({
     queryKey: ["ParaTi"],
@@ -110,9 +113,7 @@ export default function ProducerDashboard() {
   ];
 
   const handleNotificationScroll = () => {
-    // 1. Abrir el dropdown
     setShowNotifications(true);
-    // 2. Hacer scroll
     setTimeout(() => {
         notificationDiv.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -143,14 +144,11 @@ export default function ProducerDashboard() {
 
 useEffect(() => {
   if (loadingRegistro || !dataRegistro?.Estado)return 
-
     const nuevoEstatus = dataRegistro.Estado;
     const estatusActual = user.Estatus;
 
     if (nuevoEstatus === estatusActual)return
-    console.log('que hace aqui')
       try {
-        const userStored = JSON.parse(localStorage.getItem('user') || '{}');
          loadData({ ...user, Estatus: nuevoEstatus });
       } catch (error) {
         console.error("Error actualizando localStorage", error);
@@ -485,7 +483,8 @@ const prefetchHover=(kind:string)=>{
                          {loadingRegistro ? (
                             <NotificationSkeleton />
                          ) : historialApoyos.length > 0 ? (
-                            historialApoyos.map((apoyo: any, idx: number) => (
+                          <div>
+                            {paginateApoyo.map((apoyo: any, idx: number) => (
                                <div key={apoyo.idApoyo || idx} className="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 transition-colors group">
                                   <div className="flex justify-between items-start mb-2">
                                      <h4 className="font-bold text-emerald-900 text-lg pr-4">{apoyo.nombre_programa}</h4>
@@ -510,7 +509,16 @@ const prefetchHover=(kind:string)=>{
                                   </div>
                                </div>
                             ))
-                         ) : (
+                         }
+                         <PaginatorPages
+                            key={1} 
+                            dataxFiltrar={historialApoyos}
+                            ITEMS={4}
+                            changeDatos={(dt) => setPaginateDataApoyo(dt)}
+                          />
+                          </div>
+)
+                          : (
                             <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
                                <HandHeart className="w-10 h-10 mx-auto mb-2 opacity-30" />
                                <p>No tienes historial de apoyos registrado.</p>
@@ -525,7 +533,8 @@ const prefetchHover=(kind:string)=>{
                          {loadingRegistro ? (
                             <NotificationSkeleton />
                          ) : historialCursos.length > 0 ? (
-                            historialCursos.map((curso: any, idx: number) => (
+                          <div>
+                            {paginateCurso.map((curso: any, idx: number) => (
                                <div key={curso.idCurso || idx} className="p-5 rounded-2xl border border-rose-100 bg-rose-50/30 hover:bg-rose-50 transition-colors group relative">
                                   <div className="flex items-start gap-4">
                                      <div className="w-12 h-12 rounded-lg bg-white border border-rose-100 text-rose-600 flex items-center justify-center shadow-sm shrink-0">
@@ -563,6 +572,14 @@ const prefetchHover=(kind:string)=>{
                                   </div>
                                </div>
                             ))
+                          }
+                          <PaginatorPages
+                            key={2} 
+                            dataxFiltrar={historialCursos}
+                            ITEMS={4}
+                            changeDatos={(dt) => setPaginateDataCurso(dt)}
+                          />
+                          </div>
                          ) : (
                             <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
                                <BookOpen className="w-10 h-10 mx-auto mb-2 opacity-30" />

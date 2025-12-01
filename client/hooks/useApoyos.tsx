@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 export const useApoyos=()=>{
 
 
-    const {data:dataApoyos,isLoading:loadingApoyos}=useQuery({
+    const {data:dataApoyos,isLoading:loadingApoyos,refetch}=useQuery({
         queryKey:["apoyosData"],
         queryFn:()=>getApoyos()
     })
@@ -15,6 +15,7 @@ export const useApoyos=()=>{
 
     return{
         dataApoyos,
-        loadingApoyos
+        loadingApoyos,
+        refetch
     }
 }

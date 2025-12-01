@@ -3,7 +3,7 @@ import { MessageCircle, X, Send, Bot, Sparkles } from "lucide-react";
 import { useChatBot } from "@/hooks/useChatBot";
 
 export default function ChatBot() {
-  const { messages, loading, preguntaChat, contextualizacion, setMessages } = useChatBot();
+  const { messages, loading, preguntaChat, contextualizacion, setMessages,setLoading } = useChatBot();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -15,6 +15,23 @@ export default function ChatBot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
+
+  useEffect(()=>{
+        setLoading(true)
+
+        setTimeout(() => {
+            setMessages(prev=>[...prev,{
+          id: "1",
+          type: "assistant",
+          text: "¡Hola! Soy tu asistente de Semilla Digital. ¿En qué puedo ayudarte hoy? Puedo responder preguntas sobre programas de apoyo, cursos, requisitos y más.",
+          time: new Date().toLocaleTimeString("es-MX", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        }])
+        }, 2000);
+        setLoading(false)
+    },[])
 
   const sendMessage = async () => {
     if (!input.trim()) return;
