@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                         Actividad Reciente
                     </h2>
 
-                    <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+                    <div className="space-y-8 ">
                         {recentActivities.map((activity) => (
                             <div key={activity.id} className="relative flex items-start group">
                                 <div className="absolute left-0 top-1 h-3 w-3 ml-[14.5px] rounded-full border border-white bg-slate-300 shadow group-hover:bg-green-500 transition-colors"></div>

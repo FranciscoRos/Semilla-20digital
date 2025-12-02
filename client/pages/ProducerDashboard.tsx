@@ -4,7 +4,8 @@ import {
   Bell, ChevronRight, ChevronDown, User, HandHeart, Bot, BookOpen, Map, Calendar, 
   MessageCircle, Clock, TrendingUp, History, CheckCircle2, AlertCircle, 
   FileText, MapPin, ExternalLink,
-  Zap
+  Zap,
+  ArrowUpRight
 } from "lucide-react";
 import { useAuth } from "@/providers/authProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -86,8 +87,6 @@ export default function ProducerDashboard() {
     initialData: queryClient.getQueryData(["ParaTi"])
   });
 
-
-
   const { dataRegistro, loadingRegistro } = useProducerRegister(user);
   
   const [usuarioA] = useState({
@@ -155,6 +154,15 @@ useEffect(() => {
       }
     
 }, [dataRegistro, loadingRegistro, user.Estatus]);
+
+  const apoyoActual = (fechaFinal: string) => {
+  if (!fechaFinal) return false;
+  const hoy = new Date();
+  const fin = new Date(fechaFinal);
+  fin.setHours(23, 59, 59, 999);
+
+  return hoy <= fin;
+}
 
 const prefetchHover=(kind:string)=>{
   const commonStaleTime = 1000 * 60 * 3;
@@ -375,9 +383,11 @@ const prefetchHover=(kind:string)=>{
                         <p className="text-sm text-gray-600 mt-1">
                            {citaVerificacion.PropositoCita || "Verificación de documentos"}
                         </p>
+                        {citaVerificacion.Administrador.idAdministrador &&
                         <div className="mt-2 text-xs text-blue-700 bg-blue-100 inline-block px-2 py-1 rounded">
-                           Estado: Pendiente
+                           {`Agendada por: ${citaVerificacion.Administrador.Nombre} ${citaVerificacion.Administrador.Apellido1}`}
                         </div>
+                        }     
                      </div>
                   ) : (
                      <div className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded-lg border border-dashed">
@@ -401,9 +411,13 @@ const prefetchHover=(kind:string)=>{
                          </span>
                       </div>
                       {revisionPerfil.ComentariosRevision && (
-                         <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-2">
+                         <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded border border-red-100 items-start gap-2 flex flex-col">
                             <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0"/>
                             {revisionPerfil.ComentariosRevision}
+
+                            <div className="mt-2 text-xs text-red-700 bg-red-100 inline-block px-2 py-1 rounded">
+                              {`Revision hecha por: ${revisionPerfil.Administrador.Nombre} ${revisionPerfil.Administrador.Apellido1}`}
+                           </div>
                          </div>
                       )}
                       {!revisionPerfil.ComentariosRevision && registroInfo.Estado !== 'Verificado' && (
@@ -412,31 +426,44 @@ const prefetchHover=(kind:string)=>{
                    </div>
                 </div>
 
-                {/* 3. Resumen Rápido de Apoyos (Solo lista simple) */}
+                {/* 3. RESUMEN RÁPIDO DE APOYOS (NUEVO DISEÑO) */}
                 <div>
                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                      <HandHeart className="w-4 h-4" /> Apoyos Activos
                    </h3>
                    {historialApoyos.length > 0 ? (
-                      <ul className="space-y-2">
+                      <div className="space-y-3">
                         {historialApoyos.slice(0, 3).map((apoyo: any, index: number) => (
-                           <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0"></span>
-                              <span className="line-clamp-1">{apoyo.nombre_programa}</span>
-                           </li>
+                           <div key={index} className="group flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md hover:border-emerald-100 transition-all cursor-default">
+                              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 group-hover:scale-110 transition-transform">
+                                <HandHeart className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-gray-800 truncate">{apoyo.nombre_programa}</p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <p className="text-[10px] font-medium text-gray-400">Solicitado</p>
+                                </div>
+                              </div>
+                           </div>
                         ))}
                         {historialApoyos.length > 3 && (
-                           <li className="text-xs text-blue-600 pl-4 font-medium">+ {historialApoyos.length - 3} más...</li>
+                           <button onClick={() => setActiveHistoryTab('supports')} className="w-full text-xs text-blue-600 font-semibold text-center hover:underline py-1">
+                              Ver {historialApoyos.length - 3} más...
+                           </button>
                         )}
-                      </ul>
+                      </div>
                    ) : (
-                      <p className="text-sm text-gray-400">No has solicitado apoyos aún.</p>
+                      <div className="text-center py-6 px-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                         <HandHeart className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                         <p className="text-sm text-gray-400 font-medium">No has solicitado apoyos aún.</p>
+                      </div>
                    )}
                 </div>
              </div>
           </div>
 
-          {/* COLUMNA DERECHA: HISTORIAL DETALLADO (Toggle: Apoyos vs Cursos) */}
+
           <div className="lg:col-span-2">
              <div className="bg-white rounded-3xl p-6 shadow-xl border border-purple-100 min-h-[500px]">
                 
@@ -488,13 +515,20 @@ const prefetchHover=(kind:string)=>{
                                <div key={apoyo.idApoyo || idx} className="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 transition-colors group">
                                   <div className="flex justify-between items-start mb-2">
                                      <h4 className="font-bold text-emerald-900 text-lg pr-4">{apoyo.nombre_programa}</h4>
+                                     <div className="space-x-3 flex-col">
                                      {apoyo.agendacionCita?.FechaCita && (
                                          <span className="text-[10px] font-bold bg-white border border-emerald-200 text-emerald-600 px-2 py-1 rounded-full whitespace-nowrap">
                                             Cita: {new Date(apoyo.agendacionCita.FechaCita).toLocaleDateString()}
                                          </span>
                                      )}
+                                     {apoyoActual(apoyo.fechaFinalizacion) && (
+                                         <span className="text-[10px] font-bold bg-white border border-emerald-200 text-emerald-600 px-2 py-1 rounded-full whitespace-nowrap flex items-center gap-1 w-fit mt-1 ml-auto">
+                                           <CheckCircle2 className="w-3 h-3"/> Vigente
+                                         </span>
+                                     )}
+                                     </div>
                                   </div>
-                                  <p className="text-sm text-gray-600 mb-3">{apoyo.descripcion}</p>
+                                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{apoyo.descripcion}</p>
                                   
                                   <div className="flex flex-wrap gap-3 text-xs text-gray-500 border-t border-emerald-100 pt-3">
                                      <span className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-100">
@@ -503,27 +537,27 @@ const prefetchHover=(kind:string)=>{
                                      </span>
                                      {apoyo.costo && (
                                         <span className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-gray-100">
-                                           💰 Costo: {apoyo.costo}
+                                            💰 Costo: {apoyo.costo}
                                         </span>
                                      )}
                                   </div>
                                </div>
                             ))
-                         }
-                         <PaginatorPages
+                          }
+                          <PaginatorPages
                             key={1} 
                             dataxFiltrar={historialApoyos}
                             ITEMS={4}
                             changeDatos={(dt) => setPaginateDataApoyo(dt)}
                           />
                           </div>
-)
+                          )
                           : (
-                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                                <HandHeart className="w-10 h-10 mx-auto mb-2 opacity-30" />
                                <p>No tienes historial de apoyos registrado.</p>
                             </div>
-                         )}
+                          )}
                       </div>
                    )}
 
@@ -537,37 +571,38 @@ const prefetchHover=(kind:string)=>{
                             {paginateCurso.map((curso: any, idx: number) => (
                                <div key={curso.idCurso || idx} className="p-5 rounded-2xl border border-rose-100 bg-rose-50/30 hover:bg-rose-50 transition-colors group relative">
                                   <div className="flex items-start gap-4">
-                                     <div className="w-12 h-12 rounded-lg bg-white border border-rose-100 text-rose-600 flex items-center justify-center shadow-sm shrink-0">
+                                     <div className="w-12 h-12 rounded-xl bg-white border border-rose-100 text-rose-600 flex items-center justify-center shadow-sm shrink-0">
                                         <BookOpen className="w-6 h-6" />
                                      </div>
                                      <div className="flex-1">
-                                        <h4 className="font-bold text-gray-800 text-lg">{curso.Titulo}</h4>
-                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">{curso.Descripcion}</p>
+                                        <div className="flex justify-between items-start">
+                                            <h4 className="font-bold text-gray-800 text-lg leading-tight">{curso.Titulo}</h4>
+                                            {curso.Url && (
+                                                <a href={curso.Url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-rose-600 transition-colors p-1">
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </a>
+                                            )}
+                                        </div>
+                                        <p className="text-sm text-gray-600 mb-3 line-clamp-2 mt-1">{curso.Descripcion}</p>
                                         
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4 text-xs text-gray-500">
-                                           <div className="flex items-center gap-1.5">
-                                              <MapPin className="w-3.5 h-3.5 text-rose-400"/>
-                                              <span className="truncate">{curso.DireccionUbicacion}</span>
+                                        <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                                           <div className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-rose-100">
+                                              <MapPin className="w-3 h-3 text-rose-400"/>
+                                              <span className="truncate max-w-[150px]">{curso.DireccionUbicacion}</span>
                                            </div>
-                                           <div className="flex items-center gap-1.5">
-                                              <Calendar className="w-3.5 h-3.5 text-rose-400"/>
+                                           <div className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-rose-100">
+                                              <Calendar className="w-3 h-3 text-rose-400"/>
                                               <span>
                                                  {curso.FechaCurso && curso.FechaCurso[0] 
                                                    ? new Date(curso.FechaCurso[0]).toLocaleDateString() 
                                                    : "Fecha por definir"}
                                               </span>
                                            </div>
-                                           <div className="flex items-center gap-1.5">
-                                               <span className={`w-2 h-2 rounded-full ${curso.Modalidad === 'Presencial' ? 'bg-purple-500' : 'bg-blue-500'}`}></span>
-                                               {curso.Modalidad}
+                                           <div className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-rose-100">
+                                                <span className={`w-1.5 h-1.5 rounded-full ${curso.Modalidad === 'Presencial' ? 'bg-purple-500' : 'bg-blue-500'}`}></span>
+                                                {curso.Modalidad}
                                            </div>
                                         </div>
-
-                                        {curso.Url && (
-                                           <a href={curso.Url} target="_blank" rel="noopener noreferrer" className="absolute top-5 right-5 text-gray-400 hover:text-rose-600 transition-colors">
-                                              <ExternalLink className="w-5 h-5" />
-                                           </a>
-                                        )}
                                      </div>
                                   </div>
                                </div>
@@ -580,12 +615,12 @@ const prefetchHover=(kind:string)=>{
                             changeDatos={(dt) => setPaginateDataCurso(dt)}
                           />
                           </div>
-                         ) : (
-                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                          ) : (
+                            <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                                <BookOpen className="w-10 h-10 mx-auto mb-2 opacity-30" />
                                <p>No tienes cursos registrados.</p>
                             </div>
-                         )}
+                          )}
                       </div>
                    )}
                 </div>

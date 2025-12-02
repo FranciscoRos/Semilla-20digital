@@ -39,6 +39,7 @@ export default function GestionProductores() {
   const [showCitaModal, setShowCitaModal] = useState(false);
   const [showRevisionModal, setShowRevisionModal] = useState(false);
   const [productorSel, setProductorSel] = useState<PerfilRegistro | null>(null);
+  const [rechazo,setRechazo]=useState(false)
 
   const [citaForm, setCitaForm] = useState({
     FechaCita: "",
@@ -48,8 +49,7 @@ export default function GestionProductores() {
 
   const [comentarioRevision, setComentarioRevision] = useState("");
 
-  // Para que cambie de "Sin cita" a la info en cuanto guardas,
-  // sin depender de recargar todo.
+ 
   const [citasLocales, setCitasLocales] = useState<Record<string, any>>({});
 
   const filtrados = useMemo(() => {
@@ -112,6 +112,7 @@ export default function GestionProductores() {
         return "bg-gray-100 text-gray-600";
     }
   };
+
 
   // ---------- CITA ----------
   const abrirCita = (productor: PerfilRegistro) => {
@@ -198,8 +199,6 @@ export default function GestionProductores() {
       });
       return;
     }
-
-    // Igual que en UsuariosRevision, pero aquí NO forzamos Rechazado
     handleRevisionProductor.mutate({
       idProc: productorSel.id,
       data: {
@@ -207,6 +206,13 @@ export default function GestionProductores() {
         ComentariosRevision: comentarioRevision,
       },
     });
+    if(rechazo)handleChangeEstado.mutate({
+      idProc: productorSel.id,
+      data: {
+        Estado: "Rechazado",
+      },
+    })
+    
 
     cerrarRevision();
   };
@@ -449,13 +455,17 @@ export default function GestionProductores() {
                             className="border border-gray-200 rounded-lg text-xs px-2 py-1 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                             value={mapEstadoToOption(p.Estado)}
                             disabled={loadingRevision}
-                            onChange={(e) =>
+                            onChange={(e) =>{
+                              if (confirm(`¿Estas seguro de cambiar el estado del usuario ${p.Usuario.Nombre}?`)){
+                              if(mapOptionToEstado(e.target.value)==="Rechazado") return (setRechazo(true),abrirRevision(p))
                               handleChangeEstado.mutate({
                                 idProc: p.id,
                                 data: {
                                   Estado: mapOptionToEstado(e.target.value),
                                 },
                               })
+                            }
+                            }
                             }
                           >
                             <option value="Pendiente">Pendiente</option>
