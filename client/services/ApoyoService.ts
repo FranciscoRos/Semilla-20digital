@@ -92,6 +92,27 @@ export const updateApoyo = async (
   return null;
 };
 
+
+export interface AgendarCitaApoyoPayload {
+  idApoyo: string;
+  idUsuario: string;
+  FechaCita: string; // formato YYYY-MM-DD
+  HoraCita: string;
+  PropositoCita: string;
+}
+
+// POST /apoyo/agendarCita
+export const agendarCitaApoyo = async (
+  payload: AgendarCitaApoyoPayload
+): Promise<any> => {
+  await authHeader(apoyosApi);
+  const res = await apoyosApi.post("apoyo/agendarCita", payload);
+  return res.data;
+};
+
+
+
+
 // DELETE /apoyo/{id}
 export const deleteApoyo = async (id: string): Promise<void> => {
   await authHeader(apoyosApi);

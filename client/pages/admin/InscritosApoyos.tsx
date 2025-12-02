@@ -8,7 +8,9 @@ import {
   User,
   X,
 } from "lucide-react";
-import { getApoyos, updateApoyo, Apoyo } from "@/services/ApoyoService";
+import { getApoyos, Apoyo, agendarCitaApoyo } from "@/services/ApoyoService";
+import { getPerfilesRegistro, PerfilRegistro } from "@/services/PendientesReviService";
+import { useRevisionRegistro } from "@/hooks/useRevisionRegistro";
 import LoadingSDloading from "@/components/loadingSDloading";
 
 interface CitaForm {
@@ -34,6 +36,14 @@ export default function InscritosApoyos() {
   const [showCitaModal, setShowCitaModal] = useState(false);
   const [inscritoSel, setInscritoSel] = useState<any | null>(null);
   const [savingCita, setSavingCita] = useState(false);
+
+  const [perfilesRegistro, setPerfilesRegistro] = useState<PerfilRegistro[]>([]);
+  const [loadingPerfiles, setLoadingPerfiles] = useState(false);
+  const [perfilRegistroIdSel, setPerfilRegistroIdSel] = useState<string | null>(
+    null
+  );
+
+  const { handleCitaProductor } = useRevisionRegistro();
 
   const [citaForm, setCitaForm] = useState<CitaForm>({
     FechaCita: "",
@@ -68,6 +78,22 @@ export default function InscritosApoyos() {
     load();
   }, [idApoyo]);
 
+  // Cargar todos los perfiles de registro para poder mapear Usuario.idUsuario -> PerfilRegistro.id
+  useEffect(() => {
+    const loadPerfiles = async () => {
+      try {
+        setLoadingPerfiles(true);
+        const lista = await getPerfilesRegistro();
+        setPerfilesRegistro(lista);
+      } catch (error) {
+        console.error("Error cargando perfiles de registro:", error);
+      } finally {
+        setLoadingPerfiles(false);
+      }
+    };
+    loadPerfiles();
+  }, []);
+
   const getNombreUsuario = (persona: any) => {
     const u = persona.Usuario;
     if (!u) return "Nombre no disponible";
@@ -78,26 +104,30 @@ export default function InscritosApoyos() {
 
   const getDescripcionParcela = (persona: any): string => {
     const parc = persona.parcela;
-    if (!parc) return "N/D";
-    if (typeof parc === "string") return parc;
+    if (!parc) return "Parcela no especificada";
 
-    if (Array.isArray(parc)) {
-      return parc
-        .map(
-          (p) =>
-            p.nombre ||
-            `${p.ciudad ?? ""} ${p.municipio ?? ""}`.trim() ||
-            `Parcela ${p.idParcela ?? ""}`
-        )
-        .join(", ");
+    if (typeof parc === "string") {
+      return `Parcela ${parc}`;
     }
 
-    return (
-      parc.nombre ||
-      `${parc.ciudad ?? ""} ${parc.municipio ?? ""}`.trim() ||
-      `Parcela ${parc.idParcela ?? ""}` ||
-      "Parcela registrada"
+    const partes: string[] = [];
+    if (parc.nombre) partes.push(parc.nombre);
+    if (parc.localidad) partes.push(parc.localidad);
+    if (parc.municipio) partes.push(parc.municipio);
+    if (parc.ciudad) partes.push(parc.ciudad);
+
+    const base = partes.join(", ");
+    return base || "Parcela registrada";
+  };
+
+  const getPerfilRegistroId = (persona: any): string | null => {
+    const u = persona.Usuario;
+    const idUsuario = typeof u === "string" ? u : u?.idUsuario;
+    if (!idUsuario) return null;
+    const perfil = perfilesRegistro.find(
+      (p) => (p as any).Usuario?.idUsuario === idUsuario
     );
+    return perfil ? (perfil as any).id : null;
   };
 
   const totalInscritos = inscritos.length;
@@ -107,26 +137,23 @@ export default function InscritosApoyos() {
     const term = searchTerm.trim().toLowerCase();
 
     return inscritos.filter((p) => {
+      const nombre = getNombreUsuario(p).toLowerCase();
+      const parcelaStr = getDescripcionParcela(p).toLowerCase();
+
+      const matchesSearch =
+        !term ||
+        nombre.includes(term) ||
+        parcelaStr.includes(term) ||
+        (p.Usuario?.Curp || "").toLowerCase().includes(term);
+
+      if (!matchesSearch) return false;
+
       const cita = p.agendacionCita;
       const tieneCita = !!cita;
 
-      if (filtroEstado === "con_cita" && !tieneCita) return false;
-      if (filtroEstado === "sin_cita" && tieneCita) return false;
-
-      if (!term) return true;
-
-      const nombre = getNombreUsuario(p).toLowerCase();
-      const curp =
-        (p.Usuario && p.Usuario.Curp ? p.Usuario.Curp : p.curp || "") + "";
-      const parcela = getDescripcionParcela(p).toLowerCase();
-      const ubicacion = (p.ubicacion || "").toLowerCase();
-
-      return (
-        nombre.includes(term) ||
-        curp.toLowerCase().includes(term) ||
-        parcela.includes(term) ||
-        ubicacion.includes(term)
-      );
+      if (filtroEstado === "con_cita") return tieneCita;
+      if (filtroEstado === "sin_cita") return !tieneCita;
+      return true;
     });
   }, [inscritos, searchTerm, filtroEstado]);
 
@@ -142,11 +169,16 @@ export default function InscritosApoyos() {
           ? c.Administrador
           : c.Administrador?.idAdministrador || "",
     });
+
+    const perfilId = getPerfilRegistroId(persona);
+    setPerfilRegistroIdSel(perfilId ?? null);
+
     setShowCitaModal(true);
   };
 
   const cerrarCita = () => {
     setInscritoSel(null);
+    setPerfilRegistroIdSel(null);
     setShowCitaModal(false);
     setCitaForm({
       FechaCita: "",
@@ -163,7 +195,7 @@ export default function InscritosApoyos() {
     try {
       setSavingCita(true);
 
-      // 1) Actualizar en estado local
+      // 1) Actualizar en estado local (UI)
       const nuevosInscritos = inscritos.map((p) =>
         p === inscritoSel
           ? {
@@ -178,77 +210,50 @@ export default function InscritosApoyos() {
             }
           : p
       );
+
       setInscritos(nuevosInscritos);
       setApoyo((prev) =>
         prev ? ({ ...prev, Beneficiados: nuevosInscritos } as any) : prev
       );
 
-      // 2) Construir Beneficiados en formato que espera el back
-      const beneficiadosForBackend = nuevosInscritos
-        .map((b: any) => {
-          const u = b.Usuario;
-          const parc = b.parcela;
+      // 2) Agendar cita también en el perfil de registro (si existe)
+      const perfilId =
+        perfilRegistroIdSel ?? getPerfilRegistroId(inscritoSel);
 
-          const usuarioId =
-            typeof u === "string" ? u : u?.idUsuario ?? undefined;
-          const parcelaId =
-            typeof parc === "string" ? parc : parc?.idParcela ?? undefined;
+      if (perfilId) {
+        handleCitaProductor.mutate({
+          idProc: perfilId,
+          data: {
+            FechaCita: new Date(citaForm.FechaCita),
+            HoraCita: citaForm.HoraCita,
+            PropositoCita: citaForm.PropositoCita,
+          },
+        });
+      } else {
+        console.warn(
+          "No se encontró PerfilRegistro para este beneficiado; solo se agenda la cita en el apoyo."
+        );
+      }
 
-          if (!usuarioId || !parcelaId) {
-            return null; // evitamos romper el validador con datos incompletos
-          }
+      // 3) Llamar al endpoint dedicado del apoyo para guardar la cita del beneficiado
+      const usuarioId =
+        typeof inscritoSel.Usuario === "string"
+          ? inscritoSel.Usuario
+          : inscritoSel.Usuario?.idUsuario;
 
-          const ag = b.agendacionCita || {};
-
-          const tieneCita =
-            ag.FechaCita || ag.HoraCita || ag.PropositoCita || ag.Administrador;
-
-          return {
-            Usuario: usuarioId,
-            parcela: parcelaId,
-            fechaRegistro: b.fechaRegistro ?? undefined,
-            ...(tieneCita && {
-              agendacionCita: {
-                Administrador: null, // por ahora no mandamos ID real para evitar errores de ObjectId
-                FechaCita: ag.FechaCita || citaForm.FechaCita || null,
-                HoraCita: ag.HoraCita || citaForm.HoraCita || null,
-                PropositoCita:
-                  ag.PropositoCita || citaForm.PropositoCita || null,
-              },
-            }),
-          };
-        })
-        .filter(Boolean) as any[];
-
-      // 3) Payload completo como en GestionApoyos
-      const payload: any = {
-        nombre_programa: (apoyo as any).nombre_programa,
-        descripcion: (apoyo as any).descripcion,
-        objetivo: (apoyo as any).objetivo,
-        tipo_objetivo: (apoyo as any).tipo_objetivo,
-        fechaInicio: (apoyo as any).fechaInicio,
-        fechaFin: (apoyo as any).fechaFin,
-
-        institucion_encargada: (apoyo as any).institucion_encargada,
-        institucion_acronimo: (apoyo as any).institucion_acronimo,
-        direccion: (apoyo as any).direccion,
-        horarios_atencion: (apoyo as any).horarios_atencion,
-        telefono_contacto: (apoyo as any).telefono_contacto,
-        correo_contacto: (apoyo as any).correo_contacto,
-        redes_sociales: (apoyo as any).redes_sociales,
-        latitud_institucion: (apoyo as any).latitud_institucion,
-        longitud_institucion: (apoyo as any).longitud_institucion,
-
-        Requerimientos: (apoyo as any).Requerimientos ?? [],
-        numero_beneficiados_actual: beneficiadosForBackend.length,
-        Beneficiados: beneficiadosForBackend,
-      };
-
-      const apoyoId = (apoyo as any).id;
-      console.log("ID usado en updateApoyo:", apoyoId);
-      console.log("Payload que se enviará a updateApoyo:", payload);
-
-      await updateApoyo(String(apoyoId), payload);
+      if (!usuarioId) {
+        console.warn(
+          "El beneficiado no tiene idUsuario; no se puede llamar a /apoyo/agendarCita."
+        );
+      } else {
+        await agendarCitaApoyo({
+          idApoyo: (apoyo as any).id,
+          idUsuario: usuarioId,
+          FechaCita: citaForm.FechaCita,
+          HoraCita: citaForm.HoraCita,
+          PropositoCita: citaForm.PropositoCita,
+        });
+      }
 
       cerrarCita();
     } catch (err: any) {
@@ -260,7 +265,7 @@ export default function InscritosApoyos() {
     }
   };
 
-  if (loading) return <LoadingSDloading />;
+  if (loading || loadingPerfiles) return <LoadingSDloading />;
 
   if (!apoyo) {
     return (
@@ -284,75 +289,62 @@ export default function InscritosApoyos() {
         onClick={() => navigate("/admin/gestion-apoyos")}
         className="flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4"
       >
-        <ChevronLeft className="w-4 h-4 mr-1" /> Volver a gestión de apoyos
+        <ChevronLeft className="w-4 h-4 mr-1" /> Volver
       </button>
 
-      <h1 className="text-2xl font-bold text-gray-900 mb-1">
-        Inscritos en: {apoyo.nombre_programa}
-      </h1>
-      <p className="text-sm text-gray-500 mb-6">
-        Vigencia: {apoyo.fechaInicio} — {apoyo.fechaFin}
-      </p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="p-4 border rounded-xl bg-gray-50">
-          <p className="text-xs text-gray-500">Total inscritos</p>
-          <p className="text-xl font-bold">{totalInscritos}</p>
-        </div>
-        <div className="p-4 border rounded-xl bg-green-50">
-          <p className="text-xs text-green-700">Con cita</p>
-          <p className="text-xl font-bold text-green-800">{totalConCita}</p>
-        </div>
-        <div className="p-4 border rounded-xl bg-yellow-50">
-          <p className="text-xs text-yellow-700">Sin cita</p>
-          <p className="text-xl font-bold text-yellow-800">
-            {totalInscritos - totalConCita}
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900 mb-1">
+          Beneficiados del apoyo
+        </h1>
+        <p className="text-sm text-gray-600 mb-1">
+          <span className="font-medium">{apoyo.nombre_programa}</span>
+        </p>
+        <p className="text-xs text-gray-500">
+          {totalInscritos} inscritos · {totalConCita} con cita agendada
+        </p>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex flex-col md:flex-row gap-4 items-center">
-        <div className="flex-1 relative w-full">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Filtros y buscador */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div className="flex-1 flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <Search className="w-4 h-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Buscar por nombre, CURP, parcela o ubicación..."
-            className="w-full pl-9 pr-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+            placeholder="Buscar por nombre, CURP o ubicación de parcela..."
+            className="w-full text-sm outline-none bg-transparent placeholder:text-gray-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-500">Filtrar:</span>
           <button
-            type="button"
             onClick={() => setFiltroEstado("todos")}
             className={`px-3 py-1.5 text-xs rounded-full border ${
               filtroEstado === "todos"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-gray-600 border-gray-300"
+                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                : "bg-white text-gray-600 border-gray-200"
             }`}
           >
             Todos
           </button>
           <button
-            type="button"
             onClick={() => setFiltroEstado("con_cita")}
             className={`px-3 py-1.5 text-xs rounded-full border ${
               filtroEstado === "con_cita"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-gray-600 border-gray-300"
+                ? "bg-blue-50 text-blue-700 border-blue-200"
+                : "bg-white text-gray-600 border-gray-200"
             }`}
           >
             Con cita
           </button>
           <button
-            type="button"
             onClick={() => setFiltroEstado("sin_cita")}
             className={`px-3 py-1.5 text-xs rounded-full border ${
               filtroEstado === "sin_cita"
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-gray-600 border-gray-300"
+                ? "bg-amber-50 text-amber-700 border-amber-200"
+                : "bg-white text-gray-600 border-gray-200"
             }`}
           >
             Sin cita
@@ -360,199 +352,178 @@ export default function InscritosApoyos() {
         </div>
       </div>
 
-      {filteredInscritos.length === 0 ? (
-        <div className="p-12 text-center text-gray-500 border border-dashed rounded-xl bg-white">
-          No hay personas inscritas que coincidan con los filtros.
+      {/* Lista de inscritos */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="border-b border-gray-100 px  -4 py-3 flex items-center justify-between bg-gray-50">
+          <h2 className="text-sm font-medium text-gray-800">
+            Productores inscritos
+          </h2>
+          <span className="text-xs text-gray-500">
+            Mostrando {filteredInscritos.length} registros
+          </span>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredInscritos.map((p, i) => {
-            const cita = p.agendacionCita;
 
-            return (
-              <div
-                key={i}
-                className="bg-white p-4 border rounded-xl shadow-sm hover:shadow-md transition"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <User className="w-5 h-5 text-green-700" />
+        {filteredInscritos.length === 0 ? (
+          <div className="p-6 text-center text-sm text-gray-500">
+            No hay productores que coincidan con el criterio de búsqueda / filtros.
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-100">
+            {filteredInscritos.map((p, i) => {
+              const cita = p.agendacionCita || {};
+              const tieneCita =
+                cita.FechaCita || cita.HoraCita || cita.PropositoCita;
+
+              return (
+                <div
+                  key={i}
+                  className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-gray-50"
+                >
+                  <div className="flex-1 flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-semibold">
+                      <User className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900 text-sm">
+                      <p className="text-sm font-medium text-gray-900 flex items-center gap-2">
                         {getNombreUsuario(p)}
+                        {tieneCita && (
+                          <span className="inline-flex items-center px-2 py-0.5 text-[10px] rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            Cita agendada
+                          </span>
+                        )}
                       </p>
-                      <p className="text-xs text-gray-600">
-                        Parcela: {getDescripcionParcela(p)}
+                      <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
+                        <MapPin className="w-3 h-3" />
+                        <span>{getDescripcionParcela(p)}</span>
                       </p>
-                    </div>
-                  </div>
-
-                  <span
-                    className={`text-[11px] px-2 py-1 rounded-full ${
-                      cita
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-gray-50 text-gray-500 border border-gray-200"
-                    }`}
-                  >
-                    {cita ? "Con cita" : "Sin cita"}
-                  </span>
-                </div>
-
-                <div className="mt-3 space-y-1 text-xs text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3 text-gray-400" />
-                    <span>
-                      Registro: {p.fechaRegistro || "No disponible"}
-                    </span>
-                  </div>
-
-                  {p.ubicacion && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-3 h-3 text-gray-400" />
-                      <span>{p.ubicacion}</span>
-                    </div>
-                  )}
-
-                  {cita && (
-                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
-                      <p className="text-[11px] font-semibold text-green-800">
-                        Detalles de la cita
-                      </p>
-                      <p className="text-[11px]">
-                        <strong>Fecha:</strong> {cita.FechaCita}
-                      </p>
-                      <p className="text-[11px]">
-                        <strong>Hora:</strong> {cita.HoraCita}
-                      </p>
-                      <p className="text-[11px]">
-                        <strong>Propósito:</strong> {cita.PropositoCita}
-                      </p>
-                      {cita.Administrador && (
-                        <p className="text-[11px]">
-                          <strong>Administrador:</strong>{" "}
-                          {typeof cita.Administrador === "string"
-                            ? cita.Administrador
-                            : cita.Administrador?.Nombre || "Administrador"}
+                      {tieneCita && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          <span className="font-medium">Cita:</span>{" "}
+                          {cita.FechaCita || "Fecha no definida"} ·{" "}
+                          {cita.HoraCita || "Hora no definida"}
                         </p>
                       )}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div className="mt-3 flex justify-end">
-                  <button
-                    onClick={() => abrirCita(p)}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
-                  >
-                    {cita ? "Editar cita" : "Agendar cita"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => abrirCita(p)}
+                      className="px-3 py-1.5 text-xs rounded-lg bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-colors"
+                    >
+                      <Calendar className="w-3 h-3 inline mr-1" />
+                      {tieneCita ? "Editar cita" : "Agendar cita"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
+      </div>
 
+      {/* Modal de cita */}
       {showCitaModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <form
-            onSubmit={guardarCita}
-            className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl relative"
-          >
+        <div className="fixed inset-0 flex items-center justify-center z-40">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={!savingCita ? cerrarCita : undefined}
+          />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-5 z-50">
             <button
-              type="button"
-              onClick={cerrarCita}
-              className="absolute top-4 right-4 text-gray-500 hover:bg-gray-100 p-1 rounded-full"
+              onClick={!savingCita ? cerrarCita : undefined}
+              className="absolute top-4 right-4 text-gray-500 hover:bg-gray-100 rounded-full p-1"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            <h2 className="text-lg font-bold mb-4">
-              Cita para {inscritoSel ? getNombreUsuario(inscritoSel) : ""}
-            </h2>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">
+              {inscritoSel
+                ? `Agendar cita con ${getNombreUsuario(inscritoSel)}`
+                : "Agendar cita"}
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Define la fecha, hora y propósito de la cita con el productor.
+            </p>
 
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold">Fecha</label>
+            <form className="space-y-3" onSubmit={guardarCita}>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Fecha de la cita
+                </label>
+                <div className="relative">
                   <input
                     type="date"
-                    required
-                    className="w-full border rounded-lg p-2 text-sm"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
                     value={citaForm.FechaCita}
                     onChange={(e) =>
-                      setCitaForm({ ...citaForm, FechaCita: e.target.value })
+                      setCitaForm((prev) => ({
+                        ...prev,
+                        FechaCita: e.target.value,
+                      }))
                     }
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold">Hora</label>
-                  <input
-                    type="time"
                     required
-                    className="w-full border rounded-lg p-2 text-sm"
-                    value={citaForm.HoraCita}
-                    onChange={(e) =>
-                      setCitaForm({ ...citaForm, HoraCita: e.target.value })
-                    }
                   />
+                  <Calendar className="w-4 h-4 text-gray-400 absolute right-3 top-2.5 pointer-events-none" />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold">Propósito</label>
-                <textarea
-                  rows={2}
-                  required
-                  className="w-full border rounded-lg p-2 text-sm"
-                  value={citaForm.PropositoCita}
-                  onChange={(e) =>
-                    setCitaForm({
-                      ...citaForm,
-                      PropositoCita: e.target.value,
-                    })
-                  }
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold">
-                  Administrador (solo vista)
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Hora de la cita
                 </label>
                 <input
-                  type="text"
-                  className="w-full border rounded-lg p-2 text-sm"
-                  value={citaForm.Administrador}
+                  type="time"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+                  value={citaForm.HoraCita}
                   onChange={(e) =>
-                    setCitaForm({
-                      ...citaForm,
-                      Administrador: e.target.value,
-                    })
+                    setCitaForm((prev) => ({
+                      ...prev,
+                      HoraCita: e.target.value,
+                    }))
                   }
+                  required
                 />
               </div>
-            </div>
 
-            <div className="flex justify-end gap-2 mt-5">
-              <button
-                type="button"
-                onClick={cerrarCita}
-                className="px-4 py-2 text-xs bg-gray-100 rounded-lg"
-                disabled={savingCita}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:opacity-60"
-                disabled={savingCita}
-              >
-                {savingCita ? "Guardando..." : "Guardar cita"}
-              </button>
-            </div>
-          </form>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">
+                  Propósito de la cita
+                </label>
+                <textarea
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 min-h-[70px]"
+                  placeholder="Describe brevemente el motivo de la cita..."
+                  value={citaForm.PropositoCita}
+                  onChange={(e) =>
+                    setCitaForm((prev) => ({
+                      ...prev,
+                      PropositoCita: e.target.value,
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={!savingCita ? cerrarCita : undefined}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={savingCita}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60"
+                  disabled={savingCita}
+                >
+                  {savingCita ? "Guardando..." : "Guardar cita"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

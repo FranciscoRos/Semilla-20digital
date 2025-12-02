@@ -106,17 +106,10 @@ export default function UsuariosRevision() {
   const handleApprove = async () => {
     if (!selectedPerfil) return;
     if (!confirm("¿Estás seguro de aprobar este perfil?")) return;
-    try {
-      await aprobarPerfilRegistro(selectedPerfil.id);
-      toast({
-        title:"Productor Aceptado Exitosamente!",
-        variant: "default",
-        className: "bg-purple-50 border-purple-200 text-purple-900",
-        duration:3000
-      })
-    } catch (err) {
-      console.error("Error aprobando perfil:", err);
+    handleChangeEstado.mutate({idProc:selectedId,data:{
+      Estado:"Verificado"
     }
+  })
   };
 
   const handleConfirmReject = async () => {
