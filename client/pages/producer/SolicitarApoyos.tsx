@@ -16,6 +16,7 @@ import { useInscripciones } from "@/hooks/useInscripciones";
 import LoadingSDloading from "@/components/loadingSDloading";
 import { Apoyo } from "@/services/ApoyoService";
 import PaginatorPages from "@/components/paginatorPages";
+import { useQueryClient } from "@tanstack/react-query";
 
 // --- UTILS & HELPERS ---
 
@@ -360,6 +361,7 @@ const ApoyoModal = ({ isOpen, onClose, apoyo, usuario, onSubmit }) => {
 
 export default function SolicitarApoyos() {
   const {handleInscripcionApoyo,loading}=useInscripciones(()=>handleCloseModal())
+  const queryClient=useQueryClient()
   const { user } = useAuth();
   const location=useLocation()
   const navigate = useNavigate();
@@ -393,6 +395,9 @@ export default function SolicitarApoyos() {
 
   const handleCloseModal=()=>{
     setModalOpen(false)
+  queryClient.invalidateQueries({ 
+    queryKey: ['registroProducer', user?.idRegistro] 
+  })
     setSelectedApoyo(null)
   }
 

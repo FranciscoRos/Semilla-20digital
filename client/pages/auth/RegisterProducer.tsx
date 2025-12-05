@@ -535,6 +535,7 @@ const FormularioUsuarioParcelas = ({ user = null }) => {
                         </div>
                         <div className="h-[600px] bg-gray-100 rounded-xl overflow-auto border-2 border-gray-200">
                              <MapaDibujo 
+                                key={"registro1"}
                                  initialParcelas={usuario.Parcela} 
                                  onParcelasChange={(parcelas) => setDatosusuario(prev => ({...prev, Parcela: parcelas}))}
                              />

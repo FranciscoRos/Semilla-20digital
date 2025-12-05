@@ -15,6 +15,7 @@ import { useInscripciones } from "@/hooks/useInscripciones";
 import LoadingSDloading from "@/components/loadingSDloading";
 import PaginatorPages from "@/components/paginatorPages";
 import { Curso } from "@/services/CursosService";
+import { useQueryClient } from "@tanstack/react-query";
 
 // --- UTILS ---
 const formatDate = (fechaArray) => {
@@ -214,6 +215,7 @@ const CursoModal = ({ isOpen, onClose, curso, user, onSubmit }) => {
 // --- COMPONENTE PRINCIPAL ---
 
 export default function SolicitarCursos() {
+  const queryClient=useQueryClient()
   const {handleInscripcionCurso,loading}=useInscripciones(()=>handleCloseModal())
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -244,6 +246,9 @@ export default function SolicitarCursos() {
   };
   const handleCloseModal=()=>{
     setModalOpen(false)
+    queryClient.invalidateQueries({ 
+  queryKey: ['registroProducer', user?.idRegistro] 
+})
     setSelectedCurso(null)
   }
   // --- MOTOR DE REGLAS (Lógica de filtrado para la lista) ---

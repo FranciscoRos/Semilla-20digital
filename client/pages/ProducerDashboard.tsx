@@ -10,13 +10,14 @@ import {
 import { useAuth } from "@/providers/authProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getParaTi } from "@/services/paraTiService"; 
-import { Notification } from "@/services/api";
+import { Apoyo, Notification } from "@/services/api";
 import { useProducerRegister } from "@/hooks/useRegisterProducer";
 import { getRegistro } from "@/services/registroService";
 import { getCursos } from "@/services/CursosService";
 import { getParcelasGeomapa } from "@/services/parcelasService";
 import { getUbicaciones } from "@/services/ubicacionEService";
 import PaginatorPages from "@/components/paginatorPages";
+import { getCategorias } from "@/services/useForo";
 
 const NotificationSkeleton = () => (
   <div className="flex gap-4 p-5 rounded-xl bg-gray-50 border-l-4 border-gray-200 animate-pulse">
@@ -193,12 +194,12 @@ const prefetchHover=(kind:string)=>{
         staleTime:commonStaleTime
       })
       break
-    /* case "foro":
+     case "foro":
       return queryClient.prefetchQuery({
-        queryKey: ['registroProducer', user?.idRegistro], 
-        queryFn: () => getRegistro(user?.idRegistro),
+        queryKey:["categorias"],
+        queryFn:()=>getCategorias(),
         staleTime:commonStaleTime      
-      }) */
+      }) 
     default:
       return
   }
@@ -511,7 +512,7 @@ const prefetchHover=(kind:string)=>{
                             <NotificationSkeleton />
                          ) : historialApoyos.length > 0 ? (
                           <div>
-                            {paginateApoyo.map((apoyo: any, idx: number) => (
+                            {paginateApoyo.slice().sort((a,b)=>new Date(a.fechaFinalizacion).getTime()-new Date(b.fechaFinalizacion).getTime()).map((apoyo: any, idx: number) => (
                                <div key={apoyo.idApoyo || idx} className="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/30 hover:bg-emerald-50 transition-colors group">
                                   <div className="flex justify-between items-start mb-2">
                                      <h4 className="font-bold text-emerald-900 text-lg pr-4">{apoyo.nombre_programa}</h4>
