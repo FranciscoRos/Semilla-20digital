@@ -296,7 +296,6 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* === ACTIVIDAD RECIENTE (1/3 del ancho) === */}
             <div className="xl:col-span-1">
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 h-full">
                     <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
